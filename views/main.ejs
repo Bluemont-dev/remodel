@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/stylesheets/cards.css">
+    <title>NoVa Remodeling Club</title>
+</head>
+<body>
+
+    <h1>Let's Play Cards</h1>
+
+    <ul id="messages"></ul>
+    <form action="">
+      <input id="m" autocomplete="off"><button>Send</button>
+    </form>
+
+ 
+<button id="requestDeal">Deal me 5 cards</button>
+
+<div id="containHand">
+    <span id="myHand">Nothing in your hand right now.</span>
+</div>
+  
+
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="/scripts/clientSocket.js"></script>
+
+
+<script>
+    let myHand = document.querySelector("#myHand");
+    alert(myHand);
+</script>
+
+
+</body>
+</html>

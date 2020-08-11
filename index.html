@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/stylesheets/cards.css">
+    <link rel="stylesheet" href="/stylesheets/styles.css">
+    <title>NoVa Remodeling Club</title>
+</head>
+<body>
+
+    <h1>Let's Play Cards</h1>
+
+    <div>
+        <p>All the cards include: <span id="remainingDeckDisplay"></span></p>
+    </div>
+
+
+<button id="requestDealButton">Deal me 5 cards</button>
+
+<div>
+    <p>Your hand includes: <span id="myCardsDisplay"></span></p>
+</div>
+
+
+<div id="chatMessages"></div>
+
+
+  
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="/scripts/clientSocket.js"></script>
+
+
+
+
+</body>
+</html>
