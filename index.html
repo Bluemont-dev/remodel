@@ -2,14 +2,87 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
     <link rel="stylesheet" href="/stylesheets/cards.css">
     <link rel="stylesheet" href="/stylesheets/styles.css">
     <title>NoVa Remodeling Club</title>
 </head>
 <body>
 
-    <h1>Let's Play Cards</h1>
+<!-- BEGIN NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Navbar</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+      
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+              <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Link</a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Dropdown
+              </a>
+              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href="#">Action</a>
+                <a class="dropdown-item" href="#">Another action</a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="#">Something else here</a>
+              </div>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+            </li>
+          </ul>
+          <form class="form-inline my-2 my-lg-0">
+            <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+          </form>
+        </div>
+      </nav>
+<!-- END NAVBAR -->
+
+<!-- START MAIN CONTAINER -->
+<div class="container-xl">
+
+    <div class="jumbotron jumbotron-fluid">
+        <div class="container">
+          <h1 class="display-4">The Good, The Bad, and the Ugly</h1>
+          <p class="lead">This is a modified jumbotron that occupies the entire horizontal space of its parent.</p>
+        </div>
+      </div>
+
+    <!-- START PLAYER 1 CONTAINER -->
+    <div id="player" class="container-fluid" >
+        <div class="card mb-3">
+            <div class="card-header">
+                Player 1: <span class="playerName"><strong>Joe</strong></span>
+              </div>
+            <div class="row no-gutters playerRow">
+              <div class="d-none d-md-block col-md-1">
+                <img src="/images/profiles/joe.jpg" class="card-img profilePhoto" alt="Joe">
+              </div>
+              <div class="col-xs-8 col-md-7">
+                <div class="card-body">
+                    <p class="hand" data-hand="flow: horizontal; cards: AH,KH,QH,3H,2H"></p>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <p>Betting buttons will go here.</p>
+              </div>
+             
+            </div>
+          </div>
+    </div>
+    <!-- END PLAYER 1 CONTAINER -->
+
+  
 
     <div>
         <p>All the cards include: <span id="remainingDeckDisplay"></span></p>
@@ -25,10 +98,12 @@
 
 <div id="chatMessages"></div>
 
-
+</div>
+<!-- END OF MAIN CONTAINER -->
   
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js" integrity="sha384-LtrjvnR4Twt/qOuYxE721u19sVFLVSA4hf/rRt6PrZTmiPltdZcI7q7PXQBYTKyf" crossorigin="anonymous"></script>
     <script src="/scripts/clientSocket.js"></script>
 
 

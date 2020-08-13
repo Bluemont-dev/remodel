@@ -5,3 +5,7 @@
 #myCardsDisplay{
     color: #000;
 }
+
+.playerRow{
+    align-items: center;
+}
