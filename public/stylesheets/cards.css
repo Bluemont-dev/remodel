@@ -1,7 +1,3 @@
-#containHand{
-	border: 1px solid black;
-}
-
 img.card {
 	width: 70px;
 	margin: 0;
@@ -23,7 +19,7 @@ img.card {
 }
 
 /*
- * A horizontal hand, class="hand hhand".  The entire card is visible.
+ * A horizontal hand, class="hand hhand".  The enitire card is visible.
  */
 .hhand {
 	display: inline-block; 
@@ -37,7 +33,7 @@ img.card {
 }
 
 /*
- * A vertical hand, class="hand vhand".  The entire card is visible.
+ * A vertical hand, class="hand vhand".  The enitire card is visible.
  */
 .vhand {
 	display: block; 
