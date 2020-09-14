@@ -3,16 +3,20 @@ const app       = express();
 const http      = require('http').createServer(app);
 const io        = require('socket.io')(http);
 const bodyParser 					= require("body-parser");
-// const	mongoose 					= require('mongoose');
-// const	passport					= require("passport");
-// const	LocalStrategy				= require("passport-local");
-// const	passportLocalMongoose		= require("passport-local-mongoose");
+const mongoose 					= require('mongoose');
+const passport					= require("passport");
+const LocalStrategy				= require("passport-local");
+const passportLocalMongoose		= require("passport-local-mongoose");
+
+if (process.env.NODE_ENV !== 'production') {
+  const dotenv    = require("dotenv");
+  dotenv.config();
+}
+// this should load the proper value for process.env.DATABASEURL);
+
 // const	User						= require("./models/user");
 // const	seedDB						= require("./seeds");
 // const	methodOverride				= require("method-override");
-
-
-
 
 app.set("view engine","ejs");
 app.use(bodyParser.urlencoded({extended: true}));
