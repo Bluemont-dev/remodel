@@ -1,0 +1,12 @@
+Photo credits for home page:
+
+<span>Photo by <a href="https://unsplash.com/@mparzuchowski?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Michał Parzuchowski</a> on <a href="https://unsplash.com/s/photos/poker-chips?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Unsplash</a></span>
+
+<span>Photo by <a href="https://unsplash.com/@radovan_be?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">radovan</a> on <a href="https://unsplash.com/s/photos/beer?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Unsplash</a></span>
+
+<span>Photo by <a href="https://unsplash.com/@alfwilliamsen?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Alf Williamsen</a> on <a href="https://unsplash.com/s/photos/music-memorabilia?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Unsplash</a></span>
+
+<span>Photo by <a href="https://unsplash.com/@themephotos?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Theme Photos</a> on <a href="https://unsplash.com/s/photos/pretzels?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Unsplash</a></span>
+
+<span>Photo by <a href="https://unsplash.com/@meganmarieee19?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Megan Ellis</a> on <a href="https://unsplash.com/s/photos/ballpark?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Unsplash</a></span>
+

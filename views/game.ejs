@@ -1,0 +1,67 @@
+
+<%- include("partials/header") %>
+
+<!-- START MAIN CONTAINER -->
+<div class="container-xl">
+
+    <div class="jumbotron jumbotron-fluid">
+        <div class="container">
+          <h1 class="display-4">The Good, The Bad, and the Ugly</h1>
+          <p class="lead">This is a modified jumbotron that occupies the entire horizontal space of its parent.</p>
+        </div>
+      </div>
+
+    <!-- START PLAYER 1 CONTAINER -->
+    <div id="player" class="container-fluid" >
+        <div class="card mb-3">
+            <div class="card-header">
+                Player 1: <span class="playerName"><strong>Joe</strong></span>
+              </div>
+            <div class="row no-gutters playerRow">
+              <div class="d-none d-md-block col-md-1">
+                <img src="/images/profiles/joe.jpg" class="card-img profilePhoto" alt="Joe">
+              </div>
+              <div class="col-xs-8 col-md-7">
+                <div class="card-body">
+                    <div class="cardSingle rounded"><img src="images/cards/10_of_clubs.png"></div>
+                    <div class="cardSingle rounded"><img src="images/cards/10_of_clubs.png"></div>
+                    <div class="cardSingle rounded"><img src="images/cards/10_of_clubs.png"></div>
+                    <div class="cardSingle rounded"><img src="images/cards/10_of_clubs.png"></div>
+                    <div class="cardSingle rounded"><img src="images/cards/10_of_clubs.png"></div>
+                    <div class="cardSingle rounded"><img src="images/cards/10_of_clubs.png"></div>
+                    <div class="cardSingle rounded"><img src="images/cards/10_of_clubs.png"></div>
+                    <div class="cardSingle rounded"><img src="images/cards/10_of_clubs.png"></div>
+                    <div class="cardSingle rounded"><img src="images/cards/10_of_clubs.png"></div>
+                    <div class="cardSingle rounded"><img src="images/cards/10_of_clubs.png"></div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <p>Betting buttons will go here.</p>
+              </div>
+             
+            </div>
+          </div>
+    </div>
+    <!-- END PLAYER 1 CONTAINER -->
+
+  
+
+    <div>
+        <p>All the cards include: <span id="remainingDeckDisplay"></span></p>
+    </div>
+
+
+<button id="requestDealButton">Deal me 5 cards</button>
+
+<div>
+    <p>Your hand includes: <span id="myCardsDisplay"></span></p>
+</div>
+
+
+<div id="chatMessages"></div>
+
+</div>
+<!-- END OF MAIN CONTAINER -->
+
+
+<%- include("partials/footer") %>
