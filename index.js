@@ -35,7 +35,7 @@ var allCards = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14];
 //ROUTES
 //==========
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
+    res.render("home");
   });
 
 
@@ -78,6 +78,13 @@ function message (userId, event, data) { //not being used at the moment
 //SERVER LISTENING
 //================
 
-http.listen(3000, () => {
-  console.log('listening on *:3000');
+// http.listen(3000, () => {
+//   console.log('listening on *:3000');
+// });
+
+const PORT = process.env.PORT || 3000;
+// with ||: 1st expression is always outputted. The 2nd expression only gets outputted if the 1st expression is falsy.
+// with &&: 1st expression is outputted if it's FALSY. The 2nd expression only get outputted if the 1st expression is truthy.
+app.listen(PORT, () => {
+    console.log(`Our app is running on port ${ PORT }`);
 });
