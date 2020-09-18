@@ -1,0 +1,51 @@
+
+<%- include("partials/header") %>
+
+<!-- START MAIN CONTAINER -->
+<div class="container-xl">
+
+    <h1>
+        Sign Up!
+    </h1>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-4">
+
+        <form action="/register" method="POST">
+            <div class="form-group">
+                <label for="username">Username <span class="text-muted">(use your email address)</span></label>
+                <input type="email" class="form-control" id="username" name="username" placeholder="you@example.com" required>
+                <small class="text-muted">We might use your email for future password resets, nothing more</small>
+            </div>
+            <div class="form-group">
+              <label for="firstName">First name</label>
+              <input type="text" class="form-control" id="firstName" name="firstName" required>
+            </div>
+            <div class="form-group">
+                <label for="lastInitial">Last initial</label>
+                <input type="text" class="form-control" id="lastInitial" name="lastInitial" required>
+              </div>        
+            <div class="form-group">
+              <label for="password">Create your password</label>
+              <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+            <div class="custom-control custom-checkbox passwordVisibilityToggle">
+                <input type="checkbox" class="custom-control-input" id="showPassword" name="showPassword">
+                <label class="custom-control-label" for="showPassword">Show password as you type</label>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>        
+
+
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+<!-- END OF MAIN CONTAINER -->
+
+
+<%- include("partials/footer") %>
