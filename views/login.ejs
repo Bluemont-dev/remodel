@@ -1,0 +1,38 @@
+
+<%- include("partials/header") %>
+
+<div class="container-xl">
+
+    <h1>
+        Log In
+    </h1>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-4">
+
+        <form action="/login" method="POST">
+            <div class="form-group">
+                <label for="username">Username <span class="text-muted">(use your email address)</span></label>
+                <input type="email" class="form-control" id="username" name="username" placeholder="you@example.com" required>
+            </div>        
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+            <div class="custom-control custom-checkbox passwordVisibilityToggle">
+                <input type="checkbox" class="custom-control-input" id="showPassword" name="showPassword">
+                <label class="custom-control-label" for="showPassword">Show password as you type</label>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>        
+
+    </div>
+  </div>
+</div>
+
+</div>
+<!-- END OF MAIN CONTAINER -->
+
+
+<%- include("partials/footer") %>

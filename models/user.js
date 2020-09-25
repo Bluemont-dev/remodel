@@ -8,7 +8,8 @@ const User = new Schema({
     lastInitial: String,
     profileImgPath: String,
     homeBackgroundImgPath: String,
-    socketID: String
+    socketID: String,
+    isHost: Boolean
   });
 User.plugin(passportLocalMongoose);
 module.exports = mongoose.model('User', User);

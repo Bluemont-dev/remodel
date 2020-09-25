@@ -1,0 +1,34 @@
+
+<%- include("partials/header") %>
+
+<!-- START MAIN CONTAINER -->
+<div class="container-xl">
+
+    <h1>
+        Looking for the Host
+    </h1>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-4">
+
+        <form action="/hostPrompt" method="POST">
+            <div class="form-group">
+               <label for="isHost_button">Are you tonight's host?</label>
+               <input type="submit" class="btn btn-primary" name="isHostButton" value="Yes">
+                <input type="submit" class="btn btn-primary" name="isHostButton" value="No">
+            </div> 
+          </form>       
+
+
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+<!-- END OF MAIN CONTAINER -->
+
+
+<%- include("partials/footer") %>

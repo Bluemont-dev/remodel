@@ -5,12 +5,19 @@ const passport					        = require("passport");
 const LocalStrategy				      = require("passport-local");
 const passportLocalMongoose		  = require("passport-local-mongoose");
 const User						          = require("./models/user");
+const middleware 	              = require ("./middleware/index");
+var myConfig                    = require ("./config"); // global variables available and changeable by all routes, I hope
 const flash						          = require("connect-flash");
+
+const indexRoutes					      = require("./routes/index");
+const gameRoutes					      = require("./routes/game");
 
 const app       = express();
 // const http      = require('http').createServer(app);
 //const io        = require('socket.io')(http);
 //const socket-server   = require("./socket-server") // this is a js file in the same directory as index.js
+
+
 
 
 if (process.env.NODE_ENV !== 'production') {
@@ -22,6 +29,13 @@ if (process.env.NODE_ENV !== 'production') {
 // const	seedDB						= require("./seeds"); //only needed if we want to seed the db for testing purposes
 // const	methodOverride				= require("method-override"); //maybe needed for form submits when we update/edit a record in the db
 
+
+//============
+//BRING IN LOCAL VARIABLES
+//=============
+app.locals.myVars = myConfig;
+// console.log ("All cards array:" + app.locals.myVars.allCards);
+// app.locals.myVars.allCards = [0,1,2];
 
 
 //============
@@ -39,14 +53,6 @@ app.use(require("express-session")({
 	saveUninitialized: false
 }));
 
-
-//==========
-//ARRAYS, BABY
-//============
-var allCards = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14];
-
-
-
 //===================
 //PASSPORT CONFIG
 //===================
@@ -54,40 +60,23 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-
-
 //==========
 //ROUTES
 //==========
-app.get('/', (req, res) => {
-    res.render("home");
-  });
-
-app.get('/register', (req,res) => {
-  res.render("register");
-});
-
-app.post("/register", function(req,res){
-	User.register(new User({
-    username: req.body.username,
-    firstName: req.body.firstName,
-    lastInitial: req.body.lastInitial
-  }), req.body.password, function(err,user){
-		if (err){
-          console.log(err.message);
-      		return res.render("register", {"error": err.message});
-			//note the "return" in the next line, which breaks out of this function, thus no need for "else"
-		}
-		// in next line, "local" refers to the strategy, so other values here could be Twitter, Facebook, Gmail, or other login strategies we offer the user
-		passport.authenticate("local")(req,res,function(){
-				//in this example we send user to the "campgrounds" page after successful authentication, but it could go anywhere
-      //req.flash("success", "Welcome, Yelpcamp, " + req.body.firstName);
-      res.send(req.body.firstName + ", you have successfully registered.")
-			//res.redirect("/somewhere"); // pseudo code here, but where we redirect to depends on whether we have a host, a night, etc.
-			});
-		
+app.use(function(req,res,next){
+	//this adds a middleware function to EVERY route
+	//also note: this block of code has to be ABOVE the code where we app.use the various external route js files, if any
+	res.locals.currentUser = req.user;
+  //the line above creates an object called currentUser, taken from the user object if logged in, and sends it to the rendered destination view
+  res.locals.error = req.flash("error");
+	res.locals.success = req.flash("success");
+	next();
+	//need the next statement, or else the route handling process is halted here in the middleware
 	});
-});
+
+app.use("/game", gameRoutes);
+app.use(indexRoutes);
+
 
 
 //===============
