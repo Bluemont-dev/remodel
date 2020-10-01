@@ -3,7 +3,12 @@ const router	= express.Router();
 
 const passport	= require("passport");
 
-const User 		= require ("../models/user");
+const User 		= require ("../models/user"),
+	  Night		= require ("../models/night"),
+	  middleware	= require ("../middleware");
+
+var myConfig    = require ("../config"); // global variables available and changeable by all routes, I hope
+
 
 
 //===========
@@ -11,7 +16,11 @@ const User 		= require ("../models/user");
 //===========
 
 router.get("/", function(req,res){
+	if (req.isAuthenticated()){
+	res.render("game");
+	} else {
 	res.render("home");
+	}
 });
 
 //===========

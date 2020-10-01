@@ -5,14 +5,19 @@ const 	express 					= require('express'),
 		LocalStrategy				= require("passport-local"),
 		passportLocalMongoose		= require("passport-local-mongoose"),
 		User						= require("./models/user"),
-		// Campground 					= require ("./models/campground"),
-		// Comment   					= require("./models/comment"),
-		// seedDB						= require("./seeds"),
-	  	methodOverride				= require("method-override"),
-	  	flash						= require("connect-flash");
+		Night						= require("./models/night"),
+		middleware 	              	= require ("./middleware/index");
 
-const  	indexRoutes					= require("./routes/index")
-        gameRoutes                  = require("./routes/game");
+		seedNightDB = 				require ("./routes/seedNight");
+	  	methodOverride				= require("method-override"),
+		  flash						= require("connect-flash");
+		  
+var myConfig                    	= require ("./config"); // global variables available and changeable by all routes, I hope
+var formatDistanceToNowStrict 		= require('date-fns/formatDistanceToNowStrict') // to check date "age" of most recent "night" record
+
+const  	indexRoutes					= require("./routes/index"),
+		gameRoutes                  = require("./routes/game"),
+		nightRoutes					= require("./routes/night");
 
 const	app 						= express();
 
@@ -20,6 +25,15 @@ if (process.env.NODE_ENV !== 'production') {
     const dotenv    = require("dotenv");
     dotenv.config();
   }
+
+//============
+//BRING IN LOCAL VARIABLES
+//=============
+app.locals.myConfig = myConfig;
+// console.log ("All cards array:" + app.locals.myConfig.allCards);
+// app.locals.myConfig.allCards = [0,1,2];
+
+
 
 app.use(require("express-session")({
 	secret: process.env.SESSION_SECRET,
@@ -64,6 +78,7 @@ app.use(function(req,res,next){
 // app.use("/campgrounds/:id/comments", commentRoutes);
 app.use(indexRoutes);
 app.use(gameRoutes);
+app.use(nightRoutes);
 
 
 
@@ -76,8 +91,7 @@ mongoose.connect(process.env.DATABASEURL, {
 	.then(() => console.log('Connected to DB!'))
 	.catch(error => console.log(error.message));
 
-//seedDB();
-//this function is pulled from the seedDB.js file, and it repopulates the database every time we run app.js. 
+seedNightDB(); // remove all records and replace with the test records in the seedNight file
 
 const PORT = process.env.PORT || 3000;
 // with ||: 1st expression is always outputted. The 2nd expression only gets outputted if the 1st expression is falsy.
@@ -85,3 +99,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Our app is running on port ${ PORT }`);
 });
+

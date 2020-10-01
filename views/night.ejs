@@ -1,0 +1,45 @@
+
+<%- include("partials/header") %>
+
+<!-- START MAIN CONTAINER -->
+<div class="container-xl">
+
+  <h1>
+      Set Up Tonight's Games
+  </h1>
+
+<div class="container">
+<div class="row">
+  <div class="col-md-4">
+
+      <form action="/night" method="POST">
+          <div class="form-group">
+            <label for="amtAnte">Ante <span class="text-muted">(in dollars)</span></label>
+            <input type="number" class="form-control" id="amtAnte" name="amtAnte" value="0.10" min="0.05" step="0.05" required>
+          </div>
+          <div class="form-group">
+            <label for="amtMaxOpen">Maximum Open <span class="text-muted">(in dollars)</span></label>
+            <input type="number" class="form-control" id="amtMaxOpen" name="amtMaxOpen" value="0.25" min="0.05" step="0.05" required>
+          </div>
+          <div class="form-group">
+            <label for="amtMaxRaise">Maximum Raise <span class="text-muted">(in dollars)</span></label>
+            <input type="number" class="form-control" id="amtMaxRaise" name="amtMaxRaise" value="0.25" min="0.05" step="0.05" required>
+          </div>
+          <div class="form-group">
+            <label for="amtBetIncrements">Minimum Bet Increment <span class="text-muted">(in dollars)</span></label>
+            <input type="number" class="form-control" id="amtBetIncrements" name="amtBetIncrements" value="0.05" min="0.05" step="0.05" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>        
+
+
+  </div>
+</div>
+</div>
+
+
+
+</div>
+<!-- END OF MAIN CONTAINER -->
+
+<%- include("partials/footer") %>
