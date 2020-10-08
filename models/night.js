@@ -1,6 +1,5 @@
 const   mongoose				    = require("mongoose"),
-        Schema                      = mongoose.Schema,
-	    passportLocalMongoose	    = require("passport-local-mongoose");
+        Schema                      = mongoose.Schema;
 
 const Night = new Schema({
 	  dateCreated: {type:Date, default: Date.now},

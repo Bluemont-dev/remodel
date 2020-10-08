@@ -5,6 +5,7 @@ const passport	= require("passport");
 
 const User 		= require ("../models/user"),
 	  Night		= require ("../models/night"),
+	  Player	= require("../models/player"),
 	  middleware	= require ("../middleware");
 
 var myConfig    = require ("../config"); // global variables available and changeable by all routes, I hope
@@ -38,9 +39,11 @@ router.post("/night", middleware.isLoggedIn, function(req,res){
 	//create a new night and save to DB
 	Night.create(newNight, function(err,newlyCreated){
 		if (err){
-			console.log(err); // but we need to clean this up with a flash message
+			req.flash("error","Could not save tonight's settings to the database. Please contact Bluemont for help.");
+			res.redirect("/game/wait");
 		} else {
 			myConfig.nightInProgress = true;
+			req.user.isHost = true;
 			// also need to populate players array with the host as player [0] but first we will need to define Player schema
 			//save night
 			newlyCreated.save();
@@ -60,13 +63,13 @@ router.post("/night", middleware.isLoggedIn, function(req,res){
 //homegrown middleware
 //=======================
 
-function isLoggedIn(req,res,next){
-	if (req.isAuthenticated()){
-		//continue on with the callback that follows this middleware call
-		return next();
-	}
-	//the next code only runs if the condition is false, i.e., req came from user who is not authenticated
-	res.redirect("/login");
-}
+// function isLoggedIn(req,res,next){
+// 	if (req.isAuthenticated()){
+// 		//continue on with the callback that follows this middleware call
+// 		return next();
+// 	}
+// 	//the next code only runs if the condition is false, i.e., req came from user who is not authenticated
+// 	res.redirect("/login");
+// }
 
 module.exports = router;

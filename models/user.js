@@ -11,5 +11,12 @@ const User = new Schema({
     socketID: String,
     isHost: Boolean
   });
+
+  User.methods.sayHello = function() {
+    console.log("Hello, my name is " + this.firstName);
+    // return this.name + 'TROLOLO';
+};
+
+
 User.plugin(passportLocalMongoose);
 module.exports = mongoose.model('User', User);

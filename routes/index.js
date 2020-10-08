@@ -5,6 +5,7 @@ const passport	= require("passport");
 
 const User 		= require ("../models/user"),
 	  Night		= require ("../models/night"),
+	  Player	= require("../models/player"),
 	  middleware	= require ("../middleware");
 
 var myConfig    = require ("../config"); // global variables available and changeable by all routes, I hope
@@ -94,13 +95,13 @@ router.get("/logout",function(req,res){
 //homegrown middleware
 //=======================
 
-function isLoggedIn(req,res,next){
-	if (req.isAuthenticated()){
-		//continue on with the callback that follows this middleware call
-		return next();
-	}
-	//the next code only runs if the condition is false, i.e., req came from user who is not authenticated
-	res.redirect("/login");
-}
+// function isLoggedIn(req,res,next){
+// 	if (req.isAuthenticated()){
+// 		//continue on with the callback that follows this middleware call
+// 		return next();
+// 	}
+// 	//the next code only runs if the condition is false, i.e., req came from user who is not authenticated
+// 	res.redirect("/login");
+// }
 
 module.exports = router;

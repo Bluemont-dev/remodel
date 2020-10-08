@@ -6,14 +6,14 @@ const 	express 					= require('express'),
 		passportLocalMongoose		= require("passport-local-mongoose"),
 		User						= require("./models/user"),
 		Night						= require("./models/night"),
-		middleware 	              	= require ("./middleware/index");
-
-		seedNightDB = 				require ("./routes/seedNight");
+		Player						= require("./models/player"),
+		middleware 	              	= require ("./middleware/index"),
+		seedNightDB = 				require ("./routes/seedNight"),
 	  	methodOverride				= require("method-override"),
-		  flash						= require("connect-flash");
+		flash						= require("connect-flash");
 		  
 var myConfig                    	= require ("./config"); // global variables available and changeable by all routes, I hope
-var formatDistanceToNowStrict 		= require('date-fns/formatDistanceToNowStrict') // to check date "age" of most recent "night" record
+var formatDistanceToNowStrict 		= require('date-fns/formatDistanceToNowStrict') // to check the age of most recent "night" record
 
 const  	indexRoutes					= require("./routes/index"),
 		gameRoutes                  = require("./routes/game"),
@@ -32,8 +32,6 @@ if (process.env.NODE_ENV !== 'production') {
 app.locals.myConfig = myConfig;
 // console.log ("All cards array:" + app.locals.myConfig.allCards);
 // app.locals.myConfig.allCards = [0,1,2];
-
-
 
 app.use(require("express-session")({
 	secret: process.env.SESSION_SECRET,
@@ -91,7 +89,7 @@ mongoose.connect(process.env.DATABASEURL, {
 	.then(() => console.log('Connected to DB!'))
 	.catch(error => console.log(error.message));
 
-seedNightDB(); // remove all records and replace with the test records in the seedNight file
+//seedNightDB(); // remove all records and replace with the test records in the seedNight file
 
 const PORT = process.env.PORT || 3000;
 // with ||: 1st expression is always outputted. The 2nd expression only gets outputted if the 1st expression is falsy.
