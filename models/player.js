@@ -2,7 +2,8 @@ const   mongoose				    = require("mongoose"),
         Schema                      = mongoose.Schema;
 
 const Player = new Schema({
-    user: {type:mongoose.Schema.Types.ObjectId, ref:"User"}, //this should incorporate by object reference
+    playerUser: {type:mongoose.Schema.Types.ObjectId, ref:"User"}, //this should incorporate by object reference
+    socketID: String,
     joinedNightDate: {type:Date, default: Date.now},
     balanceForNight: Number,
     inGame: Boolean,

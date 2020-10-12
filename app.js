@@ -17,9 +17,18 @@ var formatDistanceToNowStrict 		= require('date-fns/formatDistanceToNowStrict') 
 
 const  	indexRoutes					= require("./routes/index"),
 		gameRoutes                  = require("./routes/game"),
-		nightRoutes					= require("./routes/night");
+		nightRoutes					= require("./routes/night"),
+		playRoutes					= require("./routes/play");
 
 const	app 						= express();
+const	server 						= require('http').createServer(app);   //passed to http server
+const 	io 							= require('socket.io')(server);        //http server passed to socket.io
+
+io.on('connection', (socket) => {
+	socket.on('chat message', (msg) => {
+	  io.emit('chat message', msg);
+	});
+  });
 
 if (process.env.NODE_ENV !== 'production') {
     const dotenv    = require("dotenv");
@@ -77,6 +86,7 @@ app.use(function(req,res,next){
 app.use(indexRoutes);
 app.use(gameRoutes);
 app.use(nightRoutes);
+app.use(playRoutes);
 
 
 
@@ -94,7 +104,7 @@ mongoose.connect(process.env.DATABASEURL, {
 const PORT = process.env.PORT || 3000;
 // with ||: 1st expression is always outputted. The 2nd expression only gets outputted if the 1st expression is falsy.
 // with &&: 1st expression is outputted if it's FALSY. The 2nd expression only get outputted if the 1st expression is truthy.
-app.listen(PORT, () => {
+server.listen(PORT, () => { // previously was app.listen, in case this change breaks something
     console.log(`Our app is running on port ${ PORT }`);
 });
 

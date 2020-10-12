@@ -21,11 +21,12 @@ myCardsDisplay.textContent = "Not much, buddy";
 //===============
 
 socket.on('connect', function connectUser () {  // Called whenever a user connects
-    // alert("Your socket ID is "+ socket.id);
-    let userId = socket.id  // Retrieve userId
-    // alert("Your userId is " + userId);
-    if (!userId) return;
-    socket.emit('iAmConnected', userId);
+//emit a message to the socket server and pass the currentUser._id and  socket.id as arguments
+
+    let socketID = socket.id;
+    if (!socketID) return;
+    alert("Your userId is " + currentUser._id + "and your socketID is " + socketID);
+    socket.emit('iAmConnected', currentUser._id, socketID);
 });
 
 

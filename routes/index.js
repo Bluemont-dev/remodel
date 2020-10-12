@@ -34,6 +34,8 @@ router.get("/testHeaders", function(req,res){
 
 
 
+
+
 //==============
 // AUTH ROUTES
 //==============
@@ -50,7 +52,6 @@ router.post("/register", function(req,res){
 		firstName: req.body.firstName,
 		lastInitial: req.body.lastInitial,
 		homeBackgroundImgPath: "",
-		socketID: "",
 		isHost: false
 	}), req.body.password, function(err,user){
 		if (err){
@@ -89,19 +90,5 @@ router.get("/logout",function(req,res){
 	req.flash("success","You have successfully logged out.");
 	res.redirect("/");
 });
-
-
-//=======================
-//homegrown middleware
-//=======================
-
-// function isLoggedIn(req,res,next){
-// 	if (req.isAuthenticated()){
-// 		//continue on with the callback that follows this middleware call
-// 		return next();
-// 	}
-// 	//the next code only runs if the condition is false, i.e., req came from user who is not authenticated
-// 	res.redirect("/login");
-// }
 
 module.exports = router;

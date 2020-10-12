@@ -21,7 +21,7 @@ router.post("/night", middleware.isLoggedIn, function(req,res){
 	//because even though the form to submit a Night is password-protected, folks could still use a tool like Postman to submit malicious campgrounds
 	//get data from form and use it it create a new Night object
 	let hostID = req.user._id;
-	let players = [];
+	let tonightPlayers = [];
 	let games = [];
     let amtAnte = req.body.amtAnte;
     let amtMaxOpen = req.body.amtMaxOpen;
@@ -29,7 +29,7 @@ router.post("/night", middleware.isLoggedIn, function(req,res){
 	let amtBetIncrements = req.body.amtBetIncrements;
 	let newNight = {
 		hostID:hostID,
-		players:players,
+		tonightPlayers:tonightPlayers,
 		games:games,
 		amtAnte:amtAnte,
 		amtMaxOpen:amtMaxOpen,
@@ -55,21 +55,5 @@ router.post("/night", middleware.isLoggedIn, function(req,res){
 
 });
 
-
-
-
-
-//=======================
-//homegrown middleware
-//=======================
-
-// function isLoggedIn(req,res,next){
-// 	if (req.isAuthenticated()){
-// 		//continue on with the callback that follows this middleware call
-// 		return next();
-// 	}
-// 	//the next code only runs if the condition is false, i.e., req came from user who is not authenticated
-// 	res.redirect("/login");
-// }
 
 module.exports = router;

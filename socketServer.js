@@ -1,3 +1,16 @@
+const express	= require("express");
+const	app 	= express();
+const http      = require('http').createServer(app);
+const io        = require('socket.io')(http);
+
+const User 		= require ("./models/user"),
+	  Night		= require ("./models/night"),
+	  Player	= require("./models/player"),
+	  middleware	= require ("./middleware");
+
+var myConfig    = require ("./config"); // global variables available and changeable by all routes, I hope
+
+const socketServer = {};
 
 //==========
 //SOCKET SERVER LOGIC
@@ -10,7 +23,18 @@ io.on('connection', (socket) => {
  //     io.emit('chat message', msg);
  //   });
  
-   socket.on('iAmConnected', (userId) => {
+   socket.on('iAmConnected', (userID,socketID) => {
+
+//loop thru tonight's player array until you find the one with a user ID that matches passed userID
+
+
+//fully expand or populate the player element with full details of the user object
+
+
+//save tonight object to the database
+
+//emit a drawPlayers function or something that will include the full array of the players joined thus far
+
        io.emit('chat message',"We welcome User "+ userId);
        io.emit("allCards update", allCards);
    } );
@@ -38,4 +62,4 @@ io.on('connection', (socket) => {
 //FINAL EXPORT
 //==============
 
-module.exports = socket-server; 
+module.exports = socketServer;

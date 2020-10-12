@@ -4,7 +4,7 @@ const   mongoose				    = require("mongoose"),
 const Night = new Schema({
 	  dateCreated: {type:Date, default: Date.now},
     hostID: String,
-    players: [],
+    tonightPlayers: [{ type:mongoose.Schema.Types.ObjectId, ref: 'Player' }],
     games: [],
     amtAnte: Number,
     amtMaxOpen: Number,

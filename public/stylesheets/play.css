@@ -1,0 +1,7 @@
+.playerArea{
+    border: 1px solid black;
+}
+
+#playersRow2 {
+    display: none;
+}

@@ -13,9 +13,9 @@ const indexRoutes					      = require("./routes/index");
 const gameRoutes					      = require("./routes/game");
 
 const app       = express();
-// const http      = require('http').createServer(app);
-//const io        = require('socket.io')(http);
-//const socket-server   = require("./socket-server") // this is a js file in the same directory as index.js
+const http      = require('http').createServer(app);
+const io        = require('socket.io')(http);
+const socketServer   = require("./socketServer"); // this is a js file in the same directory as index.js
 
 
 

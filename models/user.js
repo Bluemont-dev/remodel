@@ -8,7 +8,6 @@ const User = new Schema({
     lastInitial: String,
     profileImgPath: String,
     homeBackgroundImgPath: String,
-    socketID: String,
     isHost: Boolean
   });
 

@@ -1,0 +1,54 @@
+<%- include("partials/header") %>
+<link rel="stylesheet" href="/stylesheets/play.css" type="text/css">
+
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+//   const socket = io("http://localhost:3000");
+  const socket = io();
+  socket.on("message-from-server-to-client", function(msg) {
+      document.getElementById('message').innerHTML = msg;
+  });
+  socket.emit('message-from-client-to-server', 'Hello World!');
+</script>
+
+
+<!-- START MAIN CONTAINER -->
+<div class="container-xl">
+
+    <div class="jumbotron jumbotron-fluid">
+        <div class="container">
+          <h1 class="display-4">The Good, The Bad, and the Ugly</h1>
+          <p class="lead">This is a modified jumbotron that occupies the entire horizontal space of its parent.</p>
+        </div>
+      </div>
+
+
+<!-- START CONTAINER FOR ALL PLAYERS -->
+      <div class="container-fluid">
+        <div class=" playerRow row flex-row justify-content-center" id="playersRow1">
+          <div class="col col-12 col-md-3 playerArea" id="player1Area">Player 1: <%= tonight.tonightPlayers[0].playerUser.firstName %></div>
+          <% if (tonight.tonightPlayers.length>1){ %>
+          <div class="col col-12 col-md-3 playerArea" id="player2Area">Player 2: <%= tonight.tonightPlayers[1].playerUser.firstName %></div>
+          <% }  %>
+          <% if (tonight.tonightPlayers.length>2){ %>
+          <div class="col col-12 col-md-3 playerArea" id="player3Area">Player 3: <%= tonight.tonightPlayers[2].playerUser.firstName %></div>
+          <% }  %>
+        </div>
+        <div class="playerRow row flex-row-reverse justify-content-center" id="playersRow2">
+        </div>
+      </div>
+<!-- END CONTAINER FOR ALL PLAYERS -->
+
+
+
+
+<div id="chatMessages"></div>
+
+</div>
+<!-- END OF MAIN CONTAINER -->
+
+<p>Socket.io Hello World client started!</p>
+<p id="message"></p>
+
+<%- include("partials/footer") %>
