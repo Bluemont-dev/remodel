@@ -8,7 +8,7 @@ const 	express 					= require('express'),
 		Night						= require("./models/night"),
 		Player						= require("./models/player"),
 		middleware 	              	= require ("./middleware/index"),
-		seedNightDB = 				require ("./routes/seedNight"),
+		seedNightDB 				= require ("./routes/seedNight"),
 	  	methodOverride				= require("method-override"),
 		flash						= require("connect-flash");
 		  
@@ -24,11 +24,8 @@ const	app 						= express();
 const	server 						= require('http').createServer(app);   //passed to http server
 const 	io 							= require('socket.io')(server);        //http server passed to socket.io
 
-io.on('connection', (socket) => {
-	socket.on('chat message', (msg) => {
-	  io.emit('chat message', msg);
-	});
-  });
+
+
 
 if (process.env.NODE_ENV !== 'production') {
     const dotenv    = require("dotenv");
@@ -108,3 +105,57 @@ server.listen(PORT, () => { // previously was app.listen, in case this change br
     console.log(`Our app is running on port ${ PORT }`);
 });
 
+//=========================
+//======SOCKET SERVER LOGIC
+//=========================
+
+io.on('connection', (socket) => {
+
+	console.log('a user connected');
+
+    socket.on('iAmConnected', (myConnectObject) => {
+		// console.log("Client emitted user ID  " + myConnectObject.userID);
+		// console.log("Client emitted socket ID " + myConnectObject.socketID);
+		// console.log("Client emitted tonight ID  " + myConnectObject.tonightID);
+		//load the tonight object from database, populating players
+		Night.findById(myConnectObject.tonightID).
+			populate({
+				path: 'tonightPlayers',
+				// Now populate the 'user' data for each player
+				populate: { path: 'playerUser' }
+			}).
+			exec(function (err, tonight) {
+				if (err || !tonight){ //any random ID with proper number of characters can get a null return, not object but also not error, from MongoDB
+					req.flash("error","Could not find the data to load a game with that ID number for tonight. Please contact the host offline.");
+					res.redirect("/game/wait");
+				} else { //success in database lookup of tonight ID
+					console.log("Length of players array is " + tonight.tonightPlayers.length);
+					//loop thru tonight's player array until you find the one with a user ID that matches passed userID
+					for (let i=0; i<tonight.tonightPlayers.length; i++){
+						console.log("checking element " + i + " in players array. Player name is " + tonight.tonightPlayers[i].playerUser.firstName);
+						if (tonight.tonightPlayers[i].playerUser.id===myConnectObject.userID){
+					        //we have a match
+							tonight.tonightPlayers[i].socketID = myConnectObject.socketID; //add the socketID from newly connected player to the tonight DB record
+							tonight.tonightPlayers[i].save(); //save the player to the DB, not the night!!
+							io.emit('status update',"We welcome " + tonight.tonightPlayers[i].playerUser.firstName + " to the game.");
+							io.emit('render new player for all', tonight.tonightPlayers[i].playerUser); //send newly added player's user object to every client
+					        break;
+					    } else {
+							if (i===tonight.tonightPlayers.length-1){
+								console.log("Sorry, could not find " + myConnectObject.userID + " in the players array."); // have looped all the way thru the array
+							}
+						}
+					}
+				}
+			});
+    });
+
+
+	socket.on('chat message', (msg) => {
+		io.emit('chat message', msg);
+    });
+
+	socket.on('disconnect', () => {
+        console.log('a user disconnected');
+    });
+});

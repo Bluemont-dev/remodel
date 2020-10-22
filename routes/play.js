@@ -13,11 +13,8 @@ const path = require('path');
 const	server 						= require('http').createServer(router);   //passed to http server
 const 	io 							= require('socket.io')(server);        //http server passed to socket.io
 
-io.on('connection', (socket) => {
-	socket.on('chat message', (msg) => {
-	  io.emit('chat message', msg);
-	});
-  });
+
+
 
   //==========
   //SOCKET TEST ROUTE

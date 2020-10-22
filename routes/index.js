@@ -25,15 +25,19 @@ router.get("/", function(req,res){
 });
 
 //===========
-// TEST ROUTE
+// ASPI ROUTES, using JSON to deliver data when requested by client-side JS
 //===========
 
-router.get("/testHeaders", function(req,res){
-	res.render("testHeaders");
+router.get('/api/user_data', function(req, res) {
+	if (req.user === undefined) {
+		// The user is not logged in
+		res.json({});
+	} else {
+		res.json({
+			currentUser: req.user
+		});
+	}
 });
-
-
-
 
 
 //==============

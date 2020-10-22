@@ -3,52 +3,131 @@
 
 
 <script src="/socket.io/socket.io.js"></script>
-<script>
-//   const socket = io("http://localhost:3000");
-  const socket = io();
-  socket.on("message-from-server-to-client", function(msg) {
-      document.getElementById('message').innerHTML = msg;
-  });
-  socket.emit('message-from-client-to-server', 'Hello World!');
-</script>
 
 
 <!-- START MAIN CONTAINER -->
-<div class="container-xl">
+<div class="container-fluid">
 
     <div class="jumbotron jumbotron-fluid">
         <div class="container">
           <h1 class="display-4">The Good, The Bad, and the Ugly</h1>
           <p class="lead">This is a modified jumbotron that occupies the entire horizontal space of its parent.</p>
         </div>
-      </div>
+    </div>
 
 
 <!-- START CONTAINER FOR ALL PLAYERS -->
-      <div class="container-fluid">
+
+        <!-- START playersRow1 -->
         <div class=" playerRow row flex-row justify-content-center" id="playersRow1">
-          <div class="col col-12 col-md-3 playerArea" id="player1Area">Player 1: <%= tonight.tonightPlayers[0].playerUser.firstName %></div>
+          <% if (tonight.tonightPlayers.length>0){ %>
+          <div class="col col-12 col-md-3 playerArea" id="player1Area">
+            <p>Player 1: <%= tonight.tonightPlayers[0].playerUser.firstName %></p>
+            <div class="card-body rowOfCards">
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+            </div>
+          </div>
+          <% }  %>
           <% if (tonight.tonightPlayers.length>1){ %>
-          <div class="col col-12 col-md-3 playerArea" id="player2Area">Player 2: <%= tonight.tonightPlayers[1].playerUser.firstName %></div>
+          <div class="col col-12 col-md-3 playerArea" id="player2Area">
+            <p>Player 2: <%= tonight.tonightPlayers[1].playerUser.firstName %></p>
+            <div class="card-body rowOfCards">
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+            </div>
+          </div>
           <% }  %>
           <% if (tonight.tonightPlayers.length>2){ %>
-          <div class="col col-12 col-md-3 playerArea" id="player3Area">Player 3: <%= tonight.tonightPlayers[2].playerUser.firstName %></div>
-          <% }  %>
+          <div class="col col-12 col-md-3 playerArea" id="player3Area">
+            <p>Player 3: <%= tonight.tonightPlayers[2].playerUser.firstName %></p>
+            <div class="card-body rowOfCards">
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+            </div>
+          </div>
+          <% }  %>          
+          <% if (tonight.tonightPlayers.length>3){ %>
+            <div class="col col-12 col-md-3 playerArea" id="player4Area">
+              <p>Player 4: <%= tonight.tonightPlayers[3].playerUser.firstName %></p>
+              <div class="card-body rowOfCards">
+                <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+                <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+                <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+                <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+                <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+                <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+                <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+                <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+                <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+                <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+              </div>
+            </div>
+            <% }  %>
+        </div> 
+        <!-- END playersRow1 -->
+
+        <!-- START playersRow2 -->
+        <div class="playerRow row flex-row-reverse justify-content-center" id="playersRow2"> 
         </div>
-        <div class="playerRow row flex-row-reverse justify-content-center" id="playersRow2">
-        </div>
-      </div>
+        <!-- END playersRow2 -->
+
 <!-- END CONTAINER FOR ALL PLAYERS -->
 
+<!-- START COLLAPSIBLE CHAT MESSAGES CARD-->
+<div class="accordion" id="chatMessagesAccordion">
+  <div class="card text-center">
+    <div class="card-header" id="chatMessagesHeader">
+      <h2 class="mb-0">
+        <button class="btn btn-link btn-block text-center" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+          Show/Hide
+        </button>
+      </h2>
+    </div>
+    <div id="collapseOne" class="collapse show" aria-labelledby="chatMessagesHeader" data-parent="#chatMessagesAccordion">
+      <div class="card-body">
+        <ul id="statusUpdates"><li>Status updates will appear here.</li></ul>
+        <ul id="chatMessages"><li>Chat messages will appear here.</li></ul>
+        <form id="chatForm" action="">
+          <input type="text" id="chatInput" autocomplete="off">
+          <button>Send</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- END COLLAPSIBLE CHAT MESSAGES CARD-->
 
 
 
-<div id="chatMessages"></div>
 
 </div>
 <!-- END OF MAIN CONTAINER -->
 
-<p>Socket.io Hello World client started!</p>
-<p id="message"></p>
+<script src="/scripts/clientSocket.js"></script>
 
 <%- include("partials/footer") %>

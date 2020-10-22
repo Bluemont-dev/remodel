@@ -2,6 +2,48 @@
     border: 1px solid black;
 }
 
+.rowOfCards {
+    display: inline;
+}
+
+.rowOfCards div {
+    background-color: white;
+}
+
+.rowOfCards div:nth-child(2) {
+    margin-left: -86px;
+}
+
+.rowOfCards div:nth-child(3) {
+    margin-left: -86px;
+}
+.rowOfCards div:nth-child(4) {
+    margin-left: -86px;
+}
+.rowOfCards div:nth-child(5) {
+    margin-left: -86px;
+}
+.rowOfCards div:nth-child(6) {
+    margin-left: -86px;
+}
+.rowOfCards div:nth-child(7) {
+    margin-left: -86px;
+}
+.rowOfCards div:nth-child(8) {
+    margin-left: -86px;
+}
+.rowOfCards div:nth-child(9) {
+    margin-left: -86px;
+}
+.rowOfCards div:nth-child(10) {
+    margin-left: -86px;
+}
+
+
 #playersRow2 {
     display: none;
+}
+
+#statusUpdates {
+    background-color: #ffff87;
 }

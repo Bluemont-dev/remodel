@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="../public/stylesheets/styles.css">
+    <link rel="stylesheet" href="../public//stylesheets/play.css">
+    <title>NoVa Remodeling Club</title>
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">Navbar</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+  
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Link</a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Dropdown
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <a class="dropdown-item" href="#">Action</a>
+            <a class="dropdown-item" href="#">Another action</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="#">Something else here</a>
+          </div>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+        </li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+				<% if (!currentUser){ %>
+				<li><a href="/login">Log In</a></li>
+				<li><a href="/register">Sign Up</a></li>
+				<% } else { %>
+				<li><a href="#">Signed in as <%= currentUser.username %></a></li>
+				<li><a href="/logout">Log Out</a></li>
+				<% }  %>
+			</ul>
+      <!-- <form class="form-inline my-2 my-lg-0">
+        <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+      </form> -->
+    </div>
+  </nav>
+    
+  <%# flash messages from connect-flash %>
+  <div class="container">
+    <% if(error && error.length>0){ %>
+      <div class="alert alert-danger" role="alert">
+        <%= error %>
+      </div>		
+    <% } %>
+  
+    <% if(success && success.length>0){ %>
+      <div class="alert alert-success" role="alert">
+        <%= success %>
+      </div>		
+    <% } %>
+  
+  </div>
+<link rel="stylesheet" href="/stylesheets/play.css" type="text/css">
+
+
+
+<!-- START MAIN CONTAINER -->
+<div class="container-fluid">
+
+    <div class="jumbotron jumbotron-fluid">
+        <div class="container">
+          <h1 class="display-4">The Good, The Bad, and the Ugly</h1>
+          <p class="lead">This is a modified jumbotron that occupies the entire horizontal space of its parent.</p>
+        </div>
+    </div>
+
+
+<!-- START CONTAINER FOR ALL PLAYERS -->
+
+        <!-- START playersRow1 -->
+        <div class=" playerRow row flex-row justify-content-center" id="playersRow1">
+          <div class="col col-12 col-md-3 playerArea" id="player1Area">
+            <p>Player 1: Jan Monday</p>
+            <div class="card-body rowOfCards">
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+            </div>
+          </div>
+          <div class="col col-12 col-md-3 playerArea" id="player2Area">
+            <p>Player 2: Feb Tuesday</p>
+            <div class="card-body rowOfCards">
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+            </div>
+          </div>
+          <div class="col col-12 col-md-3 playerArea" id="player3Area">
+            <p>Player 3: Marty Wednesday</p>
+            <div class="card-body rowOfCards">
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+            </div>
+          </div>
+        </div> 
+        <!-- END playersRow1 -->
+
+        <!-- START playersRow2 -->
+        <div class="playerRow row flex-row-reverse justify-content-center" id="playersRow2"> 
+            <div class="col col-12 col-md-3 playerArea" id="player4Area">
+                <p>Player 4: April Thursday</p>
+                <div class="card-body rowOfCards">
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                </div>
+              </div>
+            <div class="col col-12 col-md-3 playerArea" id="player5Area">
+                <p>Player 5: May Friday</p>
+                <div class="card-body rowOfCards">
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                </div>
+              </div>
+              <div class="col col-12 col-md-3 playerArea" id="player6Area">
+                <p>Player 6: June Saturday</p>
+                <div class="card-body rowOfCards">
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                </div>
+              </div>
+              <div class="col col-12 col-md-3 playerArea" id="player5Area">
+                <p>Player 7: Julie Sunday</p>
+                <div class="card-body rowOfCards">
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                  <div class="cardSingle rounded"><img src="../public/images/cards/10_of_clubs.png"></div>
+                </div>
+              </div>
+        </div>
+        <!-- END playersRow2 -->
+
+<!-- END CONTAINER FOR ALL PLAYERS -->
+
+<!-- START COLLAPSIBLE CHAT MESSAGES CARD-->
+<div class="accordion" id="chatMessagesAccordion">
+  <div class="card text-center">
+    <div class="card-header" id="chatMessagesHeader">
+      <h2 class="mb-0">
+        <button class="btn btn-link btn-block text-center" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+          Show/Hide
+        </button>
+      </h2>
+    </div>
+    <div id="collapseOne" class="collapse show" aria-labelledby="chatMessagesHeader" data-parent="#chatMessagesAccordion">
+      <div class="card-body">
+        <ul id="statusUpdates"><li>Status updates will appear here.</li></ul>
+        <ul id="chatMessages"><li>Chat messages will appear here.</li></ul>
+        <form id="chatForm" action="">
+          <input type="text" id="chatInput" autocomplete="off">
+          <button>Send</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- END COLLAPSIBLE CHAT MESSAGES CARD-->
+
+
+
+
+</div>
+<!-- END OF MAIN CONTAINER -->
+
+  
+    <!-- <script src="/socket.io/socket.io.js"></script> -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js" integrity="sha384-LtrjvnR4Twt/qOuYxE721u19sVFLVSA4hf/rRt6PrZTmiPltdZcI7q7PXQBYTKyf" crossorigin="anonymous"></script>
+    <script src="/scripts/extras.js"></script>
+
+</body>
+</html>
