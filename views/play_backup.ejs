@@ -20,8 +20,6 @@
 
         <!-- START playersRow1 -->
         <div class=" playerRow row flex-row justify-content-center" id="playersRow1">
-                  <!-- START playersRow1 -->
-        <div class=" playerRow row flex-row justify-content-center" id="playersRow1">
           <% if (tonight.tonightPlayers.length>0){ %>
           <div class="col col-12 col-md-3 playerArea" id="player1Area">
             <p>Player 1: <%= tonight.tonightPlayers[0].playerUser.firstName %></p>
@@ -73,14 +71,6 @@
             </div>
           </div>
           <% }  %>          
-
-        </div> 
-        <!-- END playersRow1 -->
-        </div> 
-        <!-- END playersRow1 -->
-
-        <!-- START playersRow2 -->
-        <div class="playerRow row flex-row-reverse justify-content-center" id="playersRow2"> 
           <% if (tonight.tonightPlayers.length>3){ %>
             <div class="col col-12 col-md-3 playerArea" id="player4Area">
               <p>Player 4: <%= tonight.tonightPlayers[3].playerUser.firstName %></p>
@@ -98,57 +88,11 @@
               </div>
             </div>
             <% }  %>
-            <% if (tonight.tonightPlayers.length>4){ %>
-              <div class="col col-12 col-md-3 playerArea" id="player4Area">
-                <p>Player 4: <%= tonight.tonightPlayers[4].playerUser.firstName %></p>
-                <div class="card-body rowOfCards">
-                  <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                  <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                  <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                  <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                  <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                  <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                  <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                  <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                  <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                  <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                </div>
-              </div>
-              <% }  %>
-              <% if (tonight.tonightPlayers.length>5){ %>
-                <div class="col col-12 col-md-3 playerArea" id="player4Area">
-                  <p>Player 4: <%= tonight.tonightPlayers[5].playerUser.firstName %></p>
-                  <div class="card-body rowOfCards">
-                    <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                    <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                    <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                    <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                    <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                    <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                    <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                    <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                    <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                    <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                  </div>
-                </div>
-                <% }  %>
-                <% if (tonight.tonightPlayers.length>6){ %>
-                  <div class="col col-12 col-md-3 playerArea" id="player4Area">
-                    <p>Player 4: <%= tonight.tonightPlayers[6].playerUser.firstName %></p>
-                    <div class="card-body rowOfCards">
-                      <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                      <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                      <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                      <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                      <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                      <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                      <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                      <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                      <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                      <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-                    </div>
-                  </div>
-                  <% }  %>
+        </div> 
+        <!-- END playersRow1 -->
+
+        <!-- START playersRow2 -->
+        <div class="playerRow row flex-row-reverse justify-content-center" id="playersRow2"> 
         </div>
         <!-- END playersRow2 -->
 
