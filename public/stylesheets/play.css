@@ -1,3 +1,8 @@
+#bettingDisplayList li{
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
 .playerArea{
     border: 1px solid black;
 }
@@ -10,35 +15,39 @@
     background-color: white;
 }
 
-.rowOfCards div:nth-child(2) {
+.rowOfCards div:not(:nth-child(1)){
     margin-left: -86px;
 }
 
-.rowOfCards div:nth-child(3) {
-    margin-left: -86px;
-}
-.rowOfCards div:nth-child(4) {
-    margin-left: -86px;
-}
-.rowOfCards div:nth-child(5) {
-    margin-left: -86px;
-}
-.rowOfCards div:nth-child(6) {
-    margin-left: -86px;
-}
-.rowOfCards div:nth-child(7) {
-    margin-left: -86px;
-}
-.rowOfCards div:nth-child(8) {
-    margin-left: -86px;
-}
-.rowOfCards div:nth-child(9) {
-    margin-left: -86px;
-}
-.rowOfCards div:nth-child(10) {
-    margin-left: -86px;
+
+.pile {
+    display: inline;
 }
 
+.pile div {
+    background-color: white;
+}
+
+.pile div:not(:nth-child(1)){
+    margin-left: -110px;
+}
+
+#dealPile {
+    margin-left: 30%;
+}
+
+.cardSingle{
+    width: 111px;
+    height: 162px;
+    border: solid black 1px;
+    padding: 3px;
+    display: inline-block;
+}
+
+.cardSingle img{
+    width: 100%;
+    height: auto;
+}
 
 #playersRow2 {
     display: none;

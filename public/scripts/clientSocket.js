@@ -93,35 +93,37 @@ socket.on('render new player for all', function (newPlayerUser){
   //load my user data via the API
   getAPIData('/api/user_data')
   .then ((returnedAPIData) => {
-    let playerDivsCount = document.querySelectorAll('.playerArea').length; //get the count of existing player areas
-    let playersRow1 = document.querySelector('#playersRow1');
-    let playersRow2 = document.querySelector('#playersRow2');
-    let targetPlayerRow = 0;
-    targetPlayerRow = (playerDivsCount<3) ? 1 : 2; // ternary operator here, players 4-7 get added to second row
-    console.log("Player divs so far: " + playerDivsCount);
-    console.log("Target player row: " + targetPlayerRow);
-    //create a God-awful string of HTML
-    let insertableHTML = `<div class="col col-12 col-md-3 playerArea" id="player${playerDivsCount+1}Area">
-    <p>Player ${playerDivsCount+1}: ${newPlayerUser.firstName}</p>
-    <div class="card-body rowOfCards">
-      <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-      <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-      <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-      <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-      <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-      <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-      <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-      <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-      <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-      <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-    </div>
-  </div>`;
-    //now append that HTML into the targeted row
-    if (targetPlayerRow===1){
-      playersRow1.innerHTML += insertableHTML;
-    } else {
-      playersRow2.style.display="flex";
-      playersRow2.innerHTML += insertableHTML;
+    if (returnedAPIData.currentUser._id!==newPlayerUser._id){
+      let playerDivsCount = document.querySelectorAll('.playerArea').length; //get the count of existing player areas
+      let playersRow1 = document.querySelector('#playersRow1');
+      let playersRow2 = document.querySelector('#playersRow2');
+      let targetPlayerRow = 0;
+      targetPlayerRow = (playerDivsCount<3) ? 1 : 2; // ternary operator here, players 4-7 get added to second row
+      console.log("Player divs so far: " + playerDivsCount);
+      console.log("Target player row: " + targetPlayerRow);
+      //create a God-awful string of HTML
+      let insertableHTML = `<div class="col col-12 col-md-3 playerArea" id="player${playerDivsCount+1}Area">
+      <p>Player ${playerDivsCount+1}: ${newPlayerUser.firstName}</p>
+      <div class="card-body rowOfCards">
+        <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+        <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+        <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+        <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+        <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+        <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+        <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+        <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+        <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+        <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+      </div>
+    </div>`;
+      //now append that HTML into the targeted row
+      if (targetPlayerRow===1){
+        playersRow1.innerHTML += insertableHTML;
+      } else {
+        playersRow2.style.display="flex";
+        playersRow2.innerHTML += insertableHTML;
+      }
     }
   });
 });
