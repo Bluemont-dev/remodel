@@ -3,6 +3,90 @@
     padding-bottom: 2px;
 }
 
+#fullGameSettingsRow {
+    /* necessary to hide collapsed sidebar */
+    overflow-x: hidden;
+  }
+
+  #mainGameSettingsColumn {
+    /* for the animation */
+    transition: width 0.3s ease;
+  }
+
+#passCardsOptions{
+    display: none;
+}
+
+.passCardsExpander, #passCardsOptions, #noPeek {
+    background-color: #e9ecef;
+}
+
+.remodelExpander, #remodelOptions {
+    background-color: #87d7ff;
+}
+
+#remodelOptions{
+    display: none;
+}
+
+#playSequenceEditor {
+    /* for the animation */
+    transition: display 0.3s ease;
+  }
+  
+  .collapsed {
+    /* hide it for small displays*/
+    display: none;
+  }
+
+#playSequenceEditor ul{
+    list-style: none;
+    margin: 0;
+    padding-inline-start: 0px;
+}
+
+#playSequenceEditor li{
+    background: white;
+    height: 40px;
+    line-height: 40px;
+    padding: 2px;
+    color: #666;
+}
+
+#playSequenceEditor li:nth-child(2n){
+    background: #f7f7f7;
+}
+
+#playSequenceEditor .leftIcon{
+    background: #d9534f;
+    height: 36px;
+    width: 36px;
+    margin-right: 20px;
+    color: white;
+    text-align: center;
+    display: inline-block;
+}
+
+
+#playSequenceEditor .downIcon, .upIcon{
+    background: #0275d8;
+    height: 36px;
+    width: 36px;
+    margin-left: 1px;
+    margin-right: 1px;
+    float: right;
+    color: white;
+    text-align: center;
+}
+
+#playSequenceEditor li:nth-child(1) .upIcon{
+    visibility: hidden;
+}
+
+#playSequenceEditor li:last-child .downIcon{
+    visibility: hidden;
+}
+
 .playerArea{
     border: 1px solid black;
 }
@@ -29,16 +113,16 @@
 }
 
 .pile div:not(:nth-child(1)){
-    margin-left: -110px;
+    margin-left: -100px;
 }
 
 #dealPile {
-    margin-left: 30%;
+    margin-left: 20px;
 }
 
 .cardSingle{
     width: 111px;
-    height: 162px;
+    height: 158px;
     border: solid black 1px;
     padding: 3px;
     display: inline-block;

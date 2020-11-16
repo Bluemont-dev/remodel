@@ -56,6 +56,8 @@ router.get("/game/join", middleware.isLoggedIn, function(req,res){
 			if (tonightAgeString.includes("second") || tonightAgeString.includes("minute") || tonightAgeString.includes("hour")){
 				//this means the latest record is less than a day old, so we are good to proceed
 
+				myConfig.tonightID = tonight.id;
+
 					//create new Player from currentUser
 				let newPlayer = {
 					playerUser: req.user._id,

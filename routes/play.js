@@ -6,15 +6,14 @@ const passport	= require("passport");
 const User 		= require ("../models/user"),
 	  Night		= require ("../models/night"),
 	  Player	= require("../models/player"),
+	  Game		= require("../models/game"),
 	  middleware	= require ("../middleware");
 
 const path = require('path');
+const myConfig = require("../config");
 
 const	server 						= require('http').createServer(router);   //passed to http server
 const 	io 							= require('socket.io')(server);        //http server passed to socket.io
-
-
-
 
   //==========
   //SOCKET TEST ROUTE

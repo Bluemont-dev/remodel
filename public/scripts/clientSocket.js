@@ -105,16 +105,9 @@ socket.on('render new player for all', function (newPlayerUser){
       let insertableHTML = `<div class="col col-12 col-md-3 playerArea" id="player${playerDivsCount+1}Area">
       <p>Player ${playerDivsCount+1}: ${newPlayerUser.firstName}</p>
       <div class="card-body rowOfCards">
-        <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-        <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-        <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-        <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-        <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-        <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-        <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-        <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-        <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
-        <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
+        <div class="cardSingle rounded"><img src="../images/cards/as.png"></div>
+        <div class="cardSingle rounded"><img src="../images/cards/2s.png"></div>
+        <div class="cardSingle rounded"><img src="../images/cards/3s.png"></div>
       </div>
     </div>`;
       //now append that HTML into the targeted row
@@ -128,7 +121,13 @@ socket.on('render new player for all', function (newPlayerUser){
   });
 });
 
-
+socket.on('shuffle visual', function(){
+  let insertableHTML = `<div class="cardSingle rounded"><img src="../images/cards/back.png"></div>`;
+  let dealPile = document.querySelector('#dealPile');
+  for (let i=1;i<14;i++){
+    dealPile.innerHTML += insertableHTML;
+  }
+});
 
 
 
