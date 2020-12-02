@@ -60,7 +60,9 @@ myConfig.allCards = [
 myConfig.nightInProgress = false;
 myConfig.tonightID = "";
 myConfig.gameInProgress = false;
-myConfig.socketClients = {};
+myConfig.currentGame = {};
+myConfig.currentDealerIndex = 0;
+myConfig.currentDealerName = "";
 
 module.exports = myConfig;
 

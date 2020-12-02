@@ -1,5 +1,7 @@
 
-
+#navGameDropdown {
+    display: none;
+}
 
 
 .passwordVisibilityToggle {

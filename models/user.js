@@ -7,9 +7,13 @@ const User = new Schema({
     firstName: String,
     lastInitial: String,
     profileImgPath: String,
-    homeBackgroundImgPath: String,
-    isHost: Boolean
+    homeBackgroundImgPath: String
   });
+
+  User.virtual('fullName') // lets us derive the full name string as a property of the object, but it doesn't get stored in the DB, thus can't be queried
+.get(function() {
+    return `${this.firstName} ${this.lastInitial}`
+})
 
   User.methods.sayHello = function() {
     console.log("Hello, my name is " + this.firstName);

@@ -3,6 +3,11 @@
     padding-bottom: 2px;
 }
 
+#bettingColumn {
+    display: none;
+}
+
+
 #fullGameSettingsRow {
     /* necessary to hide collapsed sidebar */
     overflow-x: hidden;
@@ -89,6 +94,15 @@
 
 .playerArea{
     border: 1px solid black;
+}
+
+.playerNameRow,.playerWinningsRow{
+    border: 0 none;
+}
+
+.inGameStatus{
+    padding: 5px;
+    display: none;
 }
 
 .rowOfCards {

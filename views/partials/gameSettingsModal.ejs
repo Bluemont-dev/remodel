@@ -1,0 +1,149 @@
+<!-- START Vertically centered modal -->
+<div class="modal fade show" id="myModal" tabindex="-1" aria-labelledby="exampleModalCenterTitle" style="padding-right: 15px; display: none;" aria-modal="true" role="dialog">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title" id="exampleModalCenterTitle">Set up a new game</h4>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form name="gameSettings" onSubmit="return submitGame()" novalidate>
+  
+            <div class="row flex-row" id="fullGameSettingsRow">
+              <div class="col-md-12" id="mainGameSettingsColumn">
+                <div class="form-group">
+                  <label class="mr-2" for="gameName">Game name:</label>
+                  <select name="gameName" id="gameName">
+                    <option value="">--Choose--</option> 
+                    <!-- more options to be added via playClient.js -->
+                  </select>
+                </div>
+                <div class="form-group d-flex flex-row">
+                  <label class="mr-2" for="numCards">Number of cards dealt</label>
+                  <input type="number" class="form-control" id="numCards" name="numCards" value="7" min="5" max="7" step="1">
+                </div>
+                <div class="form-group">
+                  <div class="d-block my-3">
+                    <p class="mb-3"><strong>High-Low</strong></p>
+                    <div>
+                      <input type="radio" id="HighOnlyRadio" name="hilo" value="High Only" checked>
+                      <label for="HighOnlyRadio">High Only</label>
+                    </div>
+                    <div>
+                      <input type="radio" id="HighLowRadio" name="hilo" value="High-Low">
+                      <label for="HighLowRadio">High-Low</label>
+                    </div>
+                      <div>
+                      <input type="radio" id="LowOnlyRadio" name="hilo" value="Low Only">
+                      <label for="LowOnlyRadio">Low Only</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group d-flex flex-row mt-2">
+                  <label class="mr-2" for="whatsWild">What's wild:</label>
+                  <textarea id="whatsWild" name="whatsWild" rows="5" cols="33"></textarea>
+                </div>
+                <!-- next up: two expandable/collapsible sections with checkboxes for whether we remodel, and whether we pass cards-->
+                <!-- START pass cards subection -->
+                <div class="custom-control custom-checkbox passCardsExpander">
+                  <input type="checkbox" class="custom-control-input" id="passCardsTrue" name="passCardsTrue">
+                  <label class="custom-control-label" for="passCardsTrue">Pass cards?</label>
+                </div>
+                <div id="passCardsOptions">
+                  <div class="form-group d-flex flex-row pt-2">
+                    <label for="numCardsToPass">How many?</label>
+                    <input type="number" class="form-control" id="numCardsToPass" name="numCardsToPass" value="3" min="0" max="4" step="1">
+                  </div>
+                  <div class="form-group">
+                    <h5 class="mb-3">Direction</h5>
+                    <div>
+                      <input type="radio" id="fwdCardsToPassTrue" name="fwdCardsToPass" value="true" checked>
+                      <label for="fwdCardsToPassTrue">Forward</label>
+                      <small class="text-muted">to player with next higher number</small>
+                    </div>
+                    <div>
+                      <input type="radio" id="fwdCardsToPassFalse" name="fwdCardsToPass" value="false">
+                      <label for="fwdCardsToPassFalse">Backward</label>
+                      <small class="text-muted">to player with next lower number</small>
+                    </div>
+                  </div>
+                </div>
+                <!-- END pass cards subection -->
+      
+                <!-- START remodel subection -->
+                <div class="custom-control custom-checkbox mt-2 remodelExpander">
+                  <input type="checkbox" class="custom-control-input" id="remodelTrue" name="remodelTrue" value="true">
+                  <label class="custom-control-label" for="remodelTrue">Remodel?</label>
+                </div>
+                <div id="remodelOptions">
+                  <div class="form-group d-flex flex-row pt-2">
+                    <label for="numRemodels">Number of remodel rounds</label>
+                    <input type="number" class="form-control" id="numRemodels" name="numRemodels" value="1" min="0" max="2" step="1">
+                  </div>
+                  <div class="form-group d-flex flex-row">
+                    <label for="remodelCostFaceUp">Cost to swap face-up:</label>
+                    <input type="number" class="form-control" id="remodelCostFaceUp" name="remodelCostFaceUp" value="0.10" min="0.05" max="0.25" step="0.05">
+                  </div>
+                  <div class="form-group d-flex flex-row">
+                    <label for="remodelCostFaceDown">Cost to swap face-down:</label>
+                    <input type="number" class="form-control mb-2" id="remodelCostFaceDown" name="remodelCostFaceDown" value="0.50" min="0.05" max="0.50" step="0.05">
+                  </div>
+                </div>
+                <!-- END remodel subection -->
+                <div class="custom-control custom-checkbox mt-2" id="noPeek">
+                  <input type="checkbox" class="custom-control-input" id="peekAllowedFalse" name="peekAllowedFalse">
+                  <label class="custom-control-label" for="peekAllowedFalse">No peek</label>
+                </div>              
+                <div class="form-group d-flex flex-row mt-2">
+                  <label class="mr-2" for="numIndicatorCards">Number of shared/indicator cards</label>
+                  <input type="number" class="form-control" id="numIndicatorCards" name="numIndicatorCards" value="0" min="0" max="6" step="1">
+                </div>
+                <div class="form-group d-flex flex-row mt-2">
+                  <label class="mr-2" for="otherInstructions">Other Instructions:</label>
+                  <textarea id="otherInstructions" name="otherInstructions" rows="5" cols="33"></textarea>
+                </div>
+                <input id="playSequenceArray" name="playSequenceArray" type="hidden" value="unselected">
+                <button type="button" class="btn btn-primary" id="checkSequenceButton">Customize</button>    
+                <button type="submit" class="btn btn-success">Start game</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+  
+              </div>
+              <div class="col-md-6 collapsed" id="playSequenceEditor">
+                <div>
+                  <p><strong>Check the game sequence</strong></p>
+                  <ul id="playSequenceList">
+                    <!-- values will be added here via javascript-->
+                  </ul>
+                  <div class="form-group">
+                    <label class="mr-2" for="addSequenceItem">Add an item:</label>
+                    <select name="addSequenceItem" id="addSequenceItem">
+                      <option value="">--Choose--</option>
+                      <option value="dealFaceUp">Deal Face Up</option>
+                      <option value="dealFaceDown">Deal Face Down</option>
+                      <option value="dealPlayersChoice">Deal - Player's Choice</option>
+                      <option value="offerCards">Offer Cards</option>
+                      <option value="passCards">Pass Cards</option>
+                      <option value="discard">Discard</option>
+                      <option value="bet">Bet</option>
+                      <option value="turnIndicator">Turn an indicator card</option>
+                      <option value="declare">Declare</option>
+                      <option value="remodel">Remodel</option>
+                      <option value="rollOne">Roll cards (one player)</option>
+                      <option value="rollAll">Roll a card (all)</option>
+                      <option value="repeat">Repeat previous steps</option>
+                  </select>
+                  </div>
+              </div>
+              </div>
+            </div>
+  
+  
+          </form>  
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- END vertically centered modal -->
+  

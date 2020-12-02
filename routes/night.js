@@ -4,8 +4,9 @@ const router	= express.Router();
 const passport	= require("passport");
 
 const User 		= require ("../models/user"),
-	  Night		= require ("../models/night"),
 	  Player	= require("../models/player"),
+	//   Game      = require("../models/game"),
+	  Night		= require ("../models/night"),
 	  middleware	= require ("../middleware");
 
 var myConfig    = require ("../config"); // global variables available and changeable by all routes, I hope
@@ -18,7 +19,7 @@ router.get("/night/new", middleware.isLoggedIn, function(req,res){
 
 router.post("/night", middleware.isLoggedIn, function(req,res){
 	//previous line calls the middleware function isLoggedIn() to prevent post requests
-	//because even though the form to submit a Night is password-protected, folks could still use a tool like Postman to submit malicious campgrounds
+	//because even though the form to submit a Night is password-protected, folks could still use a tool like Postman to submit malicious requests
 	//get data from form and use it it create a new Night object
 	let hostID = req.user._id;
 	let tonightPlayers = [];
@@ -43,8 +44,6 @@ router.post("/night", middleware.isLoggedIn, function(req,res){
 			res.redirect("/game/wait");
 		} else {
 			myConfig.nightInProgress = true;
-			req.user.isHost = true;
-			// also need to populate players array with the host as player [0] but first we will need to define Player schema
 			//save night
 			newlyCreated.save();
 			//redirect to the game page

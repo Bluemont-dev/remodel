@@ -6,7 +6,6 @@ const Player = new Schema({
     socketID: String,
     joinedNightDate: {type:Date, default: Date.now},
     balanceForNight: Number,
-    inGame: Boolean,
     isDealer: Boolean,
     hand: [],
     amtBetInRound: Number,

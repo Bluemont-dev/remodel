@@ -1,273 +1,9 @@
 
-const sevenCardStud = {
-	name: "Seven Card Stud",
-    numCards: 7,
-    peekAllowed: true,
-    playSequence: [
-		"dealFaceDown",
-		"dealFaceDown",
-		"dealFaceUp",
-		"bet",
-		"dealFaceUp",
-		"bet",
-		"dealFaceUp",
-		"bet",
-		"dealFaceUp",
-		"bet",
-		"dealFaceDown",
-		"bet"
-	],
-    hilo: "High Only",
-	whatsWild: "Nothing", //e.g. "low hole card and any up cards that match it"
-	remodeling: false,
-    numRemodels: 0,
-    remodelCostFaceUp: 0,
-	remodelCostFaceDown: 0,
-	passing: false,
-    numCardsToPass: 0,
-    fwdCardsToPass: false,
-    numIndicatorCards: 0,
-    otherInstructions: ""
-}
-
-const goodBadUgly = {
-	name: "The Good, the Bad, and the Ugly",
-    numCards: 7,
-    peekAllowed: true,
-    playSequence: [
-		"dealFaceDown",
-		"dealFaceDown",
-		"dealFaceUp",
-		"bet",
-        "dealFaceUp",
-        "turnIndicator",
-		"bet",
-		"dealFaceUp",
-        "turnIndicator",
-		"bet",
-		"dealFaceUp",
-        "turnIndicator",
-		"bet",
-		"dealFaceDown",
-		"bet"
-	],
-    hilo: "High Only",
-	whatsWild: "The first of the 3 indicator cards", //e.g. "low hole card and any up cards that match it"
-	remodeling: false,
-    numRemodels: 0,
-    remodelCostFaceUp: 0,
-	remodelCostFaceDown: 0,
-	passing: false,
-    numCardsToPass: 0,
-    fwdCardsToPass: false,
-    numIndicatorCards: 3,
-    otherInstructions: `First indicator is wild.
-Second shows what you must discard throughout the game.
-Third is a poison card; if you have it, you fold.
-None of these cards are part of anyone's hand.`
-}
-
-const lowHoleCard = {
-	name: "Low Hole Card",
-    numCards: 7,
-    peekAllowed: true,
-    playSequence: [
-		"dealFaceDown",
-		"dealFaceDown",
-		"dealFaceUp",
-		"bet",
-		"dealFaceUp",
-		"bet",
-		"dealFaceUp",
-		"bet",
-		"dealFaceUp",
-		"bet",
-		"dealPlayersChoice",
-		"bet"
-	],
-    hilo: "High Only",
-	whatsWild: "Your low hole card and any of your up cards that match it",
-	remodeling: false,
-    numRemodels: 0,
-    remodelCostFaceUp: 0,
-	remodelCostFaceDown: 0,
-	passing: false,
-    numCardsToPass: 0,
-    fwdCardsToPass: false,
-    numIndicatorCards: 0,
-    otherInstructions: `Aces in the hole are high unless you have nothing but aces.
-Last card can be up or down, your choice.`
-}
-
-
-const lowChicago = {
-	name: "Low Chicago",
-    numCards: 7,
-    peekAllowed: true,
-    playSequence: [
-		"dealFaceDown",
-		"dealFaceDown",
-		"dealFaceUp",
-		"bet",
-		"dealFaceUp",
-		"bet",
-		"dealFaceUp",
-		"bet",
-		"dealFaceUp",
-		"bet",
-		"dealFaceDown",
-        "bet"
-	],
-    hilo: "High-Low",
-	whatsWild: "Nothing", //e.g. "low hole card and any up cards that match it"
-	remodeling: false,
-    numRemodels: 0,
-    remodelCostFaceUp: 0,
-	remodelCostFaceDown: 0,
-	passing: false,
-    numCardsToPass: 0,
-    fwdCardsToPass: false,
-    numIndicatorCards: 0,
-    otherInstructions: `High hand gets half the pot. 
-Lowest spade in the hole gets the other half.`
-}
-
-const highLow = {
-	name: "High-Low",
-    numCards: 6,
-    peekAllowed: true,
-    playSequence: [
-		"dealFaceDown",
-		"dealFaceUp",
-		"bet",
-		"dealFaceUp",
-		"bet",
-		"dealFaceUp",
-		"bet",
-		"dealFaceUp",
-		"bet",
-		"dealFaceDown",
-        "bet",
-        "remodel",
-        "bet",
-        "declare",
-        "bet"
-	],
-    hilo: "High-Low",
-	whatsWild: "Nothing", //e.g. "low hole card and any up cards that match it"
-	remodeling: true,
-    numRemodels: 1,
-    remodelCostFaceUp: 0.10,
-	remodelCostFaceDown: 0.25,
-	passing: false,
-    numCardsToPass: 0,
-    fwdCardsToPass: false,
-    numIndicatorCards: 0,
-    otherInstructions: ""
-}
-
-const anaconda = {
-	name: "Anaconda",
-    numCards: 7,
-    peekAllowed: true,
-    playSequence: [
-		"dealFaceDown",
-		"dealFaceDown",
-		"dealFaceDown",
-		"dealFaceDown",
-		"dealFaceDown",
-		"dealFaceDown",
-		"dealFaceDown",
-        "passcards",
-        "discard",
-        "rollAll",
-		"bet",
-        "rollAll",
-		"bet",
-        "rollAll",
-		"bet",
-        "rollAll",
-		"bet",
-        "declare",
-        "bet",
-        "rollAll"
-	],
-    hilo: "High-Low",
-	whatsWild: "Nothing", //e.g. "low hole card and any up cards that match it"
-	remodeling: false,
-    numRemodels: 0,
-    remodelCostFaceUp: 0,
-	remodelCostFaceDown: 0,
-	passing: true,
-    numCardsToPass: 3,
-    fwdCardsToPass: true,
-    numIndicatorCards: 0,
-    otherInstructions: "After passing, discard 2 cards and put the remaining 5 in the sequence you want to reveal them."
-}
-
-const fourteenthStreet = {
-	name: "Fourteenth Street",
-    numCards: 7,
-    peekAllowed: false,
-    playSequence: [
-		"dealFaceDown",
-		"dealFaceDown",
-		"dealFaceDown",
-		"dealFaceDown",
-		"dealFaceDown",
-		"dealFaceDown",
-		"dealFaceDown",
-        "rollOne",
-        "bet",
-        "repeat"
-	],
-    hilo: "High Only",
-	whatsWild: "Up card that follows an up Queen; Up Sevens if you buy them for a quarter.", //e.g. "low hole card and any up cards that match it"
-	remodeling: false,
-    numRemodels: 0,
-    remodelCostFaceUp: 0,
-	remodelCostFaceDown: 0,
-	passing: false,
-    numCardsToPass: 0,
-    fwdCardsToPass: true,
-    numIndicatorCards: 0,
-    otherInstructions: `Keep turning cards until you beat previous best hand. 
-If you can't beat it, you can still stick around for a one-time payment of a quarter.`
-}
-
-const seven27 = {
-	name: "7-27",
-    numCards: 2,
-    peekAllowed: true,
-    playSequence: [
-		"dealFaceDown",
-		"dealFaceUp",
-        "bet",
-        "offerCards",
-        "bet",
-        "repeat",
-        "declare",
-        "bet"
-	],
-    hilo: "High-Low",
-	whatsWild: "Nothing", //e.g. "low hole card and any up cards that match it"
-	remodeling: false,
-    numRemodels: 0,
-    remodelCostFaceUp: 0,
-	remodelCostFaceDown: 0,
-	passing: false,
-    numCardsToPass: 0,
-    fwdCardsToPass: true,
-    numIndicatorCards: 0,
-    otherInstructions: `Aces count as 1 or 11. 
-Face cards counts as 10 or 1/2. 
-Three consecutive passes, you're frozen. 
-Tiebreaker: fewer cards.`
-}
-
-
-
 shuffleButton = document.getElementById("shuffleButton");
+
+if (window.location.href.includes('/play/')){
+    gamesNamesLoad();
+}
 
 shuffleButton.addEventListener('click', function (event) {
     socket.emit('shuffle request');
@@ -282,12 +18,19 @@ checkSequenceButton = document.getElementById("checkSequenceButton");
 checkSequenceButton.addEventListener("click", function (event){
     $("#playSequenceEditor").toggleClass("collapsed");
     $("#mainGameSettingsColumn").toggleClass("col-md-12 col-md-6");
-    if (checkSequenceButton.innerText==="Check sequence"){
-        checkSequenceButton.innerText="Hide sequence";
+    if (checkSequenceButton.innerText==="Customize"){
+        checkSequenceButton.innerText="Hide";
     } else {
-        checkSequenceButton.innerText="Check sequence";
+        checkSequenceButton.innerText="Customize";
     }
 });
+
+function gamesNamesLoad () { //take the game names from preset constant and load them into the picklist
+   allGameSettings.forEach(element => {
+        let newPickListLine = `<option value="${element.formOptionValue}">${element.name}</option>`;
+        $( "#gameName" ).append( newPickListLine );
+    });
+}
 
 $("#gameName").change(function() {
     let selectedGameName = document.getElementById("gameName").value;
@@ -314,11 +57,15 @@ $("#gameName").change(function() {
         case "seven27":
           fillGameSettings(seven27);
           break;
-        case "sixCardOneRemodel":
-          fillGameSettings(sixCardOneRemodel);
+        case "sixSixSix":
+          fillGameSettings(sixSixSix);
+          break;
+        case "highLow":
+          fillGameSettings(highLow);
           break;
         case "dealersSpecial":
-            break;
+          fillGameSettings(dealersSpecial);
+          break;
         default:
           alert("Hey, I dunno.");
       }
@@ -385,11 +132,58 @@ remodelCostFaceDown.value = selection.remodelCostFaceDown;
 peekAllowedFalse.checked = !selection.peekAllowed;
 numIndicatorCards.value = selection.numIndicatorCards;
 otherInstructions.value = selection.otherInstructions;
+playSequenceArray.value = JSON.stringify(selection.playSequence);
 selection.playSequence.forEach(element => {
     let newPlaySequenceLine = `<li><span class="leftIcon"><i class="fas fa-trash"></i></span>${element}<span class="downIcon"><i class="fas fa-chevron-circle-down"></i></span><span class="upIcon"><i class="fas fa-chevron-circle-up"></i></span></li>`;
     $( "#playSequenceList" ).append( newPlaySequenceLine );
 });
 }
 
+function submitGame() {
+    let hilo = "High Only";
+    if (document.getElementById('HighOnlyRadio').checked === true){
+        hilo = "High Only";
+    } else if (document.getElementById('LowOnlyRadio').checked === true){
+        hilo = "Low Only";
+    } else if (document.getElementById('HighLowRadio').checked === true){
+        hilo = "High-Low";
+    }
+    let name = ""; //follow this line with the loop thru gameSettings to retrieve the proper game name string based on gameName.value
+    let selectedGameName = document.getElementById("gameName").value;
+    allGameSettings.forEach(element => {
+        if (element.formOptionValue === selectedGameName){
+            name = element.name;
+        }
+    });
 
+    const submittedGame = {
+        name: name,
+        numCards: parseInt(numCards.value,10),
+        peekAllowed: !peekAllowedFalse.checked,
+        playSequence: playSequenceArray.value,
+        playSequenceLocation: -1,
+        hilo: hilo,
+        whatsWild: whatsWild.value, 
+        currentWildCard: "",
+        remodeling: remodelTrue.checked,
+        numRemodels: parseInt(numRemodels.value,10),
+        remodelCostFaceUp: parseFloat(remodelCostFaceUp.value),
+        remodelCostFaceDown: parseFloat(remodelCostFaceDown.value),
+        passing: passCardsTrue.checked,
+        numCardsToPass: parseInt(numCardsToPass.value,10),
+        fwdCardsToPass: fwdCardsToPassTrue.checked,
+        numIndicatorCards: parseInt(numIndicatorCards.value,10),
+        otherInstructions: otherInstructions.value,
+        amtPot: 0,
+        playersInGame: [],
+        playersOutOfGame: [],
+        indicatorCards: [],
+        discards: [],
+        shuffledDeck: [],
+        dealtCards: []
+    }
+        socket.emit('game submit', submittedGame);
+    $('#myModal').modal('hide');
+    return false; // prevent further bubbling of event
+  }
 

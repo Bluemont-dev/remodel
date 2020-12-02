@@ -25,7 +25,7 @@ router.get("/", function(req,res){
 });
 
 //===========
-// ASPI ROUTES, using JSON to deliver data when requested by client-side JS
+// API ROUTES, using JSON to deliver data when requested by client-side JS
 //===========
 
 router.get('/api/user_data', function(req, res) {
@@ -55,8 +55,7 @@ router.post("/register", function(req,res){
 		username: req.body.username,
 		firstName: req.body.firstName,
 		lastInitial: req.body.lastInitial,
-		homeBackgroundImgPath: "",
-		isHost: false
+		homeBackgroundImgPath: ""
 	}), req.body.password, function(err,user){
 		if (err){
       		return res.render("register", {"error": err.message});

@@ -4,9 +4,8 @@ const router	= express.Router();
 const passport	= require("passport");
 
 const User 		= require ("../models/user"),
-	  Night		= require ("../models/night"),
 	  Player	= require("../models/player"),
-	  Game		= require("../models/game"),
+	  Night		= require ("../models/night"),
 	  middleware	= require ("../middleware");
 
 const path = require('path');

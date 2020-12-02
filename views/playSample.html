@@ -1,0 +1,471 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon"/>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.13.0/css/all.css" integrity="sha384-Bfad6CLCknfcloXFOyFnlgtENryhrpZCe29RTifKEixXQZ38WheV+i/6YWSzkz3V" crossorigin="anonymous">
+    <link rel="stylesheet" href="../public/stylesheets/styles.css">
+    <title>NoVa Remodeling Club</title>
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">Navbar</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+  
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Link</a>
+        </li>
+        <li class="nav-item dropdown" id="navGameDropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Game
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#myModal">New</a>
+            <a class="dropdown-item" href="#">Restart</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="#">Close</a>
+          </div>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+        </li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+				
+				<li>Signed in as tony@baretta.com</li>
+				<li><a href="/logout">Log Out</a></li>
+				
+			</ul>
+      <!-- <form class="form-inline my-2 my-lg-0">
+        <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+      </form> -->
+    </div>
+  </nav>
+    
+  
+  <div class="container">
+    
+  
+    
+  
+  </div>
+<link rel="stylesheet" href="../public/stylesheets/play.css" type="text/css">
+
+
+<script src="/socket.io/socket.io.js"></script>
+
+
+<!-- START MAIN CONTAINER -->
+<div class="container-fluid">
+
+<!-- START Vertically centered modal -->
+<div class="modal fade show" id="myModal" tabindex="-1" aria-labelledby="exampleModalCenterTitle" style="padding-right: 15px; display: none;" aria-modal="true" role="dialog">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title" id="exampleModalCenterTitle">Set up a new game</h4>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form name="gameSettings" onSubmit="return submitGame()" novalidate>
+  
+            <div class="row flex-row" id="fullGameSettingsRow">
+              <div class="col-md-12" id="mainGameSettingsColumn">
+                <div class="form-group">
+                  <label class="mr-2" for="gameName">Game name:</label>
+                  <select name="gameName" id="gameName">
+                    <option value="">--Choose--</option> <!-- more options to be added via playClient.js -->
+                  </select>
+                </div>
+                <div class="form-group d-flex flex-row">
+                  <label class="mr-2" for="numCards">Number of cards dealt</label>
+                  <input type="number" class="form-control" id="numCards" name="numCards" value="7" min="5" max="7" step="1">
+                </div>
+                <div class="form-group">
+                  <div class="d-block my-3">
+                    <p class="mb-3"><strong>High-Low</strong></p>
+                    <div>
+                      <input type="radio" id="HighOnlyRadio" name="hilo" value="High Only" checked>
+                      <label for="HighOnlyRadio">High Only</label>
+                    </div>
+                    <div>
+                      <input type="radio" id="HighLowRadio" name="hilo" value="High-Low">
+                      <label for="HighLowRadio">High-Low</label>
+                    </div>
+                      <div>
+                      <input type="radio" id="LowOnlyRadio" name="hilo" value="Low Only">
+                      <label for="LowOnlyRadio">Low Only</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group d-flex flex-row mt-2">
+                  <label class="mr-2" for="whatsWild">What's wild:</label>
+                  <textarea id="whatsWild" name="whatsWild" rows="5" cols="33"></textarea>
+                </div>
+                <!-- next up: two expandable/collapsible sections with checkboxes for whether we remodel, and whether we pass cards-->
+                <!-- START pass cards subection -->
+                <div class="custom-control custom-checkbox passCardsExpander">
+                  <input type="checkbox" class="custom-control-input" id="passCardsTrue" name="passCardsTrue">
+                  <label class="custom-control-label" for="passCardsTrue">Pass cards?</label>
+                </div>
+                <div id="passCardsOptions">
+                  <div class="form-group d-flex flex-row pt-2">
+                    <label for="numCardsToPass">How many?</label>
+                    <input type="number" class="form-control" id="numCardsToPass" name="numCardsToPass" value="3" min="0" max="4" step="1">
+                  </div>
+                  <div class="form-group">
+                    <h5 class="mb-3">Direction</h5>
+                    <div>
+                      <input type="radio" id="fwdCardsToPassTrue" name="fwdCardsToPass" value="true" checked>
+                      <label for="fwdCardsToPassTrue">Forward</label>
+                      <small class="text-muted">to player with next higher number</small>
+                    </div>
+                    <div>
+                      <input type="radio" id="fwdCardsToPassFalse" name="fwdCardsToPass" value="false">
+                      <label for="fwdCardsToPassFalse">Backward</label>
+                      <small class="text-muted">to player with next lower number</small>
+                    </div>
+                  </div>
+                </div>
+                <!-- END pass cards subection -->
+      
+                <!-- START remodel subection -->
+                <div class="custom-control custom-checkbox mt-2 remodelExpander">
+                  <input type="checkbox" class="custom-control-input" id="remodelTrue" name="remodelTrue" value="true">
+                  <label class="custom-control-label" for="remodelTrue">Remodel?</label>
+                </div>
+                <div id="remodelOptions">
+                  <div class="form-group d-flex flex-row pt-2">
+                    <label for="numRemodels">Number of remodel rounds</label>
+                    <input type="number" class="form-control" id="numRemodels" name="numRemodels" value="1" min="0" max="2" step="1">
+                  </div>
+                  <div class="form-group d-flex flex-row">
+                    <label for="remodelCostFaceUp">Cost to swap face-up:</label>
+                    <input type="number" class="form-control" id="remodelCostFaceUp" name="remodelCostFaceUp" value="0.10" min="0.05" max="0.25" step="0.05">
+                  </div>
+                  <div class="form-group d-flex flex-row">
+                    <label for="remodelCostFaceDown">Cost to swap face-down:</label>
+                    <input type="number" class="form-control mb-2" id="remodelCostFaceDown" name="remodelCostFaceDown" value="0.50" min="0.05" max="0.50" step="0.05">
+                  </div>
+                </div>
+                <!-- END remodel subection -->
+                <div class="custom-control custom-checkbox mt-2" id="noPeek">
+                  <input type="checkbox" class="custom-control-input" id="peekAllowedFalse" name="peekAllowedFalse">
+                  <label class="custom-control-label" for="peekAllowedFalse">No peek</label>
+                </div>              
+                <div class="form-group d-flex flex-row mt-2">
+                  <label class="mr-2" for="numIndicatorCards">Number of shared/indicator cards</label>
+                  <input type="number" class="form-control" id="numIndicatorCards" name="numIndicatorCards" value="0" min="0" max="6" step="1">
+                </div>
+                <div class="form-group d-flex flex-row mt-2">
+                  <label class="mr-2" for="otherInstructions">Other Instructions:</label>
+                  <textarea id="otherInstructions" name="otherInstructions" rows="5" cols="33"></textarea>
+                </div>
+                <input id="playSequenceArray" name="playSequenceArray" type="hidden" value="unselected">
+                <button type="button" class="btn btn-primary" id="checkSequenceButton">Customize</button>    
+                <button type="submit" class="btn btn-success">Start game</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+  
+              </div>
+              <div class="col-md-6 collapsed" id="playSequenceEditor">
+                <div>
+                  <p><strong>Check the game sequence</strong></p>
+                  <ul id="playSequenceList">
+                    <!-- values will be added here via javascript-->
+                  </ul>
+                  <div class="form-group">
+                    <label class="mr-2" for="addSequenceItem">Add an item:</label>
+                    <select name="addSequenceItem" id="addSequenceItem">
+                      <option value="">--Choose--</option>
+                      <option value="dealFaceUp">Deal Face Up</option>
+                      <option value="dealFaceDown">Deal Face Down</option>
+                      <option value="dealPlayersChoice">Deal - Player's Choice</option>
+                      <option value="offerCards">Offer Cards</option>
+                      <option value="passCards">Pass Cards</option>
+                      <option value="discard">Discard</option>
+                      <option value="bet">Bet</option>
+                      <option value="turnIndicator">Turn an indicator card</option>
+                      <option value="declare">Declare</option>
+                      <option value="remodel">Remodel</option>
+                      <option value="rollOne">Roll cards (one player)</option>
+                      <option value="rollAll">Roll a card (all)</option>
+                      <option value="repeat">Repeat previous steps</option>
+                  </select>
+                  </div>
+              </div>
+              </div>
+            </div>
+  
+  
+          </form>  
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- END vertically centered modal -->
+  
+
+    <!-- START jumbotron -->
+    <div class="jumbotron jumbotron-fluid">
+      <div class="container">
+        <div class="row flex-row justify-content-center">
+
+          <div class="col col-12 col-md-2">
+            <h2 class="display-5" id="gameNameDisplay">Game Name Goes Here</h2>
+            <ul class="lead">
+              <li id="currentDealerNameDisplay">Dealer's Name Goes Here</li>
+              <li id="numCardsDisplay">Number of Cards Goes Here</li>
+              <li id="whatsWildDisplay">Wild cards listed here</li>
+              <li id="hiloDisplay">High Low Listed Here</li>
+            </ul>
+          </div>
+
+          <div class="col col-12 col-md-5">
+            <div class="card-body pile" id="dealPile">
+            </div>
+            <!-- START DEALING BUTTONS-->
+            <form>
+              <div class="row d-flex justify-content-around mx-2 my-3" id="dealingButtonsRow">
+                  <div class="form-group col-md-3">
+                    <button type="button" class="btn btn-primary" id="shuffleButton">Shuffle</button>
+                  </div>
+                  <div class="form-group col-md-3">
+                    <button type="button" class="btn btn-primary" id="dealFaceUpButton">Deal Face Up</button>
+                  </div>
+                  <div class="form-group col-md-3">
+                    <button type="button" class="btn btn-primary" id="dealFaceDownPeekButton">Deal Face Down w/Peek</button>
+                  </div>
+                  <div class="form-group col-md-3">
+                    <button type="button" class="btn btn-primary" id="dealFaceDownNoPeekButton">Deal Face Down No Peek</button>
+                  </div>
+              </div>
+              </form>
+              <!-- END DEALING BUTTONS-->
+          </div>
+
+          <div class="col col-12 col-md-5" id="bettingColumn">
+            <h4 class="mb-3">
+              <span class="text-muted">Betting</span>
+            </h4>
+            <ul class="list-group" id="bettingDisplayList">
+              <li class="list-group-item d-flex justify-content-between lh-condensed">
+                <div>
+                  <h6 class="my-0">Player 1</h6>
+                </div>
+                <span class="text-muted">$0.00</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between lh-condensed">
+                <div>
+                  <h6 class="my-0">Player 2</h6>
+                </div>
+                <span class="text-muted">$0.00</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between lh-condensed">
+                <div>
+                  <h6 class="my-0">Player 3</h6>
+                </div>
+                <span class="text-muted">$0.00</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between lh-condensed">
+                <div>
+                  <h6 class="my-0">Player 4</h6>
+                </div>
+                <span class="text-muted">$0.00</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between lh-condensed">
+                <div>
+                  <h6 class="my-0">Player 5</h6>
+                </div>
+                <span class="text-muted">$0.00</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between lh-condensed">
+                <div>
+                  <h6 class="my-0">Player 6</h6>
+                </div>
+                <span class="text-muted">$0.00</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between lh-condensed">
+                <div>
+                  <h6 class="my-0">Player 7</h6>
+                </div>
+                <span class="text-muted">$0.00</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span><strong>Pot</strong></span>
+                <strong>$0.00</strong>
+              </li>
+            </ul>
+            <!-- START BETTING BUTTONS-->
+            <form>
+            <div class="row d-flex justify-content-left mx-2 my-3" id="anteButtonsRow">
+              <div class="form-group col-md-3">
+                <button type="button" class="btn btn-primary" id="anteButton">Ante</button>                  
+              </div>
+              <div class="form-group col-md-3">
+                <button type="button" class="btn btn-secondary" id="sitOutButton">Sit Out</button>                  
+              </div>
+            </div>
+            <div class="row d-flex justify-content-around mx-2 my-3" id="bettingButtonsRow">
+              <div class="form-group col-md-3">
+                <button type="button" class="btn btn-primary" id="callButton">Call</button>                  
+              </div>
+              <div class="d-flex flex-row form-group col-md-6">
+                <button type="button" class="btn btn-success" id="raiseButton">Raise</button> 
+                <select id="raiseAmt" class="form-control">
+                  <option>.05</option>
+                  <option>.10</option>
+                  <option>.15</option>
+                  <option>.20</option>
+                  <option>.25</option>
+                </select>                  
+              </div>
+              <div class="form-group col-md-3">
+                <button type="button" class="btn btn-secondary" id="foldButton">Fold</button>                  
+              </div>
+            </div>
+            </form>
+            <!-- END BETTING BUTTONS-->
+          </div>
+
+        </div>
+
+      </div>
+  </div>
+  <!-- END jumbotron -->
+
+
+
+<!-- START CONTAINER FOR ALL PLAYERS -->
+
+        <!-- START playersRow1 -->
+        <div class=" playerRow row flex-row justify-content-center" id="playersRow1">
+          
+          <div class="col col-12 col-md-3 playerArea" id="player1Area">
+
+            <ul class="list-group">
+                <li class="list-group-item d-flex justify-content-between lh-condensed playerNameRow">
+                    <div>
+                      <h6 class="my-0">Player 1: Bryce H.</h6>
+                    </div>
+                    <span class="bg-success text-white inGameStatus"><i class="fab fa-buffer"></i> Dealer</span>
+                  </li>
+            </ul>
+
+            <div class="card-body rowOfCards">
+              <div class="cardSingle rounded"><img src="../public/images/cards/as.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/2s.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/3s.png"></div>
+            </div>
+          </div>
+          
+          
+          <div class="col col-12 col-md-3 playerArea" id="player2Area">
+
+            <ul class="list-group">
+                <li class="list-group-item d-flex justify-content-between lh-condensed playerNameRow">
+                    <div>
+                      <h6 class="my-0">Player 2: Tony B.</h6>
+                    </div>
+                    <span class="bg-danger text-white inGameStatus">Out</span>
+                  </li>
+            </ul>            
+
+            <div class="card-body rowOfCards">
+              <div class="cardSingle rounded"><img src="../public/images/cards/as.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/2s.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/3s.png"></div>
+            </div>
+          </div>
+
+          <div class="col col-12 col-md-3 playerArea" id="player3Area">
+
+            <ul class="list-group">
+                <li class="list-group-item d-flex justify-content-between lh-condensed playerNameRow">
+                    <div>
+                      <h6 class="my-0">Player 3: Fran T.</h6>
+                    </div>
+                    <span class="bg-success text-white inGameStatus">In</span>
+                  </li>
+            </ul>            
+
+            <div class="card-body rowOfCards">
+              <div class="cardSingle rounded"><img src="../public/images/cards/as.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/2s.png"></div>
+              <div class="cardSingle rounded"><img src="../public/images/cards/3s.png"></div>
+            </div>
+          </div>
+          
+                    
+        </div> 
+        <!-- END playersRow1 -->
+
+
+        <!-- START playersRow2 -->
+        <div class="playerRow row flex-row-reverse justify-content-center" id="playersRow2"> 
+          
+            
+              
+                
+        </div>
+        <!-- END playersRow2 -->
+
+<!-- END CONTAINER FOR ALL PLAYERS -->
+
+<!-- START COLLAPSIBLE CHAT MESSAGES CARD-->
+<div class="accordion" id="chatMessagesAccordion">
+  <div class="card text-center">
+    <div class="card-header" id="chatMessagesHeader">
+      <h2 class="mb-0">
+        <button class="btn btn-link btn-block text-center" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+          Show/Hide
+        </button>
+      </h2>
+    </div>
+    <div id="collapseOne" class="collapse show" aria-labelledby="chatMessagesHeader" data-parent="#chatMessagesAccordion">
+      <div class="card-body">
+        <ul id="statusUpdates"><li>Status updates will appear here.</li></ul>
+        <ul id="chatMessages"><li>Chat messages will appear here.</li></ul>
+        <form id="chatForm" action="">
+          <input type="text" id="chatInput" autocomplete="off">
+          <button>Send</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- END COLLAPSIBLE CHAT MESSAGES CARD-->
+
+
+
+
+</div>
+<!-- END OF MAIN CONTAINER -->
+
+
+    <!-- <script src="/socket.io/socket.io.js"></script> -->
+
+<script src="/scripts/clientSocket.js"></script>
+
+<script src="/scripts/playSettings.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js" integrity="sha384-LtrjvnR4Twt/qOuYxE721u19sVFLVSA4hf/rRt6PrZTmiPltdZcI7q7PXQBYTKyf" crossorigin="anonymous"></script>
+    <script src="/scripts/extras.js"></script>
+    <script src="/scripts/playClient.js"></script> 
+
+</body>
+</html>

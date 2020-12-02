@@ -5,8 +5,8 @@ const 	express 					= require('express'),
 		LocalStrategy				= require("passport-local"),
 		passportLocalMongoose		= require("passport-local-mongoose"),
 		User						= require("./models/user"),
-		Night						= require("./models/night"),
 		Player						= require("./models/player"),
+		Night						= require("./models/night"),
 		middleware 	              	= require ("./middleware/index"),
 		dealtCardObj				= require ("./models/dealtCard"),
 		seedNightDB 				= require ("./routes/seedNight"),
@@ -115,6 +115,7 @@ const allCards = new cardDeck(myConfig.allCards);
 
 
 
+
 //=========================
 //======SOCKET SERVER LOGIC
 //=========================
@@ -133,26 +134,27 @@ io.on('connection', (socket) => {
 			}).
 			exec(function (err, tonight) {
 				if (err || !tonight){ //any random ID with proper number of characters can get a null return, not object but also not error, from MongoDB
-					req.flash("error","Could not find the data to load a game with that ID number for tonight. Please contact the host offline.");
+					// req.flash("error","Could not find the data to load a game with that ID number for tonight. Please contact the host offline.");
 					res.redirect("/game/wait");
 				} else { //success in database lookup of tonight ID
 					console.log("Length of players array is " + tonight.tonightPlayers.length);
 					//loop thru tonight's player array until you find the one with a user ID that matches passed userID
 					for (let i=0; i<tonight.tonightPlayers.length; i++){
 						console.log("checking element " + i + " in players array. Player name is " + tonight.tonightPlayers[i].playerUser.firstName);
+
 						if (tonight.tonightPlayers[i].playerUser.id===myConnectObject.userID){ //we have a match
 							if (tonight.tonightPlayers[i].socketID === ""){ // new player connecting for the 1st time tonight, not reconnecting
 								io.emit('status update',"We welcome " + tonight.tonightPlayers[i].playerUser.firstName + " to the game.");
 								io.emit('render new player for all', tonight.tonightPlayers[i].playerUser); //send newly added player's user object to every client
+								tonight.tonightPlayers[i].socketID = myConnectObject.socketID; //add the socketID from newly connected player to the tonight DB record
+								tonight.tonightPlayers[i].save(); //save the player to the DB, not the night!!
+								io.to(tonight.tonightPlayers[i].socketID).emit('private message',"Your player index is " + i.toString()); // notify user of player index for session storage
+								console.log("Sent private message to socket ID" + tonight.tonightPlayers[i].socketID + " that their index is " +i.toString());
+								//if the newly connected player is dealer, send a private emit to them to unlock the "game" menu, etc.
+								if (tonight.tonightPlayers[i].isDealer){
+									io.to(tonight.tonightPlayers[i].socketID).emit('private message',"You are dealer");
+								}
 							}
-						tonight.tonightPlayers[i].socketID = myConnectObject.socketID; //add the socketID from newly connected player to the tonight DB record
-						tonight.tonightPlayers[i].save(); //save the player to the DB, not the night!!
-
-						for (let j=0;j<tonight.tonightPlayers.length;j++) {
-							io.emit('status update',"socket ID for " + tonight.tonightPlayers[j].playerUser.firstName + " is " + tonight.tonightPlayers[j].socketID);
-						  }
-
-
 						break;
 					    } else {
 							if (i===tonight.tonightPlayers.length-1){
@@ -173,7 +175,7 @@ io.on('connection', (socket) => {
 		console.log('a user disconnected');
 		
 		//load the tonight object from database, populating players
-		Night.findById(myConfig.tonightID).
+		Night.findById(myConfig.tonight._id).
 			populate({
 				path: 'tonightPlayers',
 				// Now populate the 'user' data for each player
@@ -181,34 +183,100 @@ io.on('connection', (socket) => {
 			}).
 			exec(function (err, tonight) {
 				if (err || !tonight){ //any random ID with proper number of characters can get a null return, not object but also not error, from MongoDB
-					req.flash("error","Could not find the data to load a game with that ID number for tonight. Please contact the host offline.");
+					io.emit("status update","Could not save tonight's settings to the database. Please contact Bluemont for help.");
 					res.redirect("/game/wait");
 				} else { //success in database lookup of tonight ID
 					//loop thru tonight's player array until you find the one with a socket ID that matches the disconnected socket ID
 					for (let i=0; i<tonight.tonightPlayers.length; i++){
 						if (tonight.tonightPlayers[i].socketID===socket.id){ //we have a match
 						tonight.tonightPlayers[i].socketID = "disconnected"; //replace the socketID from newly disconnected player with the word "disconnected" in the tonight DB record
-						tonight.tonightPlayers[i].save(); //save the player to the DB, not the night!!
+						tonight.tonightPlayers[i].save(); //save the player to the DB, not the night!! Unless we go back and do players by embed instead of reference
 						console.log("Socket for " + tonight.tonightPlayers[i].playerUser.firstName + " is disconnected.");
-						break;
-					    } else {
-							if (i===tonight.tonightPlayers.length-1){
-								console.log("Sorry, somebody disconnected, but their ID wasn't in the players array to begin with."); // have looped all the way thru the array
-							}
-						}
+					    }
 					}
 				}
 			});
     });
 
-	
-	socket.on('shuffle request', () => {
-		var shuffledDeck = allCards.shuffle();
-		console.log("The shuffled deck: " + JSON.stringify(shuffledDeck));
-		console.log("The shuffled deck: " + shuffledDeck._stack);
-		io.emit('shuffle visual');
-        io.emit('status update',"Deck has been shuffled.");
+	socket.on('game submit', (submittedGame) => {
+		
+		//create a new Game object from the submittedGame and save it to the db
+		myConfig.tonight.games.push(submittedGame); //add the new game to the array of tonight's games
+		myConfig.tonight.save();
+		myConfig.currentGame = submittedGame;
+		myConfig.gameInProgress = true;
+		//loop thru players to find dealer
+		for (let i=0; i<tonight.tonightPlayers.length; i++){
+			if (myConfig.tonight.tonightPlayers[i].isDealer===true){
+				myConfig.currentDealerIndex = i;
+				break;
+			}
+		}
+
+		//load tonight object w/ populated players
+		Night.
+		findOne({ _id: myConfig.tonight._id}).
+		populate({
+			path: 'tonightPlayers',
+			// Now populate the 'user' data for each player
+			populate: { path: 'playerUser' }
+		}).
+		exec(function (err, tonight) {
+		  if (err) {
+			  console.log(err)
+			} else {
+			  myConfig.tonight = tonight; //this should store fully loaded player objects into myConfig for sharing w/client
+			  myConfig.currentDealerName = tonight.tonightPlayers[myConfig.currentDealerIndex].playerUser.fullName;
+			}
+		  ;
+		  var shuffledDeck = allCards.shuffle();
+		//   console.log("The shuffled deck: " + JSON.stringify(shuffledDeck));
+		//   console.log("The shuffled deck: " + shuffledDeck._stack);
+		  myConfig.currentGame.shuffledDeck = shuffledDeck;
+		  io.emit('shuffle visual');
+		  io.emit('status update',"Deck has been shuffled. Waiting for players to ante.");
+		  //send this data as an object to all players
+		  io.emit('game open', myConfig);
+		});
 	});
 
+	socket.on('I ante', (playerIndex) => {
+		//add player to players-in-game array
+		myConfig.currentGame.playersInGame.push(myConfig.tonight.tonightPlayers[playerIndex]);
+		//sort the array by the time they joined the night, a proxy for their playerIndex that is not stored in their player object
+		myConfig.currentGame.playersInGame.sort(function(a, b) {
+			return a.joinedNightDate - b.joinedNightDate;
+		});
+		//add ante amount to pot
+		myConfig.currentGame.amtPot += myConfig.tonight.amtAnte;
+		//subtract ante amount from player's balance
+		myConfig.tonight.tonightPlayers[playerIndex].balanceForNight -= myConfig.tonight.amtAnte;
+		//emit ante broadcast
+		let anteBroadcastObject = {
+			playerIndex:playerIndex,
+			myConfig:myConfig
+		}
+		io.emit('ante broadcast',anteBroadcastObject);
+	});
 
+	socket.on('I sit out', (playerIndex) => {
+		//add player to players-out-of-game array
+		myConfig.currentGame.playersOutOfGame.push(myConfig.tonight.tonightPlayers[playerIndex]);
+		//sort the array by the time they joined the night, a proxy for their playerIndex that is not stored in their player object
+		myConfig.currentGame.playersOutOfGame.sort(function(a, b) {
+			return a.joinedNightDate - b.joinedNightDate;
+		});
+		//emit sit out broadcast
+		let sitOutBroadcastObject = {
+			playerIndex:playerIndex,
+			myConfig:myConfig
+		}
+		console.log("the array of players sitting out: ");
+		console.dir(myConfig.currentGame.playersOutOfGame);
+		io.emit('sit out broadcast',sitOutBroadcastObject);
+	});
+	
 });
+
+
+
