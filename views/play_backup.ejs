@@ -20,10 +20,10 @@
 
         <!-- START playersRow1 -->
         <div class=" playerRow row flex-row justify-content-center" id="playersRow1">
-          <% if (tonight.tonightPlayers.length>0){ %>
+          <% if (tonight.players.length>0){ %>
           <div class="col col-12 col-md-3 playerArea" id="player1Area">
-            <p>Player 1: <%= tonight.tonightPlayers[0].playerUser.firstName %></p>
-            <div class="card-body rowOfCards">
+            <p>Player 1: <%= tonight.players[0].playerUser.firstName %></p>
+            
               <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
               <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
               <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
@@ -37,10 +37,10 @@
             </div>
           </div>
           <% }  %>
-          <% if (tonight.tonightPlayers.length>1){ %>
+          <% if (tonight.players.length>1){ %>
           <div class="col col-12 col-md-3 playerArea" id="player2Area">
-            <p>Player 2: <%= tonight.tonightPlayers[1].playerUser.firstName %></p>
-            <div class="card-body rowOfCards">
+            <p>Player 2: <%= tonight.players[1].playerUser.firstName %></p>
+            
               <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
               <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
               <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
@@ -54,10 +54,10 @@
             </div>
           </div>
           <% }  %>
-          <% if (tonight.tonightPlayers.length>2){ %>
+          <% if (tonight.players.length>2){ %>
           <div class="col col-12 col-md-3 playerArea" id="player3Area">
-            <p>Player 3: <%= tonight.tonightPlayers[2].playerUser.firstName %></p>
-            <div class="card-body rowOfCards">
+            <p>Player 3: <%= tonight.players[2].playerUser.firstName %></p>
+            
               <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
               <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
               <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
@@ -71,10 +71,10 @@
             </div>
           </div>
           <% }  %>          
-          <% if (tonight.tonightPlayers.length>3){ %>
+          <% if (tonight.players.length>3){ %>
             <div class="col col-12 col-md-3 playerArea" id="player4Area">
-              <p>Player 4: <%= tonight.tonightPlayers[3].playerUser.firstName %></p>
-              <div class="card-body rowOfCards">
+              <p>Player 4: <%= tonight.players[3].playerUser.firstName %></p>
+              
                 <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
                 <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>
                 <div class="cardSingle rounded"><img src="../images/cards/10_of_clubs.png"></div>

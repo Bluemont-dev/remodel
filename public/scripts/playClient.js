@@ -1,14 +1,7 @@
 
-shuffleButton = document.getElementById("shuffleButton");
-
 if (window.location.href.includes('/play/')){
     gamesNamesLoad();
 }
-
-shuffleButton.addEventListener('click', function (event) {
-    socket.emit('shuffle request');
-    shuffleButton.style.display="none";
-  });
 
   $('a[href$="#myModal"]').on( "click", function() {
     $('#myModal').modal('show');
@@ -160,7 +153,7 @@ function submitGame() {
         name: name,
         numCards: parseInt(numCards.value,10),
         peekAllowed: !peekAllowedFalse.checked,
-        playSequence: playSequenceArray.value,
+        playSequence: JSON.parse(playSequenceArray.value),
         playSequenceLocation: -1,
         hilo: hilo,
         whatsWild: whatsWild.value, 
@@ -177,10 +170,7 @@ function submitGame() {
         amtPot: 0,
         playersInGame: [],
         playersOutOfGame: [],
-        indicatorCards: [],
-        discards: [],
-        shuffledDeck: [],
-        dealtCards: []
+        dealablePlayers: []
     }
         socket.emit('game submit', submittedGame);
     $('#myModal').modal('hide');

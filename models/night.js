@@ -4,7 +4,38 @@ const   mongoose				    = require("mongoose"),
 const Night = new Schema({
 	  dateCreated: {type:Date, default: Date.now},
     hostID: String,
-    tonightPlayers: [{ type:mongoose.Schema.Types.ObjectId, ref: 'Player' }],
+    players:[
+      {
+        playerUser: {
+          type:mongoose.Schema.Types.ObjectId, 
+          ref:"User",
+          autopopulate: true
+          }, //this should incorporate by object reference
+        socketID: String,
+        joinedNightDate: {type:Date, default: Date.now},
+        balanceForNight: Number,
+        isDealer: Boolean,
+        hand: [],
+        amtBetInRound: Number,
+        declaration: String,
+        wantsACard: String,
+        timesDeclinedACard: Number,
+        readyToPassCards: Boolean
+        // possible future functions
+          //   purchase()
+          //   bet()
+          //   ante()
+          //   check()
+          //   fold()
+          //   declare()
+          //   collect(amt)
+          //   selectGame()
+          //   offerCard()
+          //   deal(destination,faceUp)
+          //   passCards()
+          //   chooseWinners()
+      }
+    ],
     games:[
       {
         name: String,
@@ -27,10 +58,7 @@ const Night = new Schema({
         amtPot: Number,
         playersInGame: [],
         playersOutOfGame: [],
-        indicatorCards: [],
-        discards: [],
-        shuffledDeck: [],
-        dealtCards: []
+        dealablePlayers: []
         // possible future functions
         // passCards()
         // chooseWinners()
@@ -42,5 +70,7 @@ const Night = new Schema({
     amtMaxRaise: Number,
     amtBetIncrements: Number
   });
+
+Night.plugin(require('mongoose-autopopulate'));
 
 module.exports = mongoose.model('Night', Night);

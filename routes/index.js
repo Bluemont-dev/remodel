@@ -5,10 +5,10 @@ const passport	= require("passport");
 
 const User 		= require ("../models/user"),
 	  Night		= require ("../models/night"),
-	  Player	= require("../models/player"),
 	  middleware	= require ("../middleware");
 
 var myConfig    = require ("../config"); // global variables available and changeable by all routes, I hope
+const cardSecrets = require("../cardSecrets");
 
 
 
@@ -18,7 +18,7 @@ var myConfig    = require ("../config"); // global variables available and chang
 
 router.get("/", function(req,res){
 	if (req.isAuthenticated()){
-	res.render("game");
+	res.redirect("/game");
 	} else {
 	res.render("home");
 	}
@@ -38,7 +38,6 @@ router.get('/api/user_data', function(req, res) {
 		});
 	}
 });
-
 
 //==============
 // AUTH ROUTES

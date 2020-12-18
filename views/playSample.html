@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
     <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon"/>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.13.0/css/all.css" integrity="sha384-Bfad6CLCknfcloXFOyFnlgtENryhrpZCe29RTifKEixXQZ38WheV+i/6YWSzkz3V" crossorigin="anonymous">
@@ -224,7 +226,7 @@
       <div class="container">
         <div class="row flex-row justify-content-center">
 
-          <div class="col col-12 col-md-2">
+          <div class="col col-12 col-lg-2">
             <h2 class="display-5" id="gameNameDisplay">Game Name Goes Here</h2>
             <ul class="lead">
               <li id="currentDealerNameDisplay">Dealer's Name Goes Here</li>
@@ -233,31 +235,52 @@
               <li id="hiloDisplay">High Low Listed Here</li>
             </ul>
           </div>
-
-          <div class="col col-12 col-md-5">
-            <div class="card-body pile" id="dealPile">
+          <div class="col col-12 col-lg-5">
+            <!-- START INDICATOR CARDS ROW -->
+            <div class="card-body rowOfCards" id="indicatorCardsRow">
+              <div class="cardSingle rounded faceDown"></div>
+              <div class="cardSingle rounded faceDown"></div>
+              <div class="cardSingle rounded faceDown"></div>
+              <div class="cardSingle rounded faceDown"></div>
+              <div class="cardSingle rounded faceDown"></div>
+              <div class="cardSingle rounded faceDown"></div>
             </div>
+            <!-- END INDICATOR CARDS ROW -->
+            <!-- START DEAL PILE -->
+            <div class="card-body rowOfCards" id="dealPile">
+              <div class="cardSingle rounded faceDown"></div>
+              <div class="cardSingle rounded faceDown"></div>
+              <div class="cardSingle rounded faceDown"></div>
+              <div class="cardSingle rounded faceDown"></div>
+              <div class="cardSingle rounded faceDown"></div>
+              <div class="cardSingle rounded faceDown"></div>
+              <div class="cardSingle rounded faceDown"></div>
+              <div class="cardSingle rounded faceDown"></div>
+              <div class="cardSingle rounded faceDown"></div>
+              <div class="cardSingle rounded faceDown"></div>
+              <div class="cardSingle rounded faceDown"></div>
+              <div class="cardSingle rounded faceDown"></div>
+              <div class="cardSingle rounded faceDown"></div>
+              <div class="cardSingle rounded faceDown"></div>
+            </div>
+            <!-- END DEAL PILE -->
             <!-- START DEALING BUTTONS-->
-            <form>
-              <div class="row d-flex justify-content-around mx-2 my-3" id="dealingButtonsRow">
-                  <div class="form-group col-md-3">
-                    <button type="button" class="btn btn-primary" id="shuffleButton">Shuffle</button>
-                  </div>
-                  <div class="form-group col-md-3">
-                    <button type="button" class="btn btn-primary" id="dealFaceUpButton">Deal Face Up</button>
-                  </div>
-                  <div class="form-group col-md-3">
-                    <button type="button" class="btn btn-primary" id="dealFaceDownPeekButton">Deal Face Down w/Peek</button>
-                  </div>
-                  <div class="form-group col-md-3">
-                    <button type="button" class="btn btn-primary" id="dealFaceDownNoPeekButton">Deal Face Down No Peek</button>
-                  </div>
-              </div>
+              <form>
+                <div class="row d-flex justify-content-around mx-2 my-3" id="dealingButtonsRow">
+                  <button type="button" class="btn btn-primary" id="dealButton">Deal</button>
+                  <button type="button" class="btn btn-primary" id="dealIndicatorCardsButton">Deal Indicator Card(s)</button>
+                  <button type="button" class="btn btn-primary" id="offerCardsButton">Offer Cards</button>
+                  <button type="button" class="btn btn-primary" id="passCardsPromptButton">Prompt to Pass Cards</button>
+                  <button type="button" class="btn btn-primary" id="declarePromptButton">Prompt to Declare</button>
+                </div>
+                <div class="alert alert-primary" role="alert" id="dealerAlert">
+                  Alerts and prompts for the dealer will go here.
+                </div>
               </form>
               <!-- END DEALING BUTTONS-->
           </div>
 
-          <div class="col col-12 col-md-5" id="bettingColumn">
+          <div class="col col-12 col-lg-5" id="bettingColumn" style="display: inline;">
             <h4 class="mb-3">
               <span class="text-muted">Betting</span>
             </h4>
@@ -354,7 +377,7 @@
         <!-- START playersRow1 -->
         <div class=" playerRow row flex-row justify-content-center" id="playersRow1">
           
-          <div class="col col-12 col-md-3 playerArea" id="player1Area">
+          <div class="col col-12 col-lg-3 playerArea" id="player1Area">
 
             <ul class="list-group">
                 <li class="list-group-item d-flex justify-content-between lh-condensed playerNameRow">
@@ -365,33 +388,41 @@
                   </li>
             </ul>
 
-            <div class="card-body rowOfCards">
-              <div class="cardSingle rounded"><img src="../public/images/cards/as.png"></div>
-              <div class="cardSingle rounded"><img src="../public/images/cards/2s.png"></div>
-              <div class="cardSingle rounded"><img src="../public/images/cards/3s.png"></div>
+            <div class="card-body rowOfCards d-flex align-items-start">
+              <div class="cardSingle rounded faceDown"><span class="cardOverlay">10&nbsp;<br>&clubs;</span></div>
+              <div class="cardSingle rounded faceDown"><span class="cardOverlay">K&nbsp;<br>&clubs;</span></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/as.png);"></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/qd.png);"></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/7c.png);"></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/2h.png);"></div>
+              <div class="cardSingle rounded faceDown"><span class="cardOverlay">Q&nbsp;<br>&spades;</span></div>
             </div>
           </div>
           
           
-          <div class="col col-12 col-md-3 playerArea" id="player2Area">
+          <div class="col col-12 col-lg-3 playerArea" id="player2Area">
 
             <ul class="list-group">
                 <li class="list-group-item d-flex justify-content-between lh-condensed playerNameRow">
                     <div>
-                      <h6 class="my-0">Player 2: Tony B.</h6>
+                      <h6 class="my-0">Player 2: Wes U.</h6>
                     </div>
                     <span class="bg-danger text-white inGameStatus">Out</span>
                   </li>
             </ul>            
 
-            <div class="card-body rowOfCards">
-              <div class="cardSingle rounded"><img src="../public/images/cards/as.png"></div>
-              <div class="cardSingle rounded"><img src="../public/images/cards/2s.png"></div>
-              <div class="cardSingle rounded"><img src="../public/images/cards/3s.png"></div>
+            <div class="card-body rowOfCards d-flex align-items-start">
+              <div class="cardSingle rounded faceDown"><span class="cardOverlay">10&nbsp;<br>&clubs;</span></div>
+              <div class="cardSingle rounded faceDown"><span class="cardOverlay">K&nbsp;<br>&clubs;</span></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/as.png);"></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/qd.png);"></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/7c.png);"></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/2h.png);"></div>
+              <div class="cardSingle rounded faceDown"><span class="cardOverlay">Q&nbsp;<br>&spades;</span></div>
             </div>
           </div>
 
-          <div class="col col-12 col-md-3 playerArea" id="player3Area">
+          <div class="col col-12 col-lg-3 playerArea" id="player3Area">
 
             <ul class="list-group">
                 <li class="list-group-item d-flex justify-content-between lh-condensed playerNameRow">
@@ -402,10 +433,14 @@
                   </li>
             </ul>            
 
-            <div class="card-body rowOfCards">
-              <div class="cardSingle rounded"><img src="../public/images/cards/as.png"></div>
-              <div class="cardSingle rounded"><img src="../public/images/cards/2s.png"></div>
-              <div class="cardSingle rounded"><img src="../public/images/cards/3s.png"></div>
+            <div class="card-body rowOfCards d-flex align-items-start">
+              <div class="cardSingle rounded faceDown"><span class="cardOverlay">10&nbsp;<br>&clubs;</span></div>
+              <div class="cardSingle rounded faceDown"><span class="cardOverlay">K&nbsp;<br>&clubs;</span></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/as.png);"></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/qd.png);"></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/7c.png);"></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/2h.png);"></div>
+              <div class="cardSingle rounded faceDown"><span class="cardOverlay">Q&nbsp;<br>&spades;</span></div>
             </div>
           </div>
           
@@ -417,7 +452,94 @@
         <!-- START playersRow2 -->
         <div class="playerRow row flex-row-reverse justify-content-center" id="playersRow2"> 
           
-            
+          <div class="col col-12 col-lg-3 playerArea" id="player4Area">
+
+            <ul class="list-group">
+                <li class="list-group-item d-flex justify-content-between lh-condensed playerNameRow">
+                    <div>
+                      <h6 class="my-0">Player 4: Oscar R.</h6>
+                    </div>
+                    <span class="bg-success text-white inGameStatus"><i class="fab fa-buffer"></i> Dealer</span>
+                  </li>
+            </ul>
+
+            <div class="card-body rowOfCards d-flex align-items-start">
+              <div class="cardSingle rounded faceDown"><span class="cardOverlay">10&nbsp;<br>&clubs;</span></div>
+              <div class="cardSingle rounded faceDown"><span class="cardOverlay">K&nbsp;<br>&clubs;</span></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/as.png);"></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/qd.png);"></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/7c.png);"></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/2h.png);"></div>
+              <div class="cardSingle rounded faceDown"><span class="cardOverlay">Q&nbsp;<br>&spades;</span></div>
+            </div>
+          </div>
+          
+          
+          <div class="col col-12 col-lg-3 playerArea" id="player5Area">
+
+            <ul class="list-group">
+                <li class="list-group-item d-flex justify-content-between lh-condensed playerNameRow">
+                    <div>
+                      <h6 class="my-0">Player 5: Kareem A.</h6>
+                    </div>
+                    <span class="bg-danger text-white inGameStatus">Out</span>
+                  </li>
+            </ul>            
+
+            <div class="card-body rowOfCards d-flex align-items-start">
+              <div class="cardSingle rounded faceDown"><span class="cardOverlay">10&nbsp;<br>&clubs;</span></div>
+              <div class="cardSingle rounded faceDown"><span class="cardOverlay">K&nbsp;<br>&clubs;</span></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/as.png);"></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/qd.png);"></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/7c.png);"></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/2h.png);"></div>
+              <div class="cardSingle rounded faceDown"><span class="cardOverlay">Q&nbsp;<br>&spades;</span></div>
+            </div>
+          </div>
+
+          <div class="col col-12 col-lg-3 playerArea" id="player6Area">
+
+            <ul class="list-group">
+                <li class="list-group-item d-flex justify-content-between lh-condensed playerNameRow">
+                    <div>
+                      <h6 class="my-0">Player 6: Muhammad A.</h6>
+                    </div>
+                    <span class="bg-success text-white inGameStatus">In</span>
+                  </li>
+            </ul>            
+
+            <div class="card-body rowOfCards d-flex align-items-start">
+              <div class="cardSingle rounded faceDown"><span class="cardOverlay">10&nbsp;<br>&clubs;</span></div>
+              <div class="cardSingle rounded faceDown"><span class="cardOverlay">K&nbsp;<br>&clubs;</span></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/as.png);"></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/qd.png);"></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/7c.png);"></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/2h.png);"></div>
+              <div class="cardSingle rounded faceDown"><span class="cardOverlay">Q&nbsp;<br>&spades;</span></div>
+            </div>
+          </div>
+
+          <div class="col col-12 col-lg-3 playerArea" id="player7Area">
+
+            <ul class="list-group">
+                <li class="list-group-item d-flex justify-content-between lh-condensed playerNameRow">
+                    <div>
+                      <h6 class="my-0">Player 7: Walter P.</h6>
+                    </div>
+                    <span class="bg-success text-white inGameStatus">In</span>
+                  </li>
+            </ul>            
+
+            <div class="card-body rowOfCards d-flex align-items-start">
+              <div class="cardSingle rounded faceDown"><span class="cardOverlay">10&nbsp;<br>&clubs;</span></div>
+              <div class="cardSingle rounded faceDown"><span class="cardOverlay">K&nbsp;<br>&clubs;</span></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/as.png);"></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/qd.png);"></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/7c.png);"></div>
+              <div class="cardSingle rounded faceUp" style="background-image: url(../public/images/cards/2h.png);"></div>
+              <div class="cardSingle rounded faceDown"><span class="cardOverlay">Q&nbsp;<br>&spades;</span></div>
+            </div>
+          </div>
               
                 
         </div>
@@ -456,9 +578,9 @@
 <!-- END OF MAIN CONTAINER -->
 
 
-    <!-- <script src="/socket.io/socket.io.js"></script> -->
+    <script src="/socket.io/socket.io.js"></script>
 
-<script src="/scripts/clientSocket.js"></script>
+<!-- <script src="/scripts/clientSocket.js"></script> -->
 
 <script src="/scripts/playSettings.js"></script>
 

@@ -6,7 +6,8 @@ const LocalStrategy				      = require("passport-local");
 const passportLocalMongoose		  = require("passport-local-mongoose");
 const User						          = require("./models/user");
 const middleware 	              = require ("./middleware/index");
-var myConfig                    = require ("./config"); // global variables available and changeable by all routes, I hope
+// var myConfig                    = require ("./config"); // global variables available and changeable by all routes, I hope
+// var cardSecrets                    	= require ("./cardSecrets"); // global objects available and changeable by all routes, I hope
 const flash						          = require("connect-flash");
 
 const indexRoutes					      = require("./routes/index");
@@ -33,7 +34,7 @@ if (process.env.NODE_ENV !== 'production') {
 //============
 //BRING IN LOCAL VARIABLES
 //=============
-app.locals.myVars = myConfig;
+// app.locals.myVars = myConfig;
 // console.log ("All cards array:" + app.locals.myVars.allCards);
 // app.locals.myVars.allCards = [0,1,2];
 

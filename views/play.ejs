@@ -15,7 +15,7 @@
       <div class="container">
         <div class="row flex-row justify-content-center">
 
-          <div class="col col-12 col-md-2">
+          <div class="col col-12 col-lg-2">
             <h2 class="display-5" id="gameNameDisplay">Game Name Goes Here</h2>
             <ul class="lead">
               <li id="currentDealerNameDisplay">Dealer's Name Goes Here</li>
@@ -24,31 +24,34 @@
               <li id="hiloDisplay">High Low Listed Here</li>
             </ul>
           </div>
-
-          <div class="col col-12 col-md-5">
-            <div class="card-body pile" id="dealPile">
+          <div class="col col-12 col-lg-5">
+            <!-- START INDICATOR CARDS ROW -->
+            <div class="card-body rowOfCards" id="indicatorCardsRow">
+              <!-- will be populated later via javascript-->
             </div>
+            <!-- END INDICATOR CARDS ROW -->
+            <!-- START DEAL PILE -->
+            <div class="card-body rowOfCards" id="dealPile">
+               <!-- will be populated later via javascript-->
+            </div>
+            <!-- END DEAL PILE -->
             <!-- START DEALING BUTTONS-->
             <form>
               <div class="row d-flex justify-content-around mx-2 my-3" id="dealingButtonsRow">
-                  <div class="form-group col-md-3">
-                    <button type="button" class="btn btn-primary" id="shuffleButton">Shuffle</button>
-                  </div>
-                  <div class="form-group col-md-3">
-                    <button type="button" class="btn btn-primary" id="dealFaceUpButton">Deal Face Up</button>
-                  </div>
-                  <div class="form-group col-md-3">
-                    <button type="button" class="btn btn-primary" id="dealFaceDownPeekButton">Deal Face Down w/Peek</button>
-                  </div>
-                  <div class="form-group col-md-3">
-                    <button type="button" class="btn btn-primary" id="dealFaceDownNoPeekButton">Deal Face Down No Peek</button>
-                  </div>
+                <button type="button" class="btn btn-primary" id="dealButton">Deal</button>
+                <button type="button" class="btn btn-primary" id="dealIndicatorCardsButton">Deal Indicator Card(s)</button>
+                <button type="button" class="btn btn-primary" id="offerCardsButton">Offer Cards</button>
+                <button type="button" class="btn btn-primary" id="passCardsPromptButton">Prompt to Pass Cards</button>
+                <button type="button" class="btn btn-primary" id="declarePromptButton">Prompt to Declare</button>
               </div>
-              </form>
+              <div class="alert alert-primary" role="alert" id="dealerAlert">
+                Alerts and prompts for the dealer will go here.
+              </div>
+            </form>
               <!-- END DEALING BUTTONS-->
           </div>
 
-          <div class="col col-12 col-md-5" id="bettingColumn">
+          <div class="col col-12 col-lg-5" id="bettingColumn">
             <h4 class="mb-3">
               <span class="text-muted">Betting</span>
             </h4>
@@ -99,20 +102,18 @@
 
         <!-- START playersRow1 -->
         <div class=" playerRow row flex-row justify-content-center" id="playersRow1">
-          <% if (tonight.tonightPlayers.length>0){ %>
-          <div class="col col-12 col-md-3 playerArea" id="player1Area">
+          <% if (tonight.players.length>0){ %>
+          <div class="col col-12 col-lg-3 playerArea" id="player1Area">
             <ul class="list-group">
               <li class="list-group-item d-flex justify-content-between lh-condensed playerNameRow">
                 <div>
-                  <h6 class="my-0">Player 1: <%= tonight.tonightPlayers[0].playerUser.fullName %></h6>
+                  <h6 class="my-0">Player 1: <%= tonight.players[0].playerUser.fullName %></h6>
                 </div>
                 <span class="bg-success text-white inGameStatus">In</span>
               </li>
             </ul>
-            <div class="card-body rowOfCards">
-              <div class="cardSingle rounded"><img src="../images/cards/as.png"></div>
-              <div class="cardSingle rounded"><img src="../images/cards/2s.png"></div>
-              <div class="cardSingle rounded"><img src="../images/cards/3s.png"></div>
+            <div class="card-body rowOfCards d-flex align-items-start">
+              <!-- cards to be inserted via javascript -->
             </div>
             <ul class="list-group">
               <li class="list-group-item d-flex lh-condensed playerWinningsRow">
@@ -123,20 +124,18 @@
             </ul>
           </div>
           <% }  %>
-          <% if (tonight.tonightPlayers.length>1){ %>
-          <div class="col col-12 col-md-3 playerArea" id="player2Area">
+          <% if (tonight.players.length>1){ %>
+          <div class="col col-12 col-lg-3 playerArea" id="player2Area">
             <ul class="list-group">
               <li class="list-group-item d-flex justify-content-between lh-condensed playerNameRow">
                 <div>
-                  <h6 class="my-0">Player 2: <%= tonight.tonightPlayers[1].playerUser.fullName %></h6>
+                  <h6 class="my-0">Player 2: <%= tonight.players[1].playerUser.fullName %></h6>
                 </div>
                 <span class="bg-success text-white inGameStatus">In</span>
               </li>
             </ul>
-            <div class="card-body rowOfCards">
-              <div class="cardSingle rounded"><img src="../images/cards/as.png"></div>
-              <div class="cardSingle rounded"><img src="../images/cards/2s.png"></div>
-              <div class="cardSingle rounded"><img src="../images/cards/3s.png"></div>
+            <div class="card-body rowOfCards d-flex align-items-start">
+              <!-- cards to be inserted via javascript -->
             </div>
             <ul class="list-group">
               <li class="list-group-item d-flex lh-condensed playerWinningsRow">
@@ -147,20 +146,18 @@
             </ul>
           </div>
           <% }  %>
-          <% if (tonight.tonightPlayers.length>2){ %>
-          <div class="col col-12 col-md-3 playerArea" id="player3Area">
+          <% if (tonight.players.length>2){ %>
+          <div class="col col-12 col-lg-3 playerArea" id="player3Area">
             <ul class="list-group">
               <li class="list-group-item d-flex justify-content-between lh-condensed playerNameRow">
                 <div>
-                  <h6 class="my-0">Player 3: <%= tonight.tonightPlayers[2].playerUser.fullName %></h6>
+                  <h6 class="my-0">Player 3: <%= tonight.players[2].playerUser.fullName %></h6>
                 </div>
                 <span class="bg-success text-white inGameStatus">In</span>
               </li>
             </ul>
-            <div class="card-body rowOfCards">
-              <div class="cardSingle rounded"><img src="../images/cards/as.png"></div>
-              <div class="cardSingle rounded"><img src="../images/cards/2s.png"></div>
-              <div class="cardSingle rounded"><img src="../images/cards/3s.png"></div>
+            <div class="card-body rowOfCards d-flex align-items-start">
+              <!-- cards to be inserted via javascript -->
             </div>
             <ul class="list-group">
               <li class="list-group-item d-flex lh-condensed playerWinningsRow">
@@ -177,20 +174,18 @@
 
         <!-- START playersRow2 -->
         <div class="playerRow row flex-row-reverse justify-content-center" id="playersRow2"> 
-          <% if (tonight.tonightPlayers.length>3){ %>
-            <div class="col col-12 col-md-3 playerArea" id="player4Area">
+          <% if (tonight.players.length>3){ %>
+            <div class="col col-12 col-lg-3 playerArea" id="player4Area">
               <ul class="list-group">
                 <li class="list-group-item d-flex justify-content-between lh-condensed playerNameRow">
                   <div>
-                    <h6 class="my-0">Player 4: <%= tonight.tonightPlayers[3].playerUser.fullName %></h6>
+                    <h6 class="my-0">Player 4: <%= tonight.players[3].playerUser.fullName %></h6>
                   </div>
                   <span class="bg-success text-white inGameStatus">In</span>
                 </li>
               </ul>
-              <div class="card-body rowOfCards">
-                <div class="cardSingle rounded"><img src="../images/cards/as.png"></div>
-                <div class="cardSingle rounded"><img src="../images/cards/2s.png"></div>
-                <div class="cardSingle rounded"><img src="../images/cards/3s.png"></div>
+              <div class="card-body rowOfCards d-flex align-items-start">
+                <!-- cards to be inserted via javascript -->
               </div>
               <ul class="list-group">
                 <li class="list-group-item d-flex lh-condensed playerWinningsRow">
@@ -201,20 +196,18 @@
               </ul>
             </div>
             <% }  %>
-            <% if (tonight.tonightPlayers.length>4){ %>
-              <div class="col col-12 col-md-3 playerArea" id="player5Area">
+            <% if (tonight.players.length>4){ %>
+              <div class="col col-12 col-lg-3 playerArea" id="player5Area">
                 <ul class="list-group">
                   <li class="list-group-item d-flex justify-content-between lh-condensed playerNameRow">
                     <div>
-                      <h6 class="my-0">Player 5: <%= tonight.tonightPlayers[4].playerUser.fullName %></h6>
+                      <h6 class="my-0">Player 5: <%= tonight.players[4].playerUser.fullName %></h6>
                     </div>
                     <span class="bg-success text-white inGameStatus">In</span>
                   </li>
                 </ul>
-                <div class="card-body rowOfCards">
-                  <div class="cardSingle rounded"><img src="../images/cards/as.png"></div>
-                  <div class="cardSingle rounded"><img src="../images/cards/2s.png"></div>
-                  <div class="cardSingle rounded"><img src="../images/cards/3s.png"></div>
+                <div class="card-body rowOfCards d-flex align-items-start">
+                  <!-- cards to be inserted via javascript -->
                 </div>
                 <ul class="list-group">
                   <li class="list-group-item d-flex lh-condensed playerWinningsRow">
@@ -225,20 +218,18 @@
                 </ul>
               </div>
               <% }  %>
-              <% if (tonight.tonightPlayers.length>5){ %>
-                <div class="col col-12 col-md-3 playerArea" id="player6Area">
+              <% if (tonight.players.length>5){ %>
+                <div class="col col-12 col-lg-3 playerArea" id="player6Area">
                   <ul class="list-group">
                     <li class="list-group-item d-flex justify-content-between lh-condensed playerNameRow">
                       <div>
-                        <h6 class="my-0">Player 6: <%= tonight.tonightPlayers[5].playerUser.fullName %></h6>
+                        <h6 class="my-0">Player 6: <%= tonight.players[5].playerUser.fullName %></h6>
                       </div>
                       <span class="bg-success text-white inGameStatus">In</span>
                     </li>
                   </ul>
-                  <div class="card-body rowOfCards">
-                    <div class="cardSingle rounded"><img src="../images/cards/as.png"></div>
-                    <div class="cardSingle rounded"><img src="../images/cards/2s.png"></div>
-                    <div class="cardSingle rounded"><img src="../images/cards/3s.png"></div>
+                  <div class="card-body rowOfCards d-flex align-items-start">
+                    <!-- cards to be inserted via javascript -->
                   </div>
                   <ul class="list-group">
                     <li class="list-group-item d-flex lh-condensed playerWinningsRow">
@@ -249,20 +240,18 @@
                   </ul>
                 </div>
                 <% }  %>
-                <% if (tonight.tonightPlayers.length>6){ %>
-                  <div class="col col-12 col-md-3 playerArea" id="player7Area">
+                <% if (tonight.players.length>6){ %>
+                  <div class="col col-12 col-lg-3 playerArea" id="player7Area">
                     <ul class="list-group">
                       <li class="list-group-item d-flex justify-content-between lh-condensed playerNameRow">
                         <div>
-                          <h6 class="my-0">Player 7: <%= tonight.tonightPlayers[6].playerUser.fullName %></h6>
+                          <h6 class="my-0">Player 7: <%= tonight.players[6].playerUser.fullName %></h6>
                         </div>
                         <span class="bg-success text-white inGameStatus">In</span>
                       </li>
                     </ul>
-                    <div class="card-body rowOfCards">
-                      <div class="cardSingle rounded"><img src="../images/cards/as.png"></div>
-                      <div class="cardSingle rounded"><img src="../images/cards/2s.png"></div>
-                      <div class="cardSingle rounded"><img src="../images/cards/3s.png"></div>
+                    <div class="card-body rowOfCards d-flex align-items-start">
+                      <!-- cards to be inserted via javascript -->
                     </div>
                     <ul class="list-group">
                       <li class="list-group-item d-flex lh-condensed playerWinningsRow">
@@ -279,7 +268,7 @@
 <!-- END CONTAINER FOR ALL PLAYERS -->
 
 <!-- START COLLAPSIBLE CHAT MESSAGES CARD-->
-<div class="accordion" id="chatMessagesAccordion">
+<!-- <div class="accordion" id="chatMessagesAccordion">
   <div class="card text-center">
     <div class="card-header" id="chatMessagesHeader">
       <h2 class="mb-0">
@@ -299,8 +288,14 @@
       </div>
     </div>
   </div>
-</div>
+</div> -->
 <!-- END COLLAPSIBLE CHAT MESSAGES CARD-->
+
+<!-- START FIXED-BOTTOM FOOTER FOR STATUS UPDATES -->
+<div class="fixed-bottom">
+  <ul id="statusUpdates"><li>Status updates will appear here.</li></ul>
+</div>
+<!-- END FIXED-BOTTOM FOOTER FOR STATUS UPDATES -->
 
 
 

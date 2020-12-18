@@ -4,8 +4,6 @@ const router	= express.Router();
 const passport	= require("passport");
 
 const User 		= require ("../models/user"),
-	  Player	= require("../models/player"),
-	//   Game      = require("../models/game"),
 	  Night		= require ("../models/night"),
 	  middleware	= require ("../middleware");
 
@@ -22,7 +20,7 @@ router.post("/night", middleware.isLoggedIn, function(req,res){
 	//because even though the form to submit a Night is password-protected, folks could still use a tool like Postman to submit malicious requests
 	//get data from form and use it it create a new Night object
 	let hostID = req.user._id;
-	let tonightPlayers = [];
+	let players = [];
 	let games = [];
     let amtAnte = req.body.amtAnte;
     let amtMaxOpen = req.body.amtMaxOpen;
@@ -30,7 +28,7 @@ router.post("/night", middleware.isLoggedIn, function(req,res){
 	let amtBetIncrements = req.body.amtBetIncrements;
 	let newNight = {
 		hostID:hostID,
-		tonightPlayers:tonightPlayers,
+		players:players,
 		games:games,
 		amtAnte:amtAnte,
 		amtMaxOpen:amtMaxOpen,
@@ -46,6 +44,8 @@ router.post("/night", middleware.isLoggedIn, function(req,res){
 			myConfig.nightInProgress = true;
 			//save night
 			newlyCreated.save();
+			//also update myConfig
+			myConfig.tonight = newlyCreated;
 			//redirect to the game page
 			res.redirect("/game");
 		}

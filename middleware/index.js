@@ -27,6 +27,16 @@ middlewareObj.isNightInProgress = function (req,res,next){
 	res.redirect("/game/hostPrompt");
 };
 
+middlewareObj.isNightFull = function (req,res,next){
+	if (myConfig.tonight.players.length<7){
+		//continue on with the callback that follows this middleware call
+		return next();
+	}
+	//the next code only runs if the condition is false, i.e., nobody has set up tonight's game yet
+	req.flash("error","Tonight's game is full. Please contact the host offline.");
+	res.redirect("/game/wait");
+};
+
 //===============
 //FINAL EXPORT
 //==============

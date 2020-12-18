@@ -4,7 +4,6 @@ const router	= express.Router();
 const passport	= require("passport");
 
 const User 		= require ("../models/user"),
-	  Player	= require("../models/player"),
 	  Night		= require ("../models/night"),
 	  seedNightDB = require ("../routes/seedNight");
 	  middleware	= require ("../middleware");
@@ -18,7 +17,7 @@ const myConfig = require("../config");
 // GAME ROUTES
 //============
 
-router.get("/game", middleware.isLoggedIn, middleware.isNightInProgress, function(req,res){
+router.get("/game", middleware.isLoggedIn, middleware.isNightInProgress, middleware.isNightFull, function(req,res){
 	res.redirect("/game/join");
 });
 
@@ -44,7 +43,7 @@ router.get("/game/wait", middleware.isLoggedIn, function(req,res){
 // JOIN THE GAME
 //================
 
-router.get("/game/join", middleware.isLoggedIn, function(req,res){
+router.get("/game/join", middleware.isLoggedIn, middleware.isNightInProgress, middleware.isNightFull, function(req,res){
 	Night.find({}).sort({dateCreated: -1}).exec(function(err,nightRecords){ //retrieve the records from the database sorted by the most recent date
 		if (err || nightRecords.length===0){ //even if the nights collection is empty, mongoose doesn't throw an error after this sort command
 				req.flash("error","Could not find tonight's settings in the database. Please check with tonight's host.");
@@ -73,28 +72,17 @@ router.get("/game/join", middleware.isLoggedIn, function(req,res){
 					};
 
 					//if this is the first player in tonight's array, make them the dealer
-					if (tonight.tonightPlayers.length===0){
+					if (tonight.players.length===0){
 						newPlayer.isDealer = true;
 					}
 
-				Player.create(newPlayer, function(err,newlyCreatedPlayer){
-					if (err){
-						req.flash("error","Could not create a new player. Please contact Bluemont for help.");
-						res.redirect("/game/wait");
-					} else {
-						if (tonight.tonightPlayers.length<7){
-								// push new player to the players array of tonight's record
-								tonight.tonightPlayers.push(newlyCreatedPlayer);
-								//save the updated night record to the DB
-								tonight.save();
-								//also save it to myConfig
-								myConfig.tonight = tonight;
-						} else {
-							req.flash("error","We already have 7 players for tonight. Please check with tonight's host.");
-							res.redirect("/game/wait");
-						}
-					}
-				});
+					// push new player to the players array of tonight's record
+					tonight.players.push(newPlayer);
+					//save the updated night record to the DB
+					tonight.save();
+					//also save it to myConfig
+					myConfig.tonight = tonight;
+
 				res.redirect("/play/"+ tonight._id);
 			} else {
 				req.flash("error","The most recent game in the database is more than a day old. Not good. Please check with tonight's host.");

@@ -94,6 +94,8 @@
 
 .playerArea{
     border: 1px solid black;
+    padding-right: 5px;
+    padding-left: 5px;
 }
 
 .playerNameRow,.playerWinningsRow{
@@ -107,34 +109,13 @@
 
 .rowOfCards {
     display: inline;
+    padding-top: 0;
 }
 
 .rowOfCards div {
     background-color: white;
-}
-
-.rowOfCards div:not(:nth-child(1)){
-    margin-left: -86px;
-}
-
-
-.pile {
-    display: inline;
-}
-
-.pile div {
-    background-color: white;
-}
-
-.pile div:not(:nth-child(1)){
-    margin-left: -100px;
-}
-
-#dealPile {
-    margin-left: 20px;
-}
-
-.cardSingle{
+    background-size: contain;
+    background-repeat: round;
     width: 111px;
     height: 158px;
     border: solid black 1px;
@@ -142,15 +123,64 @@
     display: inline-block;
 }
 
-.cardSingle img{
-    width: 100%;
-    height: auto;
+.rowOfCards div:not(:nth-child(1)){
+    margin-left: -83px;
 }
 
-#playersRow2 {
+/* .cardSingle{
+
+} */
+
+.faceDown {
+    background-image: url(../images/cards/back.png);
+}
+
+.cardOverlay {
+    line-height: 1.0; 
+    text-align: center;
+    background-color: white; 
+    font-family: 'Lato', sans-serif; 
+    font-weight: bold; 
+    font-size:1rem;
+    padding-left:1px; 
+    padding-right: 5px;
+}
+
+
+/* .pile div {
+    background-color: white;
+} */
+
+#dealPile {
+    margin-left: 20px;
+}
+
+#dealPile div:not(:nth-child(1)){
+    margin-left: -105px;
+}
+
+#dealingButtonsRow button {
     display: none;
 }
 
+#dealerAlert {
+    display: none;
+}
+
+#indicatorCardsRow{
+    display: none; 
+    /* make it block when it's time to display it */
+}
+
+#indicatorCardsRow div{
+    margin-left: 0px;
+}
+
+/* #playersRow2 {
+    display: none;
+} */
+
 #statusUpdates {
     background-color: #ffff87;
+    margin-bottom: 0;
 }

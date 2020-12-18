@@ -4,9 +4,6 @@ var socket = io();
 //=============
 // DOM stuff to manage via variables and objects
 //===============
-// let requestDealButton       = document.querySelector("#requestDealButton");
-// let myCardsDisplay          = document.querySelector("#myCardsDisplay");
-// let remainingDeckDisplay    = document.querySelector("#remainingDeckDisplay");
 let chatMessages            = document.querySelector("#chatMessages");
 let statusUpdates            = document.querySelector("#statusUpdates");
 
@@ -24,7 +21,7 @@ function getAPIData(url) {
       if (this.status >= 200 && this.status < 400) {
         // Success!
         var returnedAPIData = JSON.parse(this.response);
-        // return user_data;
+        // return data;
         resolve(returnedAPIData);
       } else {
         // We reached our target server, but it returned an error
@@ -51,6 +48,37 @@ function htmlToElement(html) {
   html = html.trim(); // Never return a text node of whitespace as the result
   template.innerHTML = html;
   return template.content.firstChild;
+}
+
+function displayDealerPrompt (instruction){
+  //loop thru and hide all of the elements in #dealingButtonsRow and #dealerAlert
+  let allDealingButtons = document.querySelectorAll('#dealingButtonsRow button')
+  for (let i=0; i<allDealingButtons.length; i++){
+    allDealingButtons[i].style.display="none";
+  }
+  document.getElementById('dealerAlert').style.display="none";
+  //now display only the item needed for next step of game sequence
+  switch (instruction){
+    case "dealFaceUp" || "dealFaceDown" || "dealPlayersChoice":
+      document.getElementById('dealButton').style.display = "inline";
+      break;
+    case "dealIndicatorsDown":
+      document.getElementById('dealIndicatorCardsButton').style.display = "inline";
+      break;
+    case "offerCards":
+      document.getElementById('offerCardsButton').style.display = "inline";
+      break;
+    case "passCards":
+      document.getElementById('passCardsPromptButton').style.display = "inline";
+      break;
+    case "declare":
+      document.getElementById('declarePromptButton').style.display = "inline";
+      break;
+    case "": // if we send an empty string as an argument to this function, we're hiding the entire thing and not re-displaying anything!
+      break;
+    default: // for everything else, assume it's a prompt to the dealer
+      document.getElementById('dealerAlert').style.display = "block";
+  }
 }
 
 
@@ -93,22 +121,45 @@ function updateNameTag (index, newStatus) {
 //GAME PLAYING FUNCTIONS
 //==============
 
-function ante(){
+function getMyIndex (){
   let currentPlayerIndexNumber = parseInt(sessionStorage.getItem('currentPlayerIndex'),10);
-  console.log ("Your currentPlayer index number is: " + currentPlayerIndexNumber);
-  socket.emit("I ante", currentPlayerIndexNumber);
+  return currentPlayerIndexNumber;
+}
+
+function getPlayerIndex (userID, playersArray){
+  for (let i=0; i<playersArray.length;i++){
+    if (playersArray[i].playerUser._id===userID){
+      return i;
+    }
+  }
+}
+
+function ante(){
+  let myIndex = getMyIndex();
+  console.log ("Your currentPlayer index number is: " + myIndex);
+  socket.emit("I ante", myIndex);
   console.log ("I just sent the I-ante emit");
+  document.getElementById('anteButton').removeEventListener("click",ante);
   document.getElementById("anteButtonsRow").style.display = "none";
   document.getElementById("anteButtonsRow").classList.remove("d-flex");
 }
 
 function sitOut (){
-  let currentPlayerIndexNumber = parseInt(sessionStorage.getItem('currentPlayerIndex'),10);
-  console.log ("Your currentPlayer index number is: " + currentPlayerIndexNumber);
-  socket.emit("I sit out", currentPlayerIndexNumber);
+  let myIndex = getMyIndex();
+  console.log ("Your currentPlayer index number is: " + myIndex);
+  socket.emit("I sit out", myIndex);
   console.log ("I just sent the sit out emit");
+  document.getElementById('sitOutButton').removeEventListener("click",sitOut);
   document.getElementById("anteButtonsRow").style.display = "none";
   document.getElementById("anteButtonsRow").classList.remove("d-flex");
+}
+
+function deal(){
+  let myIndex = getMyIndex();
+  socket.emit("I deal", myIndex);
+  console.log ("I just sent the I-deal emit");
+  document.getElementById('dealButton').removeEventListener("click",deal);
+  document.getElementById('dealButton').style.display = "none";
 }
 
 function updatePlayerBalance (tonightPlayerIndex, newAmt){
@@ -137,22 +188,26 @@ function updatePlayerBalance (tonightPlayerIndex, newAmt){
       targetElement = document.querySelector("#player7Area .winningsDisplayAmt");
       break;
   }
-  console.log(targetElement);
-  targetElement.textContent = newAmt.toString();
+    targetElement.textContent = newAmt.toString();
+}
+
+function hidePlayerArea(index){
+index += 1; //to go from array index to displayed player number
+document.getElementById(`player${index}Area`).style.display = "none";
 }
 
 //==============
 //CHAT FORM SUBMIT LOGIC
 //==============
 
-const chatForm = document.getElementById('chatForm');
-chatForm.onsubmit = submit;
+// const chatForm = document.getElementById('chatForm');
+// chatForm.onsubmit = submit;
 
-function submit(event) {
-  event.preventDefault();  // prevent window from refreshing on submit
-  socket.emit('chat message', chatForm.chatInput.value);
-  chatForm.chatInput.value="";  //clear the form for next input
-}
+// function submit(event) {
+//   event.preventDefault();  // prevent window from refreshing on submit
+//   socket.emit('chat message', chatForm.chatInput.value);
+//   chatForm.chatInput.value="";  //clear the form for next input
+// }
 
 
 
@@ -176,7 +231,6 @@ socket.on('connect', function connectUser () {  // Called whenever a user connec
             socketID: socket.id,
             tonightID: tonightID
         };
-        
         localStorage.setItem('currentUserID', returnedAPIData.currentUser._id);
         localStorage.setItem('currentUserFullName', returnedAPIData.currentUser.firstName + " " + returnedAPIData.currentUser.lastInitial);
         socket.emit('iAmConnected', myConnectObject);
@@ -184,9 +238,9 @@ socket.on('connect', function connectUser () {  // Called whenever a user connec
 });
 
 
-socket.on('chat message', function(msg){
-  chatMessages.innerHTML += "<li>" + msg + "</li>";
-});
+// socket.on('chat message', function(msg){
+//   chatMessages.innerHTML += "<li>" + msg + "</li>";
+// });
 
 socket.on('status update', function(msg){
   statusUpdates.innerHTML = msg;
@@ -215,10 +269,8 @@ socket.on('render new player for all', function (newPlayerUser){
           <span class="bg-success text-white inGameStatus">In</span>
         </li>
       </ul>
-      <div class="card-body rowOfCards">
-        <div class="cardSingle rounded"><img src="../images/cards/as.png"></div>
-        <div class="cardSingle rounded"><img src="../images/cards/2s.png"></div>
-        <div class="cardSingle rounded"><img src="../images/cards/3s.png"></div>
+      <div class="card-body rowOfCards d-flex align-items-start">
+        <!-- cards to be added via javascript later -->
       </div>
       <ul class="list-group">
       <li class="list-group-item d-flex lh-condensed playerWinningsRow">
@@ -232,7 +284,7 @@ socket.on('render new player for all', function (newPlayerUser){
       if (targetPlayerRow===1){
         playersRow1.innerHTML += insertableHTML;
       } else {
-        playersRow2.style.display="flex";
+        // playersRow2.style.display="flex";  //maybe no need to ever make this thing IN-visible, right?
         playersRow2.innerHTML += insertableHTML;
       }
     }
@@ -266,8 +318,21 @@ socket.on('private message', function(msg){
       sessionStorage.setItem('currentPlayerIndex', "6");
         break;
     default:
-      alert ("You got an unknown private message from the server. Lucky you!")
+      alert ("You got an unknown private message from the server. Lucky you!");
     }
+});
+
+socket.on('dealer instruction', function(myConfig){
+    switch(myConfig.currentGame.playSequence[myConfig.currentGame.playSequenceLocation]){
+    case "dealFaceDown":
+      //unhide or display the "deal" button and add event listener to it
+      const el = document.getElementById('dealButton');
+      el.style.display = "inline-block";
+      el.addEventListener("click", deal);
+      break;
+    default:
+      alert("You got an unknown dealer instruction from the server. Lucky you!");
+  }
 });
 
 socket.on('game open', function(myConfig){
@@ -295,12 +360,9 @@ socket.on('ante broadcast', function(anteBroadcastObject){
    updateNameTag (anteBroadcastObject.playerIndex,"in");
    //update the winnings balance display of the player who ante'd
    //first, get the balance for night of that player
-   let x = anteBroadcastObject.myConfig.tonight.tonightPlayers;
-   console.log(x);
+   let x = anteBroadcastObject.myConfig.tonight.players;
    x = x[anteBroadcastObject.playerIndex];
-   console.log(x);
    x = x.balanceForNight.toFixed(2);
-   console.log(x);
    updatePlayerBalance (anteBroadcastObject.playerIndex, x);
   // empty out the betting list
   document.getElementById("bettingDisplayList").innerHTML = "";
@@ -325,22 +387,49 @@ socket.on('ante broadcast', function(anteBroadcastObject){
       <span><strong>Pot</strong></span>
       <strong>$${newPotAmt}</strong>
     </li>`;
-    let newPlayerLineBetLi = htmlToElement(insertableHTML); // use function to convert HTML string into DOM element
-    document.getElementById("bettingDisplayList").appendChild(newPlayerLineBetLi); // add this as a new line in the betting list
+    let newPotAmtLi = htmlToElement(insertableHTML); // use function to convert HTML string into DOM element
+    document.getElementById("bettingDisplayList").appendChild(newPotAmtLi); // add this as the final line at bottom of the betting list
 });
 
 socket.on('sit out broadcast', function(sitOutBroadcastObject){
   //show "out" label
   updateNameTag (sitOutBroadcastObject.playerIndex,"out");
+  //hide the player's area
+  hidePlayerArea(sitOutBroadcastObject.playerIndex);
 });
 
 
 socket.on('shuffle visual', function(){
-  let insertableHTML = `<div class="cardSingle rounded"><img src="../images/cards/back.png"></div>`;
+  let insertableHTML = `<div class="cardSingle rounded faceDown"></div>`;
   let dealPile = document.querySelector('#dealPile');
   for (let i=1;i<14;i++){
     dealPile.innerHTML += insertableHTML;
   }
+});
+
+socket.on('deal batch broadcast', function (dealBatchObject){
+  // console.log("Deal batch object is: ");
+  // console.log(JSON.stringify(dealBatchForClient));
+  ///loop thru the object, building insertable HTML and adding it to the correct playerArea, playing a sound, maybe animating
+  dealBatchObject.dealBatchCommon.forEach(element => {
+    let insertableHTML = "";
+    let insertableClass = "";
+    let insertableBackground = "";
+    if (element.imgPath.includes("back")){
+      insertableClass = " faceDown";
+    } else {
+      insertableClass = " faceUp";
+      insertableBackground = ` style="background-image: url(${element.imgPath});"`;
+    }
+   if (element.tonightPlayerIndex===getMyIndex()){ // if I' populating my own playerArea div
+    insertableHTML = `<div class="cardSingle rounded${insertableClass}" id="DCI${element.dci}"${insertableBackground}>${dealBatchObject.overlayHTML}</div>`;
+    sessionStorage.setItem('myHand', sessionStorage.getItem('myHand') + "," + element.dci);
+   } else {
+    insertableHTML = `<div class="cardSingle rounded${insertableClass}" id="DCI${element.dci}"${insertableBackground}></div>`;
+   }
+  let newCardDiv = htmlToElement(insertableHTML); // use function to convert HTML string into DOM element
+  document.querySelector(`#player${element.tonightPlayerIndex+1}Area .rowOfCards`).append(newCardDiv);
+  });
 });
 
 
