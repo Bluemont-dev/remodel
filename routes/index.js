@@ -39,6 +39,14 @@ router.get('/api/user_data', function(req, res) {
 	}
 });
 
+//=============
+// TEST ROUTES
+//=============
+
+router.get("/howlertest",function(req,res){
+	res.render("howlertest");
+});
+
 //==============
 // AUTH ROUTES
 //==============

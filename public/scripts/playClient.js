@@ -177,3 +177,44 @@ function submitGame() {
     return false; // prevent further bubbling of event
   }
 
+//   $(function playSound(sound){
+//     var howler_deal1 = new Howl({
+//         src: ['/sounds/deal1.m4a']
+//     });
+//     var howler_deal2 = new Howl({
+//         src: ['/sounds/deal2.m4a']
+//     });
+//     var howler_deal3 = new Howl({
+//         src: ['/sounds/deal3.m4a']
+//     });
+//     var howler_chipSingle = new Howl({
+//         src: ['/sounds/chip-single.m4a']
+//     });
+//     var howler_chipMultiple = new Howl({
+//         src: ['/sounds/chip-multiple.m4a']
+//     });
+//     var howler_fold = new Howl({
+//         src: ['/sounds/fold.m4a']
+//     });
+//     switch (sound){
+//         case "deal1":
+//             howler_deal1.play();
+//             break;
+//         case "deal2":
+//             howler_deal2.play();
+//             break;
+//         case "deal3":
+//             howler_deal3.play();
+//             break;
+//         case "chipSingle":
+//             howler_chipSingle.play();
+//             break;
+//         case "chipMultiple":
+//             howler_chipMultiple.play();
+//             break;
+//         case "fold":
+//             howler_fold.play();
+//             break;
+//     }
+// });
+

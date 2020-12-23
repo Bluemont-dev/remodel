@@ -146,6 +146,14 @@
     padding-right: 5px;
 }
 
+.black {
+    color: #000;
+}
+
+.red {
+    color: #df0000;
+}
+
 
 /* .pile div {
     background-color: white;

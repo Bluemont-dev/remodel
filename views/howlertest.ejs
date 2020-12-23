@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Testing Howler</title>
+</head>
+<body>
+
+    <H1>Testing Howler</H1>
+
+    <button id="howler-deal">Deal</button>
+
+    <!-- <script src="/socket.io/socket.io.js"></script> -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="/scripts/extras.js"></script>
+    <script src="/scripts/howler.js"></script>
+    <script type="text/javascript" >
+
+function playSound(sound) {
+    return new Promise((resolve, reject) => {
+    mySoundID = sound.play();
+        if (sound.playing(mySoundID)){
+            resolve ();
+        }
+    });
+}
+
+$(function(){
+    var howler_deal = new Howl({
+        src: ['/sounds/sevendeals.m4a'],
+        volume: 0.5
+    });
+    $("#howler-deal").on("click", function(){
+        playSound(howler_deal)
+        .then (() => {
+        console.log("Done playing sound");
+        })
+    });
+});
+
+    </script>
+
+</body>
+</html>

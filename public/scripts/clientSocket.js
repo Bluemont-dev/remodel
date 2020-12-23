@@ -81,6 +81,14 @@ function displayDealerPrompt (instruction){
   }
 }
 
+function updateDealPile (numShuffledDeckRemaining){
+  let dealPileCounter = document.getElementById('dealPile').childElementCount;
+  let dealPileElement = document.getElementById('dealPile');
+  while (dealPileElement.childElementCount>((numShuffledDeckRemaining/4)+.75)){
+    dealPileElement.removeChild(dealPileElement.lastChild);
+  }
+}
+
 
 function updateNameTag (index, newStatus) {
   let allPlayerNameTags = document.getElementsByClassName('inGameStatus');
@@ -120,6 +128,7 @@ function updateNameTag (index, newStatus) {
 //==============
 //GAME PLAYING FUNCTIONS
 //==============
+
 
 function getMyIndex (){
   let currentPlayerIndexNumber = parseInt(sessionStorage.getItem('currentPlayerIndex'),10);
@@ -195,6 +204,7 @@ function hidePlayerArea(index){
 index += 1; //to go from array index to displayed player number
 document.getElementById(`player${index}Area`).style.display = "none";
 }
+
 
 //==============
 //CHAT FORM SUBMIT LOGIC
@@ -323,12 +333,18 @@ socket.on('private message', function(msg){
 });
 
 socket.on('dealer instruction', function(myConfig){
-    switch(myConfig.currentGame.playSequence[myConfig.currentGame.playSequenceLocation]){
-    case "dealFaceDown":
+  let dealString = myConfig.tonight.games[myConfig.tonight.games.length-1].playSequence[myConfig.tonight.games[myConfig.tonight.games.length-1].playSequenceLocation];
+  let dealButton = document.getElementById('dealButton');
+  switch(dealString){
+    case ("dealFaceDown"):
       //unhide or display the "deal" button and add event listener to it
-      const el = document.getElementById('dealButton');
-      el.style.display = "inline-block";
-      el.addEventListener("click", deal);
+      dealButton.style.display = "inline-block";
+      dealButton.addEventListener("click", deal);
+      break;
+    case ("dealFaceUp"):
+      //unhide or display the "deal" button and add event listener to it
+      dealButton.style.display = "inline-block";
+      dealButton.addEventListener("click", deal);
       break;
     default:
       alert("You got an unknown dealer instruction from the server. Lucky you!");
@@ -336,12 +352,13 @@ socket.on('dealer instruction', function(myConfig){
 });
 
 socket.on('game open', function(myConfig){
+  console.log(JSON.stringify(myConfig));
   //show game details
-  document.getElementById("gameNameDisplay").innerText = myConfig.currentGame.name;
+  document.getElementById("gameNameDisplay").innerText = myConfig.tonight.games[myConfig.tonight.games.length-1].name;
   document.getElementById("currentDealerNameDisplay").innerText = "Dealer:" + myConfig.currentDealerName;
-  document.getElementById("numCardsDisplay").innerText = myConfig.currentGame.numCards + " cards";
-  document.getElementById("whatsWildDisplay").innerText = "Wild cards: " + myConfig.currentGame.whatsWild;
-  document.getElementById("hiloDisplay").innerText = myConfig.currentGame.hilo;
+  document.getElementById("numCardsDisplay").innerText = myConfig.tonight.games[myConfig.tonight.games.length-1].numCards + " cards";
+  document.getElementById("whatsWildDisplay").innerText = "Wild cards: " + myConfig.tonight.games[myConfig.tonight.games.length-1].whatsWild;
+  document.getElementById("hiloDisplay").innerText = myConfig.tonight.games[myConfig.tonight.games.length-1].hilo;
   //unhide the betting column, but re-hide the betting buttons row
   document.getElementById("bettingColumn").style.display = "block";
   document.getElementById("bettingButtonsRow").style.display = "none";
@@ -367,9 +384,9 @@ socket.on('ante broadcast', function(anteBroadcastObject){
   // empty out the betting list
   document.getElementById("bettingDisplayList").innerHTML = "";
   //display the newly updated "players in game" array in the betting list
-  for (let i=0;i<anteBroadcastObject.myConfig.currentGame.playersInGame.length;i++){
-    let antePlayerName = anteBroadcastObject.myConfig.currentGame.playersInGame[i].playerUser.firstName;
-    antePlayerName += " " + anteBroadcastObject.myConfig.currentGame.playersInGame[i].playerUser.lastInitial;
+  for (let i=0;i<anteBroadcastObject.myConfig.tonight.games[anteBroadcastObject.myConfig.tonight.games.length-1].playersInGame.length;i++){
+    let antePlayerName = anteBroadcastObject.myConfig.tonight.games[anteBroadcastObject.myConfig.tonight.games.length-1].playersInGame[i].playerUser.firstName;
+    antePlayerName += " " + anteBroadcastObject.myConfig.tonight.games[anteBroadcastObject.myConfig.tonight.games.length-1].playersInGame[i].playerUser.lastInitial;
     let insertableHTML = 
     `<li class="list-group-item d-flex justify-content-between lh-condensed playerLineBetLi">
       <div>
@@ -381,7 +398,7 @@ socket.on('ante broadcast', function(anteBroadcastObject){
     document.getElementById("bettingDisplayList").appendChild(newPlayerLineBetLi); // add this as a new line in the betting list
   }
   // now recreate the "Pot amount"line at the bottom of that list
-  let newPotAmt = anteBroadcastObject.myConfig.currentGame.amtPot.toFixed(2);
+  let newPotAmt = anteBroadcastObject.myConfig.tonight.games[anteBroadcastObject.myConfig.tonight.games.length-1].amtPot.toFixed(2);
   let insertableHTML =
    `<li class="list-group-item d-flex justify-content-between" id="potLineBetAmt">
       <span><strong>Pot</strong></span>
@@ -410,6 +427,7 @@ socket.on('shuffle visual', function(){
 socket.on('deal batch broadcast', function (dealBatchObject){
   // console.log("Deal batch object is: ");
   // console.log(JSON.stringify(dealBatchForClient));
+  let numShuffledDeckRemaining = dealBatchObject.numShuffledDeckRemaining;
   ///loop thru the object, building insertable HTML and adding it to the correct playerArea, playing a sound, maybe animating
   dealBatchObject.dealBatchCommon.forEach(element => {
     let insertableHTML = "";
@@ -428,8 +446,11 @@ socket.on('deal batch broadcast', function (dealBatchObject){
     insertableHTML = `<div class="cardSingle rounded${insertableClass}" id="DCI${element.dci}"${insertableBackground}></div>`;
    }
   let newCardDiv = htmlToElement(insertableHTML); // use function to convert HTML string into DOM element
-  document.querySelector(`#player${element.tonightPlayerIndex+1}Area .rowOfCards`).append(newCardDiv);
-  });
+  document.querySelector(`#player${element.tonightPlayerIndex+1}Area .rowOfCards`).append(newCardDiv);  //this is where the new card appears onscreen
+  //check dealPile count and remove a card as needed
+  numShuffledDeckRemaining -= 1;
+  updateDealPile(numShuffledDeckRemaining);
+  }); //end of forEach loop
 });
 
 

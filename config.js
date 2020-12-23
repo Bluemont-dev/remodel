@@ -58,9 +58,7 @@ myConfig.allCards = [
     "kh"
 ];
 myConfig.nightInProgress = false;
-myConfig.tonightID = "";
 myConfig.gameInProgress = false;
-myConfig.currentGame = {};
 myConfig.currentDealerIndex = 0;
 myConfig.currentDealerName = "";
 
