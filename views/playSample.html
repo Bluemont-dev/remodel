@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
-    <link rel="shortcut icon" href="../favicon.ico" type="image/x-icon"/>
+    <link rel="shortcut icon" href="../public/images/favicon.ico" type="image/x-icon"/>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.13.0/css/all.css" integrity="sha384-Bfad6CLCknfcloXFOyFnlgtENryhrpZCe29RTifKEixXQZ38WheV+i/6YWSzkz3V" crossorigin="anonymous">
     <link rel="stylesheet" href="../public/stylesheets/styles.css">
@@ -332,7 +332,7 @@
               </li>
             </ul>
             <!-- START BETTING BUTTONS-->
-            <form>
+            <form id="anteAndBettingButtonsForm">
             <div class="row d-flex justify-content-left mx-2 my-3" id="anteButtonsRow">
               <div class="form-group col-md-3">
                 <button type="button" class="btn btn-primary" id="anteButton">Ante</button>                  
@@ -342,10 +342,10 @@
               </div>
             </div>
             <div class="row d-flex justify-content-around mx-2 my-3" id="bettingButtonsRow">
-              <div class="form-group col-md-3">
+              <div class="form-group col-md-3" id="callButtonDiv">
                 <button type="button" class="btn btn-primary" id="callButton">Call</button>                  
               </div>
-              <div class="d-flex flex-row form-group col-md-6">
+              <div class="d-flex flex-row form-group col-md-6" id="raiseDiv">
                 <button type="button" class="btn btn-success" id="raiseButton">Raise</button> 
                 <select id="raiseAmt" class="form-control">
                   <option>.05</option>
@@ -355,8 +355,21 @@
                   <option>.25</option>
                 </select>                  
               </div>
-              <div class="form-group col-md-3">
+              <div class="d-flex flex-row form-group col-md-6" id="openDiv">
+                <button type="button" class="btn btn-success" id="openButton">Open</button> 
+                <select id="openAmt" class="form-control">
+                  <option>.05</option>
+                  <option>.10</option>
+                  <option>.15</option>
+                  <option>.20</option>
+                  <option>.25</option>
+                </select>                  
+              </div>
+              <div class="form-group col-md-3" id="foldButtonDiv">
                 <button type="button" class="btn btn-secondary" id="foldButton">Fold</button>                  
+              </div>
+              <div class="form-group col-md-3" id="checkbuttonDiv">
+                <button type="button" class="btn btn-secondary" id="checkButton">Check</button>                  
               </div>
             </div>
             </form>

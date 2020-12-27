@@ -7,6 +7,9 @@
     display: none;
 }
 
+#callButtonDiv,#raiseDiv,#openDiv,#foldButtonDiv,#checkButtonDiv{
+    display: none;
+}
 
 #fullGameSettingsRow {
     /* necessary to hide collapsed sidebar */
@@ -100,6 +103,7 @@
 
 .playerNameRow,.playerWinningsRow{
     border: 0 none;
+    background: none;
 }
 
 .inGameStatus{

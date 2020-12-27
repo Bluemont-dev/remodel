@@ -142,8 +142,8 @@ function instructDealer (players, currentGame){
 		if (players[i].isDealer===true){
 		io.emit('status update',"Ready for dealer to take the next step.");
 		//emit to dealer with 'dealer instruction' so they can take the next step in the game's playSequence
-		console.log(`At time of sending dealer instruction, MyConfig.tonight:
-		${JSON.stringify(myConfig.tonight)}`);
+		// console.log(`At time of sending dealer instruction, MyConfig.tonight:
+		// ${JSON.stringify(myConfig.tonight)}`);
 		io.to(players[i].socketID).emit('dealer instruction',myConfig);
 		break;
 		}
@@ -250,6 +250,13 @@ function getOverlayFromString (string){
 	}
     overlayHTML = `<span class="cardOverlay ${colorClass}">${char1}&nbsp;<br>${suitHTMLEntity}</span>`;
 	return overlayHTML;
+}
+
+function SendNextBettorBroadcast(nextBettorBroadcastObject){
+	//emit status update saying it's somebody's bet
+	io.emit('status update',`The bet is to ${myConfig.tonight.players[nextBettorBroadcastObject.bettingRound.whoseTurn].playerUser.fullName}`);
+	//emit broadcast for 'Next bettor turn'
+	io.emit('next bettor broadcast',nextBettorBroadcastObject);
 }
 
 //=========================
@@ -361,8 +368,8 @@ io.on('connection', (socket) => {
 		// });
 		myConfig.currentDealerName = myConfig.tonight.players[myConfig.currentDealerIndex].playerUser.fullName;
 
-		console.log(`At time of game submit, MyConfig.tonight:
-		${JSON.stringify(myConfig.tonight)}`);
+		// console.log(`At time of game submit, MyConfig.tonight:
+		// ${JSON.stringify(myConfig.tonight)}`);
 
 		var shuffledDeck = allCards.shuffle();
 		console.log("The shuffled deck: " + shuffledDeck._stack);
@@ -427,15 +434,15 @@ io.on('connection', (socket) => {
 		let dealString = myConfig.tonight.games[myConfig.tonight.games.length-1].playSequence[myConfig.tonight.games[myConfig.tonight.games.length-1].playSequenceLocation];
 		//get an array of dealable players, starting w/ next player after dealer
 		getDealablePlayers(dealerIndex);
-		console.log("Dealt cards thus far: " + JSON.stringify(cardSecrets.dealtCards));
-		console.log(`tonight's players:
-		 ${JSON.stringify(myConfig.tonight.players)}`);
-		console.log(`players in game:
-		${JSON.stringify(myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame)}`);
-		console.log(`players out of game:
-		${JSON.stringify(myConfig.tonight.games[myConfig.tonight.games.length-1].playersOutOfGame)}`);
-		console.log(`dealable players:
-		${JSON.stringify(myConfig.tonight.games[myConfig.tonight.games.length-1].dealablePlayers)}`);
+		// console.log("Dealt cards thus far: " + JSON.stringify(cardSecrets.dealtCards));
+		// console.log(`tonight's players:
+		//  ${JSON.stringify(myConfig.tonight.players)}`);
+		// console.log(`players in game:
+		// ${JSON.stringify(myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame)}`);
+		// console.log(`players out of game:
+		// ${JSON.stringify(myConfig.tonight.games[myConfig.tonight.games.length-1].playersOutOfGame)}`);
+		// console.log(`dealable players:
+		// ${JSON.stringify(myConfig.tonight.games[myConfig.tonight.games.length-1].dealablePlayers)}`);
 		//build an array consisting of a batch of cards to be dealt, to send to client
 		let dealBatchCommon = [];
 		myConfig.tonight.games[myConfig.tonight.games.length-1].dealablePlayers.forEach(element => {
@@ -467,8 +474,8 @@ io.on('connection', (socket) => {
 				overlayHTML: overlayHTML,
 				numShuffledDeckRemaining: cardSecrets.shuffledDeck.length
 			};
-			console.log(`same deal batch for all clients:
-			${JSON.stringify(dealBatchObject)}`);
+			// console.log(`same deal batch for all clients:
+			// ${JSON.stringify(dealBatchObject)}`);
 			io.emit("deal batch broadcast",dealBatchObject);
 		} else { // it's facedown and peekable 
 			//loop through tonight players;
@@ -485,8 +492,8 @@ io.on('connection', (socket) => {
 							overlayHTML: overlayHTML,
 							numShuffledDeckRemaining: cardSecrets.shuffledDeck.length
 						};
-						console.log(`deal batch for ${myConfig.tonight.players[i].playerUser.firstName}:
-						${JSON.stringify(dealBatchObject)}`);
+						// console.log(`deal batch for ${myConfig.tonight.players[i].playerUser.firstName}:
+						// ${JSON.stringify(dealBatchObject)}`);
 						// send i's socketID their own private version of the object.
 						io.to(myConfig.tonight.players[i].socketID).emit("deal batch broadcast",dealBatchObject);
 						batchSent = true;
@@ -499,8 +506,8 @@ io.on('connection', (socket) => {
 						overlayHTML: overlayHTML,
 						numShuffledDeckRemaining: cardSecrets.shuffledDeck.length
 					};
-					console.log(`deal batch for ${myConfig.tonight.players[i].playerUser.firstName}:
-					${JSON.stringify(dealBatchObject)}`);
+					// console.log(`deal batch for ${myConfig.tonight.players[i].playerUser.firstName}:
+					// ${JSON.stringify(dealBatchObject)}`);
 					// send i's socketID their own private version of the object.
 					io.to(myConfig.tonight.players[i].socketID).emit("deal batch broadcast",dealBatchObject);
 				}			
@@ -509,18 +516,32 @@ io.on('connection', (socket) => {
 		//loop thru dealBatchCommon to save each card to the appropriate player's "hand" array
 		dealBatchObject.dealBatchCommon.forEach (element => {
 			myConfig.tonight.players[element.tonightPlayerIndex].hand.push(element);
-			console.log(`Hand for ${myConfig.tonight.players[element.tonightPlayerIndex].playerUser.firstName} is:
-			${JSON.stringify(myConfig.tonight.players[element.tonightPlayerIndex].hand)}`);
+			// console.log(`Hand for ${myConfig.tonight.players[element.tonightPlayerIndex].playerUser.firstName} is:
+			// ${JSON.stringify(myConfig.tonight.players[element.tonightPlayerIndex].hand)}`);
 		})
 		//then we gotta move the game on to the next gameSequenceLocation, and call the instructDealer function
 		if (myConfig.tonight.games[myConfig.tonight.games.length-1].playSequenceLocation<myConfig.tonight.games[myConfig.tonight.games.length-1].playSequence.length-1){
 			myConfig.tonight.games[myConfig.tonight.games.length-1].playSequenceLocation += 1;
 			instructDealer (myConfig.tonight.players, myConfig.tonight.games[myConfig.tonight.games.length-1]);
 		} else { // or if we're at the end, prompt the dealer to choose a winner via "choose winner" socket emit
-			io.to(myConfig.tonight.players[myConfig.currentDealerIndex].socketID).emit("choose winner",myConfig);
+			io.to(myConfig.tonight.players[myConfig.currentDealerIndex].socketID).emit("choose winner prompt",myConfig);
 		}
-		
-    });
+	});
+	
+	socket.on('I chose opener', (openerIndex) => {
+		//create new betting round object and add to myConfig
+		let bettingRound = {
+			amtBetInRound: 0,
+			checkedPlayers:[],
+			numRaises: 0,
+			whoseTurn: openerIndex
+		};
+		let nextBettorBroadcastObject = {
+			bettingRound:bettingRound,
+			myConfig:myConfig
+		}
+		SendNextBettorBroadcast(nextBettorBroadcastObject);
+	});
 	
 });
 

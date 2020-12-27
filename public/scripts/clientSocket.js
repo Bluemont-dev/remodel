@@ -1,11 +1,13 @@
+// const myConfig = require("../../config");
+
 var socket = io();
 
 
 //=============
 // DOM stuff to manage via variables and objects
 //===============
-let chatMessages            = document.querySelector("#chatMessages");
-let statusUpdates            = document.querySelector("#statusUpdates");
+let chatMessages = document.querySelector("#chatMessages");
+let statusUpdates = document.querySelector("#statusUpdates");
 
 
 //=========
@@ -50,15 +52,15 @@ function htmlToElement(html) {
   return template.content.firstChild;
 }
 
-function displayDealerPrompt (instruction){
+function displayDealerPrompt(instruction) {
   //loop thru and hide all of the elements in #dealingButtonsRow and #dealerAlert
   let allDealingButtons = document.querySelectorAll('#dealingButtonsRow button')
-  for (let i=0; i<allDealingButtons.length; i++){
-    allDealingButtons[i].style.display="none";
+  for (let i = 0; i < allDealingButtons.length; i++) {
+    allDealingButtons[i].style.display = "none";
   }
-  document.getElementById('dealerAlert').style.display="none";
+  document.getElementById('dealerAlert').style.display = "none";
   //now display only the item needed for next step of game sequence
-  switch (instruction){
+  switch (instruction) {
     case "dealFaceUp" || "dealFaceDown" || "dealPlayersChoice":
       document.getElementById('dealButton').style.display = "inline";
       break;
@@ -81,20 +83,20 @@ function displayDealerPrompt (instruction){
   }
 }
 
-function updateDealPile (numShuffledDeckRemaining){
+function updateDealPile(numShuffledDeckRemaining) {
   let dealPileCounter = document.getElementById('dealPile').childElementCount;
   let dealPileElement = document.getElementById('dealPile');
-  while (dealPileElement.childElementCount>((numShuffledDeckRemaining/4)+.75)){
+  while (dealPileElement.childElementCount > ((numShuffledDeckRemaining / 4) + .75)) {
     dealPileElement.removeChild(dealPileElement.lastChild);
   }
 }
 
 
-function updateNameTag (index, newStatus) {
+function updateNameTag(index, newStatus) {
   let allPlayerNameTags = document.getElementsByClassName('inGameStatus');
   let tagToUpdate = allPlayerNameTags.item(index);
-  let str="";
-  switch (newStatus){
+  let str = "";
+  switch (newStatus) {
     case "in":
       str = `<span class="bg-success text-white inGameStatus">In</span>`;
       break;
@@ -106,23 +108,36 @@ function updateNameTag (index, newStatus) {
       break;
   }
 
-  if(tagToUpdate.outerHTML) { //if outerHTML is supported
-    tagToUpdate.outerHTML=str; ///it's simple replacement of whole element with contents of str var
+  if (tagToUpdate.outerHTML) { //if outerHTML is supported
+    tagToUpdate.outerHTML = str; ///it's simple replacement of whole element with contents of str var
   } else { //if outerHTML is not supported, there is a weird but crossbrowsered trick
-  var tmpObj=document.createElement("div");
-  tmpObj.innerHTML='<!--THIS DATA SHOULD BE REPLACED-->';
-  ObjParent=tagToUpdate.parentNode; //Okey, element should be parented
-  ObjParent.replaceChild(tmpObj,tagToUpdate); //here we placing our temporary data instead of our target, so we can find it then and replace it into whatever we want to replace to
-  ObjParent.innerHTML=ObjParent.innerHTML.replace('<div><!--THIS DATA SHOULD BE REPLACED--></div>',str);
+    var tmpObj = document.createElement("div");
+    tmpObj.innerHTML = '<!--THIS DATA SHOULD BE REPLACED-->';
+    ObjParent = tagToUpdate.parentNode; //Okey, element should be parented
+    ObjParent.replaceChild(tmpObj, tagToUpdate); //here we placing our temporary data instead of our target, so we can find it then and replace it into whatever we want to replace to
+    ObjParent.innerHTML = ObjParent.innerHTML.replace('<div><!--THIS DATA SHOULD BE REPLACED--></div>', str);
   }
 
-  if (newStatus === "reset"){
+  if (newStatus === "reset") {
     allPlayerNameTags.item(index).style.display = "none";
   } else {
     allPlayerNameTags.item(index).style.display = "inline";
   }
-
 }
+
+function chooseOpener() {
+  let clickedPlayerName = this.innerText;
+  let clickedPlayerIndex = parseInt(clickedPlayerName.substr(7, 1), 10) - 1;
+  //use this value to send an emit to the server for "I chose opener"
+  socket.emit("I chose opener", clickedPlayerIndex);
+  dealerAlert.style.display = "none";
+  dealerAlert.textContent = "";
+  //remove event listener for all player names in playerAreas
+  let elements = document.querySelectorAll('.playerNameRow h6');
+  for (let i = 0; i < elements.length; i++) {
+    elements[i].removeEventListener('click', chooseOpener);
+  }
+};
 
 
 //==============
@@ -130,51 +145,67 @@ function updateNameTag (index, newStatus) {
 //==============
 
 
-function getMyIndex (){
-  let currentPlayerIndexNumber = parseInt(sessionStorage.getItem('currentPlayerIndex'),10);
+function getMyIndex() {
+  let currentPlayerIndexNumber = parseInt(sessionStorage.getItem('currentPlayerIndex'), 10);
   return currentPlayerIndexNumber;
 }
 
-function getPlayerIndex (userID, playersArray){
-  for (let i=0; i<playersArray.length;i++){
-    if (playersArray[i].playerUser._id===userID){
-      return i;
+function getPlayerIndex(userID, playersArray) {
+  for (let m = 0; m < playersArray.length; m++) {
+    if (playersArray[m].playerUser._id === userID) {
+      return m;
     }
   }
 }
 
-function ante(){
+function ante() {
   let myIndex = getMyIndex();
-  console.log ("Your currentPlayer index number is: " + myIndex);
+  console.log("Your currentPlayer index number is: " + myIndex);
   socket.emit("I ante", myIndex);
-  console.log ("I just sent the I-ante emit");
-  document.getElementById('anteButton').removeEventListener("click",ante);
+  console.log("I just sent the I-ante emit");
+  document.getElementById('anteButton').removeEventListener("click", ante);
   document.getElementById("anteButtonsRow").style.display = "none";
   document.getElementById("anteButtonsRow").classList.remove("d-flex");
 }
 
-function sitOut (){
+function sitOut() {
   let myIndex = getMyIndex();
-  console.log ("Your currentPlayer index number is: " + myIndex);
+  console.log("Your currentPlayer index number is: " + myIndex);
   socket.emit("I sit out", myIndex);
-  console.log ("I just sent the sit out emit");
-  document.getElementById('sitOutButton').removeEventListener("click",sitOut);
+  console.log("I just sent the sit out emit");
+  document.getElementById('sitOutButton').removeEventListener("click", sitOut);
   document.getElementById("anteButtonsRow").style.display = "none";
   document.getElementById("anteButtonsRow").classList.remove("d-flex");
 }
 
-function deal(){
+function fold() {
+  //code goes here
+}
+
+function open() {
+  //code goes here
+}
+
+function call() {
+  //code goes here
+}
+
+function raise() {
+  //code goes here
+}
+
+function deal() {
   let myIndex = getMyIndex();
   socket.emit("I deal", myIndex);
-  console.log ("I just sent the I-deal emit");
-  document.getElementById('dealButton').removeEventListener("click",deal);
+  console.log("I just sent the I-deal emit");
+  document.getElementById('dealButton').removeEventListener("click", deal);
   document.getElementById('dealButton').style.display = "none";
 }
 
-function updatePlayerBalance (tonightPlayerIndex, newAmt){
+function updatePlayerBalance(tonightPlayerIndex, newAmt) {
   let targetElement = [];
-  let tonightPlayerNumber = tonightPlayerIndex+1;
-  switch (tonightPlayerNumber){
+  let tonightPlayerNumber = tonightPlayerIndex + 1;
+  switch (tonightPlayerNumber) {
     case 1:
       targetElement = document.querySelector("#player1Area .winningsDisplayAmt");
       break;
@@ -197,12 +228,30 @@ function updatePlayerBalance (tonightPlayerIndex, newAmt){
       targetElement = document.querySelector("#player7Area .winningsDisplayAmt");
       break;
   }
-    targetElement.textContent = newAmt.toString();
+  targetElement.textContent = newAmt.toString();
 }
 
-function hidePlayerArea(index){
-index += 1; //to go from array index to displayed player number
-document.getElementById(`player${index}Area`).style.display = "none";
+function hidePlayerArea(index) {
+  index += 1; //to go from array index to displayed player number
+  document.getElementById(`player${index}Area`).style.display = "none";
+}
+
+function highlightPlayerArea(index, highlightBoolean) {
+  index += 1; //to go from array index to displayed player number
+  if (highlightBoolean) {
+    document.getElementById(`player${index}Area`).style.backgroundColor = "rgba(175,215,255,0.5)";
+  } else {
+    document.getElementById(`player${index}Area`).style.backgroundColor = "transparent";
+  }
+}
+
+function highlightPlayerLineBetLi(index, highlightBoolean) {
+  index += 1; //to go from array index to displayed player number
+  if (highlightBoolean) {
+    document.getElementById(`player${index}LineBetLi`).style.backgroundColor = "rgba(175,215,255,0.5)";
+  } else {
+    document.getElementById(`player${index}LineBetLi`).style.backgroundColor = "transparent";
+  }
 }
 
 
@@ -228,22 +277,22 @@ document.getElementById(`player${index}Area`).style.display = "none";
 // SOCKET EVENT HANDLERS
 //===============
 
-socket.on('connect', function connectUser () {  // Called whenever a user connects
-//emit a message to the socket server and pass the currentUser._id and  socket.id as arguments
-    console.log("Your socket ID is: " + socket.id);
-    getAPIData('/api/user_data')
-    .then ((returnedAPIData) => {
-        console.log("Here in the socket handler function, User id is : " + returnedAPIData.currentUser._id);
-        let tonightID = window.location.href;
-        tonightID = tonightID.substring(tonightID.indexOf('/play/')+6,tonightID.length); //parse browser URL to get ID of tonight database object
-        let myConnectObject = {
-            userID: returnedAPIData.currentUser._id,
-            socketID: socket.id,
-            tonightID: tonightID
-        };
-        localStorage.setItem('currentUserID', returnedAPIData.currentUser._id);
-        localStorage.setItem('currentUserFullName', returnedAPIData.currentUser.firstName + " " + returnedAPIData.currentUser.lastInitial);
-        socket.emit('iAmConnected', myConnectObject);
+socket.on('connect', function connectUser() {  // Called whenever a user connects
+  //emit a message to the socket server and pass the currentUser._id and  socket.id as arguments
+  console.log("Your socket ID is: " + socket.id);
+  getAPIData('/api/user_data')
+    .then((returnedAPIData) => {
+      console.log("Here in the socket handler function, User id is : " + returnedAPIData.currentUser._id);
+      let tonightID = window.location.href;
+      tonightID = tonightID.substring(tonightID.indexOf('/play/') + 6, tonightID.length); //parse browser URL to get ID of tonight database object
+      let myConnectObject = {
+        userID: returnedAPIData.currentUser._id,
+        socketID: socket.id,
+        tonightID: tonightID
+      };
+      localStorage.setItem('currentUserID', returnedAPIData.currentUser._id);
+      localStorage.setItem('currentUserFullName', returnedAPIData.currentUser.firstName + " " + returnedAPIData.currentUser.lastInitial);
+      socket.emit('iAmConnected', myConnectObject);
     })
 });
 
@@ -252,29 +301,29 @@ socket.on('connect', function connectUser () {  // Called whenever a user connec
 //   chatMessages.innerHTML += "<li>" + msg + "</li>";
 // });
 
-socket.on('status update', function(msg){
+socket.on('status update', function (msg) {
   statusUpdates.innerHTML = msg;
 });
 
-socket.on('render new player for all', function (newPlayerUser){
+socket.on('render new player for all', function (newPlayerUser) {
   //load my user data via the API
   getAPIData('/api/user_data')
-  .then ((returnedAPIData) => {
-    if (returnedAPIData.currentUser._id!==newPlayerUser._id){ //the new player is not me!
-      let playerDivsCount = document.querySelectorAll('.playerArea').length; //get the count of existing player areas
-      let playersRow1 = document.querySelector('#playersRow1');
-      let playersRow2 = document.querySelector('#playersRow2');
-      let newPlayerFullName = `${newPlayerUser.firstName} ${newPlayerUser.lastInitial}`;
-      let targetPlayerRow = 0;
-      targetPlayerRow = (playerDivsCount<3) ? 1 : 2; // ternary operator here, players 4-7 get added to second row
-      console.log("Player divs so far: " + playerDivsCount);
-      console.log("Target player row: " + targetPlayerRow);
-      //create a God-awful string of HTML
-      let insertableHTML = `<div class="col col-12 col-md-3 playerArea" id="player${playerDivsCount+1}Area">
+    .then((returnedAPIData) => {
+      if (returnedAPIData.currentUser._id !== newPlayerUser._id) { //the new player is not me!
+        let playerDivsCount = document.querySelectorAll('.playerArea').length; //get the count of existing player areas
+        let playersRow1 = document.querySelector('#playersRow1');
+        let playersRow2 = document.querySelector('#playersRow2');
+        let newPlayerFullName = `${newPlayerUser.firstName} ${newPlayerUser.lastInitial}`;
+        let targetPlayerRow = 0;
+        targetPlayerRow = (playerDivsCount < 3) ? 1 : 2; // ternary operator here, players 4-7 get added to second row
+        console.log("Player divs so far: " + playerDivsCount);
+        console.log("Target player row: " + targetPlayerRow);
+        //create a God-awful string of HTML
+        let insertableHTML = `<div class="col col-12 col-md-3 playerArea" id="player${playerDivsCount + 1}Area">
       <ul class="list-group">
         <li class="list-group-item d-flex justify-content-between lh-condensed playerNameRow">
           <div>
-            <h6 class="my-0">Player ${playerDivsCount+1}: ${newPlayerFullName}</h6>
+            <h6 class="my-0">Player ${playerDivsCount + 1}: ${newPlayerFullName}</h6>
           </div>
           <span class="bg-success text-white inGameStatus">In</span>
         </li>
@@ -290,52 +339,53 @@ socket.on('render new player for all', function (newPlayerUser){
       </li>
     </ul>
     </div>`;
-      //now append that HTML into the targeted row
-      if (targetPlayerRow===1){
-        playersRow1.innerHTML += insertableHTML;
-      } else {
-        // playersRow2.style.display="flex";  //maybe no need to ever make this thing IN-visible, right?
-        playersRow2.innerHTML += insertableHTML;
+        //now append that HTML into the targeted row
+        if (targetPlayerRow === 1) {
+          playersRow1.innerHTML += insertableHTML;
+        } else {
+          // playersRow2.style.display="flex";  //maybe no need to ever make this thing IN-visible, right?
+          playersRow2.innerHTML += insertableHTML;
+        }
       }
-    }
-  });
+    });
 });
 
-socket.on('private message', function(msg){
-  switch(msg){
+socket.on('private message', function (msg) {
+  switch (msg) {
     case "You are dealer":
-      document.getElementById("navGameDropdown").style.display="inline";
-        break;
+      document.getElementById("navGameDropdown").style.display = "inline";
+      break;
     case "Your player index is 0":
       sessionStorage.setItem('currentPlayerIndex', "0");
-        break;
+      break;
     case "Your player index is 1":
       sessionStorage.setItem('currentPlayerIndex', "1");
-        break;
+      break;
     case "Your player index is 2":
       sessionStorage.setItem('currentPlayerIndex', "2");
-        break;
+      break;
     case "Your player index is 3":
       sessionStorage.setItem('currentPlayerIndex', "3");
-        break;
+      break;
     case "Your player index is 4":
       sessionStorage.setItem('currentPlayerIndex', "4");
-        break;
+      break;
     case "Your player index is 5":
       sessionStorage.setItem('currentPlayerIndex', "5");
-        break;
+      break;
     case "Your player index is 6":
       sessionStorage.setItem('currentPlayerIndex', "6");
-        break;
+      break;
     default:
-      alert ("You got an unknown private message from the server. Lucky you!");
-    }
+      alert("You got an unknown private message from the server. Lucky you!");
+  }
 });
 
-socket.on('dealer instruction', function(myConfig){
-  let dealString = myConfig.tonight.games[myConfig.tonight.games.length-1].playSequence[myConfig.tonight.games[myConfig.tonight.games.length-1].playSequenceLocation];
+socket.on('dealer instruction', function (myConfig) {
+  let dealString = myConfig.tonight.games[myConfig.tonight.games.length - 1].playSequence[myConfig.tonight.games[myConfig.tonight.games.length - 1].playSequenceLocation];
   let dealButton = document.getElementById('dealButton');
-  switch(dealString){
+  let dealerAlert = document.getElementById('dealerAlert');
+  switch (dealString) {
     case ("dealFaceDown"):
       //unhide or display the "deal" button and add event listener to it
       dealButton.style.display = "inline-block";
@@ -346,19 +396,29 @@ socket.on('dealer instruction', function(myConfig){
       dealButton.style.display = "inline-block";
       dealButton.addEventListener("click", deal);
       break;
+    case ("bet"):
+      //unhide or display a prompt for dealer to click the opener's name (#dealerAlert)
+      dealerAlert.style.display = "block";
+      dealerAlert.textContent = "Click a player's name to open the betting.";
+      //add event listener for all player names in playerAreas
+      let elements = document.querySelectorAll('.playerNameRow h6');
+      for (let i = 0; i < elements.length; i++) {
+        elements[i].addEventListener('click', chooseOpener, false);
+      }
+      break;
     default:
       alert("You got an unknown dealer instruction from the server. Lucky you!");
   }
 });
 
-socket.on('game open', function(myConfig){
+socket.on('game open', function (myConfig) {
   console.log(JSON.stringify(myConfig));
   //show game details
-  document.getElementById("gameNameDisplay").innerText = myConfig.tonight.games[myConfig.tonight.games.length-1].name;
+  document.getElementById("gameNameDisplay").innerText = myConfig.tonight.games[myConfig.tonight.games.length - 1].name;
   document.getElementById("currentDealerNameDisplay").innerText = "Dealer:" + myConfig.currentDealerName;
-  document.getElementById("numCardsDisplay").innerText = myConfig.tonight.games[myConfig.tonight.games.length-1].numCards + " cards";
-  document.getElementById("whatsWildDisplay").innerText = "Wild cards: " + myConfig.tonight.games[myConfig.tonight.games.length-1].whatsWild;
-  document.getElementById("hiloDisplay").innerText = myConfig.tonight.games[myConfig.tonight.games.length-1].hilo;
+  document.getElementById("numCardsDisplay").innerText = myConfig.tonight.games[myConfig.tonight.games.length - 1].numCards + " cards";
+  document.getElementById("whatsWildDisplay").innerText = "Wild cards: " + myConfig.tonight.games[myConfig.tonight.games.length - 1].whatsWild;
+  document.getElementById("hiloDisplay").innerText = myConfig.tonight.games[myConfig.tonight.games.length - 1].hilo;
   //unhide the betting column, but re-hide the betting buttons row
   document.getElementById("bettingColumn").style.display = "block";
   document.getElementById("bettingButtonsRow").style.display = "none";
@@ -372,23 +432,25 @@ socket.on('game open', function(myConfig){
   document.getElementById("anteButtonsRow").classList.add("d-flex");
 });
 
-socket.on('ante broadcast', function(anteBroadcastObject){
-   //show "in" label
-   updateNameTag (anteBroadcastObject.playerIndex,"in");
-   //update the winnings balance display of the player who ante'd
-   //first, get the balance for night of that player
-   let x = anteBroadcastObject.myConfig.tonight.players;
-   x = x[anteBroadcastObject.playerIndex];
-   x = x.balanceForNight.toFixed(2);
-   updatePlayerBalance (anteBroadcastObject.playerIndex, x);
+socket.on('ante broadcast', function (anteBroadcastObject) {
+  //show "in" label
+  updateNameTag(anteBroadcastObject.playerIndex, "in");
+  //update the winnings balance display of the player who ante'd
+  //first, get the balance for night of that player
+  let x = anteBroadcastObject.myConfig.tonight.players;
+  let y = x[anteBroadcastObject.playerIndex];
+  let z = y.balanceForNight.toFixed(2);
+  updatePlayerBalance(anteBroadcastObject.playerIndex, z);
   // empty out the betting list
   document.getElementById("bettingDisplayList").innerHTML = "";
   //display the newly updated "players in game" array in the betting list
-  for (let i=0;i<anteBroadcastObject.myConfig.tonight.games[anteBroadcastObject.myConfig.tonight.games.length-1].playersInGame.length;i++){
-    let antePlayerName = anteBroadcastObject.myConfig.tonight.games[anteBroadcastObject.myConfig.tonight.games.length-1].playersInGame[i].playerUser.firstName;
-    antePlayerName += " " + anteBroadcastObject.myConfig.tonight.games[anteBroadcastObject.myConfig.tonight.games.length-1].playersInGame[i].playerUser.lastInitial;
-    let insertableHTML = 
-    `<li class="list-group-item d-flex justify-content-between lh-condensed playerLineBetLi">
+  for (let i = 0; i < anteBroadcastObject.myConfig.tonight.games[anteBroadcastObject.myConfig.tonight.games.length - 1].playersInGame.length; i++) {
+    let antePlayerName = anteBroadcastObject.myConfig.tonight.games[anteBroadcastObject.myConfig.tonight.games.length - 1].playersInGame[i].playerUser.firstName;
+    antePlayerName += " " + anteBroadcastObject.myConfig.tonight.games[anteBroadcastObject.myConfig.tonight.games.length - 1].playersInGame[i].playerUser.lastInitial;
+    //use the id of this player to get their tonight player index
+    let antePlayerIndex = getPlayerIndex(anteBroadcastObject.myConfig.tonight.games[anteBroadcastObject.myConfig.tonight.games.length - 1].playersInGame[i].playerUser._id, anteBroadcastObject.myConfig.tonight.players);
+    let insertableHTML =
+      `<li class="list-group-item d-flex justify-content-between lh-condensed playerLineBetLi" id="player${antePlayerIndex + 1}LineBetLi">
       <div>
         <h6 class="my-0">${antePlayerName}</h6>
       </div>
@@ -398,33 +460,33 @@ socket.on('ante broadcast', function(anteBroadcastObject){
     document.getElementById("bettingDisplayList").appendChild(newPlayerLineBetLi); // add this as a new line in the betting list
   }
   // now recreate the "Pot amount"line at the bottom of that list
-  let newPotAmt = anteBroadcastObject.myConfig.tonight.games[anteBroadcastObject.myConfig.tonight.games.length-1].amtPot.toFixed(2);
+  let newPotAmt = anteBroadcastObject.myConfig.tonight.games[anteBroadcastObject.myConfig.tonight.games.length - 1].amtPot.toFixed(2);
   let insertableHTML =
-   `<li class="list-group-item d-flex justify-content-between" id="potLineBetAmt">
+    `<li class="list-group-item d-flex justify-content-between" id="potLineBetAmt">
       <span><strong>Pot</strong></span>
       <strong>$${newPotAmt}</strong>
     </li>`;
-    let newPotAmtLi = htmlToElement(insertableHTML); // use function to convert HTML string into DOM element
-    document.getElementById("bettingDisplayList").appendChild(newPotAmtLi); // add this as the final line at bottom of the betting list
+  let newPotAmtLi = htmlToElement(insertableHTML); // use function to convert HTML string into DOM element
+  document.getElementById("bettingDisplayList").appendChild(newPotAmtLi); // add this as the final line at bottom of the betting list
 });
 
-socket.on('sit out broadcast', function(sitOutBroadcastObject){
+socket.on('sit out broadcast', function (sitOutBroadcastObject) {
   //show "out" label
-  updateNameTag (sitOutBroadcastObject.playerIndex,"out");
+  updateNameTag(sitOutBroadcastObject.playerIndex, "out");
   //hide the player's area
   hidePlayerArea(sitOutBroadcastObject.playerIndex);
 });
 
 
-socket.on('shuffle visual', function(){
+socket.on('shuffle visual', function () {
   let insertableHTML = `<div class="cardSingle rounded faceDown"></div>`;
   let dealPile = document.querySelector('#dealPile');
-  for (let i=1;i<14;i++){
+  for (let i = 1; i < 14; i++) {
     dealPile.innerHTML += insertableHTML;
   }
 });
 
-socket.on('deal batch broadcast', function (dealBatchObject){
+socket.on('deal batch broadcast', function (dealBatchObject) {
   // console.log("Deal batch object is: ");
   // console.log(JSON.stringify(dealBatchForClient));
   let numShuffledDeckRemaining = dealBatchObject.numShuffledDeckRemaining;
@@ -433,26 +495,79 @@ socket.on('deal batch broadcast', function (dealBatchObject){
     let insertableHTML = "";
     let insertableClass = "";
     let insertableBackground = "";
-    if (element.imgPath.includes("back")){
+    if (element.imgPath.includes("back")) {
       insertableClass = " faceDown";
     } else {
       insertableClass = " faceUp";
       insertableBackground = ` style="background-image: url(${element.imgPath});"`;
     }
-   if (element.tonightPlayerIndex===getMyIndex()){ // if I' populating my own playerArea div
-    insertableHTML = `<div class="cardSingle rounded${insertableClass}" id="DCI${element.dci}"${insertableBackground}>${dealBatchObject.overlayHTML}</div>`;
-    sessionStorage.setItem('myHand', sessionStorage.getItem('myHand') + "," + element.dci);
-   } else {
-    insertableHTML = `<div class="cardSingle rounded${insertableClass}" id="DCI${element.dci}"${insertableBackground}></div>`;
-   }
-  let newCardDiv = htmlToElement(insertableHTML); // use function to convert HTML string into DOM element
-  document.querySelector(`#player${element.tonightPlayerIndex+1}Area .rowOfCards`).append(newCardDiv);  //this is where the new card appears onscreen
-  //check dealPile count and remove a card as needed
-  numShuffledDeckRemaining -= 1;
-  updateDealPile(numShuffledDeckRemaining);
+    if (element.tonightPlayerIndex === getMyIndex()) { // if I' populating my own playerArea div
+      insertableHTML = `<div class="cardSingle rounded${insertableClass}" id="DCI${element.dci}"${insertableBackground}>${dealBatchObject.overlayHTML}</div>`;
+      sessionStorage.setItem('myHand', sessionStorage.getItem('myHand') + "," + element.dci);
+    } else {
+      insertableHTML = `<div class="cardSingle rounded${insertableClass}" id="DCI${element.dci}"${insertableBackground}></div>`;
+    }
+    let newCardDiv = htmlToElement(insertableHTML); // use function to convert HTML string into DOM element
+    document.querySelector(`#player${element.tonightPlayerIndex + 1}Area .rowOfCards`).append(newCardDiv);  //this is where the new card appears onscreen
+    //check dealPile count and remove a card as needed
+    numShuffledDeckRemaining -= 1;
+    updateDealPile(numShuffledDeckRemaining);
   }); //end of forEach loop
 });
 
-
+socket.on('next bettor broadcast', function (nextBettorBroadcastObject) {
+  //highlight player area
+  highlightPlayerArea(nextBettorBroadcastObject.bettingRound.whoseTurn, true)
+  //highlight playerLineBetLi
+  highlightPlayerLineBetLi(nextBettorBroadcastObject.bettingRound.whoseTurn, true)
+  if (nextBettorBroadcastObject.bettingRound.whoseTurn === getMyIndex()) { // if I am the player chosen to bet next
+    // display appropriate betting buttons, add event listener(s)
+    //display fold button no matter what, and add event listener
+    document.getElementById('foldButtonDiv').style.display = "flex";
+    document.getElementById('foldButton').addEventListener("click", fold);
+    if (nextBettorBroadcastObject.bettingRound.amtBetInRound === 0) { // if nothing bet in the round thus far
+      // populate and display Open button
+      let openAmt = document.getElementById('openAmt');
+      let openDiv = document.getElementById('openDiv');
+      openAmt.innerHTML = ""; //empty out any previous options for this input
+      openDiv.style.display = "flex"; //show the open button and the openAmt input
+      for (let i = nextBettorBroadcastObject.myConfig.tonight.amtBetIncrements; i <= nextBettorBroadcastObject.myConfig.tonight.amtMaxOpen; i += nextBettorBroadcastObject.myConfig.tonight.amtBetIncrements) { //a loop to populate the increments available in the openAmt pick list
+        var option = document.createElement("option");
+        option.text = i;
+        openAmt.add(option);
+      }
+      document.getElementById('openButton').addEventListener("click", open);
+      // display Check button
+    } else { // some amount has already been bet in this round, so I am not a potential opener
+      //display Call with amount due in its label
+      let callAmt = nextBettorBroadcastObject.bettingRound.amtBetInRound - nextBettorBroadcastObject.myConfig.tonight.players[nextBettorBroadcastObject.bettingRound.whoseTurn].amtBetInRound;
+      let callButtonDiv = document.getElementById('callButtonDiv');
+      let callButton = document.getElementById('callButton');
+      callButtonDiv.style.display = "flex";
+      callButton.innerHTML = "Call $" + callAmt;
+      callButton.addEventListener("click", call);
+      //if I haven't checked AND numRaises<3, display Raise button
+      let iAmChecked = false;
+      for (let j = 0; j < nextBettorBroadcastObject.bettingRound.checkedPlayers.length; j++) {
+        if (nextBettorBroadcastObject.bettingRound.checkedPlayers[j] === nextBettorBroadcastObject.bettingRound.whoseTurn) { //I already am in the checkedPlayers array
+          iAmChecked = true;
+        }
+      }
+      if (!iAmChecked && nextBettorBroadcastObject.bettingRound.numRaises < 3) { // it's okay to raise, so display that button
+        // populate and display Raise button
+        let raiseAmt = document.getElementById('raiseAmt');
+        let raiseDiv = document.getElementById('raiseDiv');
+        raiseAmt.innerHTML = ""; //empty out any previous options for this input
+        raiseDiv.style.display = "flex"; //show the raise button and the raiseAmt input
+        for (let k = nextBettorBroadcastObject.myConfig.tonight.amtBetIncrements; k <= nextBettorBroadcastObject.myConfig.tonight.amtMaxRaise; k += nextBettorBroadcastObject.myConfig.tonight.amtBetIncrements) { //a loop to populate the increments available in the raiseAmt pick list
+          var option = document.createElement("option");
+          option.text = i;
+          raiseAmt.add(option);
+        }
+        document.getElementById('raiseButton').addEventListener("click", raise);
+      }
+    }
+  }
+});
 
 
