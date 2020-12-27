@@ -7,10 +7,6 @@
     display: none;
 }
 
-#callButtonDiv,#raiseDiv,#openDiv,#foldButtonDiv,#checkButtonDiv{
-    display: none;
-}
-
 #fullGameSettingsRow {
     /* necessary to hide collapsed sidebar */
     overflow-x: hidden;

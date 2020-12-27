@@ -1,5 +1,3 @@
-// const myConfig = require("../../config");
-
 var socket = io();
 
 
@@ -178,11 +176,11 @@ function sitOut() {
   document.getElementById("anteButtonsRow").classList.remove("d-flex");
 }
 
-function fold() {
+function open() {
   //code goes here
 }
 
-function open() {
+function check() {
   //code goes here
 }
 
@@ -191,6 +189,10 @@ function call() {
 }
 
 function raise() {
+  //code goes here
+}
+
+function fold() {
   //code goes here
 }
 
@@ -421,7 +423,6 @@ socket.on('game open', function (myConfig) {
   document.getElementById("hiloDisplay").innerText = myConfig.tonight.games[myConfig.tonight.games.length - 1].hilo;
   //unhide the betting column, but re-hide the betting buttons row
   document.getElementById("bettingColumn").style.display = "block";
-  document.getElementById("bettingButtonsRow").style.display = "none";
   //listen for click on ante button
   const el = document.getElementById('anteButton');
   el.addEventListener("click", ante);
@@ -520,31 +521,52 @@ socket.on('next bettor broadcast', function (nextBettorBroadcastObject) {
   highlightPlayerArea(nextBettorBroadcastObject.bettingRound.whoseTurn, true)
   //highlight playerLineBetLi
   highlightPlayerLineBetLi(nextBettorBroadcastObject.bettingRound.whoseTurn, true)
+  let insertableHTML="";
   if (nextBettorBroadcastObject.bettingRound.whoseTurn === getMyIndex()) { // if I am the player chosen to bet next
     // display appropriate betting buttons, add event listener(s)
-    //display fold button no matter what, and add event listener
-    document.getElementById('foldButtonDiv').style.display = "flex";
-    document.getElementById('foldButton').addEventListener("click", fold);
     if (nextBettorBroadcastObject.bettingRound.amtBetInRound === 0) { // if nothing bet in the round thus far
-      // populate and display Open button
-      let openAmt = document.getElementById('openAmt');
-      let openDiv = document.getElementById('openDiv');
-      openAmt.innerHTML = ""; //empty out any previous options for this input
-      openDiv.style.display = "flex"; //show the open button and the openAmt input
+      // populate and display Open div
+      let openInnerHTML = ""; //this will be the options for the selector
+      let iString = "";
+      let newOpenDiv = "";
+      let newCheckButtonDiv = "";
       for (let i = nextBettorBroadcastObject.myConfig.tonight.amtBetIncrements; i <= nextBettorBroadcastObject.myConfig.tonight.amtMaxOpen; i += nextBettorBroadcastObject.myConfig.tonight.amtBetIncrements) { //a loop to populate the increments available in the openAmt pick list
-        var option = document.createElement("option");
-        option.text = i;
-        openAmt.add(option);
+        //loop code goes here
+        iString = i.toFixed(2);
+        openInnerHTML += `<option>${iString}</option>`;
       }
+      insertableHTML = `
+      <div class="d-flex flex-row form-group col-md-6" id="openDiv">
+      <button type="button" class="btn btn-success" id="openButton">Open</button> 
+      <select id="openAmt" class="form-control">
+        ${openInnerHTML}
+      </select>                  
+      </div>
+      `;
+      newOpenDiv = htmlToElement(insertableHTML); // use function to convert HTML string into DOM element
+      document.getElementById("bettingButtonsRow").appendChild(newOpenDiv); // add these two elements to the betting buttons row
       document.getElementById('openButton').addEventListener("click", open);
       // display Check button
+      insertableHTML = `
+      <div class="form-group col-md-3" id="checkButtonDiv">
+      <button type="button" class="btn btn-secondary" id="checkButton">Check</button>                  
+      </div>
+      `;
+      newCheckButtonDiv = htmlToElement(insertableHTML); // use function to convert HTML string into DOM element
+      document.getElementById("bettingButtonsRow").appendChild(newCheckButtonDiv); // add check button div to the betting buttons row
+      document.getElementById('checkButton').addEventListener("click", check);
     } else { // some amount has already been bet in this round, so I am not a potential opener
       //display Call with amount due in its label
+      let newCallButtonDiv = "";
       let callAmt = nextBettorBroadcastObject.bettingRound.amtBetInRound - nextBettorBroadcastObject.myConfig.tonight.players[nextBettorBroadcastObject.bettingRound.whoseTurn].amtBetInRound;
-      let callButtonDiv = document.getElementById('callButtonDiv');
+      insertableHTML = `
+      <div class="form-group col-md-3" id="callButtonDiv">
+      <button type="button" class="btn btn-primary" id="callButton">Call $${callAmt}</button>                  
+      </div>
+      `;
+      newCallButtonDiv = htmlToElement(insertableHTML); // use function to convert HTML string into DOM element
+      document.getElementById("bettingButtonsRow").appendChild(newCallButtonDiv); // add new Call button to the betting buttons row
       let callButton = document.getElementById('callButton');
-      callButtonDiv.style.display = "flex";
-      callButton.innerHTML = "Call $" + callAmt;
       callButton.addEventListener("click", call);
       //if I haven't checked AND numRaises<3, display Raise button
       let iAmChecked = false;
@@ -554,19 +576,38 @@ socket.on('next bettor broadcast', function (nextBettorBroadcastObject) {
         }
       }
       if (!iAmChecked && nextBettorBroadcastObject.bettingRound.numRaises < 3) { // it's okay to raise, so display that button
-        // populate and display Raise button
-        let raiseAmt = document.getElementById('raiseAmt');
-        let raiseDiv = document.getElementById('raiseDiv');
-        raiseAmt.innerHTML = ""; //empty out any previous options for this input
-        raiseDiv.style.display = "flex"; //show the raise button and the raiseAmt input
-        for (let k = nextBettorBroadcastObject.myConfig.tonight.amtBetIncrements; k <= nextBettorBroadcastObject.myConfig.tonight.amtMaxRaise; k += nextBettorBroadcastObject.myConfig.tonight.amtBetIncrements) { //a loop to populate the increments available in the raiseAmt pick list
-          var option = document.createElement("option");
-          option.text = i;
-          raiseAmt.add(option);
+        // populate and display Raise div
+        let raiseInnerHTML = ""; //this will be the options for the selector
+        let jString = "";
+        let newRaiseDiv = "";
+        for (let j = nextBettorBroadcastObject.myConfig.tonight.amtBetIncrements; j <= nextBettorBroadcastObject.myConfig.tonight.amtMaxRaise; j += nextBettorBroadcastObject.myConfig.tonight.amtBetIncrements) { //a loop to populate the increments available in the raiseAmt pick list
+          //loop code goes here
+          jString = j.toFixed(2);
+          raiseInnerHTML += `<option>${jString}</option>`;
         }
+        insertableHTML = `
+        <div class="d-flex flex-row form-group col-md-6" id="raiseDiv">
+        <button type="button" class="btn btn-success" id="raiseButton">Raise</button> 
+        <select id="raiseAmt" class="form-control">
+          ${raiseInnerHTML}
+        </select>                  
+        </div>
+        `;
+        newRaiseDiv = htmlToElement(insertableHTML); // use function to convert HTML string into DOM element
+        document.getElementById("bettingButtonsRow").appendChild(newRaiseDiv); // add these two elements to the betting buttons row
         document.getElementById('raiseButton').addEventListener("click", raise);
       }
     }
+    //display fold button no matter what, and add event listener
+    let newFoldButtonDiv = "";
+    insertableHTML = `
+    <div class="form-group col-md-3" id="foldButtonDiv">
+    <button type="button" class="btn btn-secondary" id="foldButton">Fold</button>                  
+    </div>
+    `;
+    newFoldButtonDiv = htmlToElement(insertableHTML); // use function to convert HTML string into DOM element
+    document.getElementById("bettingButtonsRow").appendChild(newFoldButtonDiv); // add fold button div to the betting buttons row
+    document.getElementById('foldButton').addEventListener("click", fold);
   }
 });
 
