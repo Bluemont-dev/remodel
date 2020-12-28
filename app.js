@@ -536,11 +536,30 @@ io.on('connection', (socket) => {
 			numRaises: 0,
 			whoseTurn: openerIndex
 		};
-		let nextBettorBroadcastObject = {
-			bettingRound:bettingRound,
-			myConfig:myConfig
+		myConfig.bettingRound = bettingRound;
+		SendNextBettorBroadcast(myConfig);
+	});
+
+	socket.on('I fold', (folderIndex) => {
+		//remove player from playersInGame array
+		for (let i=0;i<myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length;i++){
+			if (myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[i].playerUser._id===myConfig.tonight.players[folderIndex].playerUser._id){
+				myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.splice(i,1);
+			}
 		}
-		SendNextBettorBroadcast(nextBettorBroadcastObject);
+		//add player to playersOutOfGame array
+		myConfig.tonight.games[myConfig.tonight.games.length-1].playersOutOfGame.push(myConfig.tonight.players[folderIndex]);
+		//get name of player who folded, and send this as a status update
+		io.emit('status update',`${myConfig.tonight.players[folderIndex].playerUser.fullName} folds ...`);
+		//create new bettor action broadcast object and emit it
+		let bettorActionBroadcastObject = {
+			myConfig:myConfig,
+			playerIndex:folderIndex,
+			action:"fold",
+			amt:0
+		}
+		io.emit("bettor action",bettorActionBroadcastObject);
+		//still have to check if we're down to one player in game, if not, if pot is good, and if not, advance WhoseTurn and emit Next bettor broadcast again
 	});
 	
 });

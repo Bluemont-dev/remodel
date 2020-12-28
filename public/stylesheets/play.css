@@ -7,6 +7,12 @@
     display: none;
 }
 
+#raisesRemainingText {
+    display: none;
+    margin-left: 20px;
+    margin-top: 5px;
+}
+
 #fullGameSettingsRow {
     /* necessary to hide collapsed sidebar */
     overflow-x: hidden;

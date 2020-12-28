@@ -176,24 +176,51 @@ function sitOut() {
   document.getElementById("anteButtonsRow").classList.remove("d-flex");
 }
 
+function resetBettingButtons (){
+  let openButton=document.getElementById('openButton');
+  if (openButton!==null){
+    openButton.removeEventListener('click',open);
+  }
+  let checkButton = document.getElementById('checkButton');
+  if (checkButton!==null){
+    checkButton.removeEventListener('click',check);
+  }
+  let callButton = document.getElementById('callButton');
+  if (callButton!==null){
+    callButton.removeEventListener('click',call);
+  }
+  let raiseButton = document.getElementById('raiseButton');
+  if (raiseButton!==null){
+    raiseButton.removeEventListener('click',raise);
+  }
+  let foldButton = document.getElementById('foldButton');
+  if (foldButton!==null){
+    foldButton.removeEventListener('click',fold);
+  }
+  document.getElementById('bettingButtonsRow').innerHTML = ""; //get rid of all the buttons, etc.
+}
+
 function open() {
-  //code goes here
+  //remove all betting buttons and their event listeners
 }
 
 function check() {
-  //code goes here
+  //remove all betting buttons and their event listeners
 }
 
 function call() {
-  //code goes here
+  //remove all betting buttons and their event listeners
 }
 
 function raise() {
-  //code goes here
+  //remove all betting buttons and their event listeners
 }
 
 function fold() {
-  //code goes here
+  //remove all betting buttons and their event listeners
+  resetBettingButtons();
+  let myIndex = getMyIndex();
+  socket.emit("I fold", myIndex);
 }
 
 function deal() {
@@ -236,6 +263,14 @@ function updatePlayerBalance(tonightPlayerIndex, newAmt) {
 function hidePlayerArea(index) {
   index += 1; //to go from array index to displayed player number
   document.getElementById(`player${index}Area`).style.display = "none";
+}
+
+function removePlayerBettingLine (index) {
+  index += 1; //to go from array index to displayed player number
+  let myBettingLine = document.getElementById(`player${index}LineBetLi`);
+  // let myBettingList = document.getElementById('bettingDisplayList');
+  // myBettingList.splice(myBettingList.indexOf(myBettingLine),1);
+  myBettingLine.remove();
 }
 
 function highlightPlayerArea(index, highlightBoolean) {
@@ -455,6 +490,9 @@ socket.on('ante broadcast', function (anteBroadcastObject) {
       <div>
         <h6 class="my-0">${antePlayerName}</h6>
       </div>
+      <div>
+        <span id="player${antePlayerIndex + 1}LastBet"><em></em></span>
+      </div>
     <span class="text-muted playerLineBetAmt">$0.00</span>
     </li>`;
     let newPlayerLineBetLi = htmlToElement(insertableHTML); // use function to convert HTML string into DOM element
@@ -516,21 +554,21 @@ socket.on('deal batch broadcast', function (dealBatchObject) {
   }); //end of forEach loop
 });
 
-socket.on('next bettor broadcast', function (nextBettorBroadcastObject) {
+socket.on('next bettor broadcast', function (myConfig) {
   //highlight player area
-  highlightPlayerArea(nextBettorBroadcastObject.bettingRound.whoseTurn, true)
+  highlightPlayerArea(myConfig.bettingRound.whoseTurn, true)
   //highlight playerLineBetLi
-  highlightPlayerLineBetLi(nextBettorBroadcastObject.bettingRound.whoseTurn, true)
+  highlightPlayerLineBetLi(myConfig.bettingRound.whoseTurn, true)
   let insertableHTML="";
-  if (nextBettorBroadcastObject.bettingRound.whoseTurn === getMyIndex()) { // if I am the player chosen to bet next
+  if (myConfig.bettingRound.whoseTurn === getMyIndex()) { // if I am the player chosen to bet next
     // display appropriate betting buttons, add event listener(s)
-    if (nextBettorBroadcastObject.bettingRound.amtBetInRound === 0) { // if nothing bet in the round thus far
+    if (myConfig.bettingRound.amtBetInRound === 0) { // if nothing bet in the round thus far
       // populate and display Open div
       let openInnerHTML = ""; //this will be the options for the selector
       let iString = "";
       let newOpenDiv = "";
       let newCheckButtonDiv = "";
-      for (let i = nextBettorBroadcastObject.myConfig.tonight.amtBetIncrements; i <= nextBettorBroadcastObject.myConfig.tonight.amtMaxOpen; i += nextBettorBroadcastObject.myConfig.tonight.amtBetIncrements) { //a loop to populate the increments available in the openAmt pick list
+      for (let i = myConfig.tonight.amtBetIncrements; i <= myConfig.tonight.amtMaxOpen; i += myConfig.tonight.amtBetIncrements) { //a loop to populate the increments available in the openAmt pick list
         //loop code goes here
         iString = i.toFixed(2);
         openInnerHTML += `<option>${iString}</option>`;
@@ -558,7 +596,7 @@ socket.on('next bettor broadcast', function (nextBettorBroadcastObject) {
     } else { // some amount has already been bet in this round, so I am not a potential opener
       //display Call with amount due in its label
       let newCallButtonDiv = "";
-      let callAmt = nextBettorBroadcastObject.bettingRound.amtBetInRound - nextBettorBroadcastObject.myConfig.tonight.players[nextBettorBroadcastObject.bettingRound.whoseTurn].amtBetInRound;
+      let callAmt = myConfig.bettingRound.amtBetInRound - myConfig.tonight.players[myConfig.bettingRound.whoseTurn].amtBetInRound;
       insertableHTML = `
       <div class="form-group col-md-3" id="callButtonDiv">
       <button type="button" class="btn btn-primary" id="callButton">Call $${callAmt}</button>                  
@@ -570,17 +608,17 @@ socket.on('next bettor broadcast', function (nextBettorBroadcastObject) {
       callButton.addEventListener("click", call);
       //if I haven't checked AND numRaises<3, display Raise button
       let iAmChecked = false;
-      for (let j = 0; j < nextBettorBroadcastObject.bettingRound.checkedPlayers.length; j++) {
-        if (nextBettorBroadcastObject.bettingRound.checkedPlayers[j] === nextBettorBroadcastObject.bettingRound.whoseTurn) { //I already am in the checkedPlayers array
+      for (let j = 0; j < myConfig.bettingRound.checkedPlayers.length; j++) {
+        if (myConfig.bettingRound.checkedPlayers[j] === myConfig.bettingRound.whoseTurn) { //I already am in the checkedPlayers array
           iAmChecked = true;
         }
       }
-      if (!iAmChecked && nextBettorBroadcastObject.bettingRound.numRaises < 3) { // it's okay to raise, so display that button
+      if (!iAmChecked && myConfig.bettingRound.numRaises < 3) { // it's okay to raise, so display that button
         // populate and display Raise div
         let raiseInnerHTML = ""; //this will be the options for the selector
         let jString = "";
         let newRaiseDiv = "";
-        for (let j = nextBettorBroadcastObject.myConfig.tonight.amtBetIncrements; j <= nextBettorBroadcastObject.myConfig.tonight.amtMaxRaise; j += nextBettorBroadcastObject.myConfig.tonight.amtBetIncrements) { //a loop to populate the increments available in the raiseAmt pick list
+        for (let j = myConfig.tonight.amtBetIncrements; j <= myConfig.tonight.amtMaxRaise; j += myConfig.tonight.amtBetIncrements) { //a loop to populate the increments available in the raiseAmt pick list
           //loop code goes here
           jString = j.toFixed(2);
           raiseInnerHTML += `<option>${jString}</option>`;
@@ -611,4 +649,20 @@ socket.on('next bettor broadcast', function (nextBettorBroadcastObject) {
   }
 });
 
-
+socket.on('bettor action', function (bettorActionBroadcastObject) {
+  let bettorAction = bettorActionBroadcastObject.action;
+  switch (bettorAction) {
+    case "fold":
+      //remove player's line from betting display
+      removePlayerBettingLine(bettorActionBroadcastObject.playerIndex);
+      //hide player area from player areas
+      hidePlayerArea(bettorActionBroadcastObject.playerIndex);
+      break;
+    default:
+      console.log(`
+      I got an unfamiliar action sent from the bettor action broadcast.
+      Here is the object:
+      ${bettorActionBroadcastObject}
+      `);
+  }
+});
