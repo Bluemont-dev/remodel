@@ -259,6 +259,26 @@ function SendNextBettorBroadcast(nextBettorBroadcastObject){
 	io.emit('next bettor broadcast',nextBettorBroadcastObject);
 }
 
+function getNextBettorIndex (index){
+	//figure out whose turn it will be next, by getting the player index of the NEXT person in the players-in-game array after the checker;
+	//make sure it can loop around back to the beginning if needed
+	for (let j=0;j<myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length;j++){
+		if (myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[j].playerUser._id===myConfig.tonight.players[index].playerUser._id){
+			//we found the person who checked
+			let k=0;
+			if (j<myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length-1){ // checker is not the last in players-in-game array
+				k=j+1; // k is the index of the next bettor in the players-in-game array, defaults to zero if the checker IS at the end of the array
+			}
+			let kId = myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[k].playerUser._id; // get next bettor's ID
+			return getPlayerIndex (kId, myConfig.tonight.players);
+		}
+	}
+}
+
+function endBettingRound () {
+	//code will go here
+}
+
 //=========================
 //======SOCKET SERVER LOGIC
 //=========================
@@ -560,6 +580,30 @@ io.on('connection', (socket) => {
 		}
 		io.emit("bettor action",bettorActionBroadcastObject);
 		//still have to check if we're down to one player in game, if not, if pot is good, and if not, advance WhoseTurn and emit Next bettor broadcast again
+	});
+
+	socket.on('I check', (checkerIndex) => {
+		//add player's index to the checked array of the bettingRound
+		myConfig.bettingRound.checkedPlayers.push(checkerIndex);
+		io.emit('status update',`${myConfig.tonight.players[checkerIndex].playerUser.fullName} checks ...`);
+		//create new bettor action broadcast object and emit it
+		let bettorActionBroadcastObject = {
+			myConfig:myConfig,
+			playerIndex:checkerIndex,
+			action:"check",
+			amt:0
+		}
+		io.emit("bettor action",bettorActionBroadcastObject);
+		//make sure we don't have a checked array with as many people as players in the game; if so, end the betting round
+		if (myConfig.bettingRound.checkedPlayers.length===myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length){
+			endBettingRound();
+		} else {
+			let nextBettorIndex = getNextBettorIndex(checkerIndex);
+			console.log("Next bettor's index will be: " + nextBettorIndex);
+			//put that player's index in the myConfig.bettingRound.whoseTurn
+			myConfig.bettingRound.whoseTurn = nextBettorIndex;
+			SendNextBettorBroadcast(myConfig);
+		}
 	});
 	
 });

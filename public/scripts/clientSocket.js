@@ -206,6 +206,9 @@ function open() {
 
 function check() {
   //remove all betting buttons and their event listeners
+  resetBettingButtons();
+  let myIndex = getMyIndex();
+  socket.emit("I check", myIndex);
 }
 
 function call() {
@@ -651,6 +654,7 @@ socket.on('next bettor broadcast', function (myConfig) {
 
 socket.on('bettor action', function (bettorActionBroadcastObject) {
   let bettorAction = bettorActionBroadcastObject.action;
+  let playerLastBetSpan = document.getElementById(`player${bettorActionBroadcastObject.playerIndex+1}LastBet`);
   switch (bettorAction) {
     case "fold":
       //remove player's line from betting display
@@ -658,11 +662,17 @@ socket.on('bettor action', function (bettorActionBroadcastObject) {
       //hide player area from player areas
       hidePlayerArea(bettorActionBroadcastObject.playerIndex);
       break;
+    case "check":
+      //add the word "checked" in the action span thingie
+      playerLastBetSpan.innerHTML = "<em>checked</em>";
+      //remove the highlight from playerarea and playerlinebetli
+      highlightPlayerArea(bettorActionBroadcastObject.playerIndex, false);
+      highlightPlayerLineBetLi(bettorActionBroadcastObject.playerIndex, false);
     default:
       console.log(`
       I got an unfamiliar action sent from the bettor action broadcast.
       Here is the object:
-      ${bettorActionBroadcastObject}
+      ${JSON.stringify(bettorActionBroadcastObject)}
       `);
   }
 });
