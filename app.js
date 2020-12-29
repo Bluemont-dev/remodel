@@ -113,7 +113,7 @@ server.listen(PORT, () => { // previously was app.listen, in case this change br
 // CARD DECK SETUP
 //=========================
 
-const allCards = new cardDeck(myConfig.allCards);
+const allCards = new cardDeck(cardSecrets.allCards);
 
 
 //==========================
@@ -252,11 +252,11 @@ function getOverlayFromString (string){
 	return overlayHTML;
 }
 
-function SendNextBettorBroadcast(nextBettorBroadcastObject){
+function SendNextBettorBroadcast(){
 	//emit status update saying it's somebody's bet
-	io.emit('status update',`The bet is to ${myConfig.tonight.players[nextBettorBroadcastObject.bettingRound.whoseTurn].playerUser.fullName}`);
+	io.emit('status update',`The bet is to ${myConfig.tonight.players[myConfig.bettingRound.whoseTurn].playerUser.fullName}`);
 	//emit broadcast for 'Next bettor turn'
-	io.emit('next bettor broadcast',nextBettorBroadcastObject);
+	io.emit('next bettor broadcast',myConfig);
 }
 
 function getNextBettorIndex (index){
@@ -369,23 +369,7 @@ io.on('connection', (socket) => {
 				break;
 			}
 		}
-		//load tonight object w/ populated players
-		// Night.findById(myConfig.tonight._id, function (err, tonight) {
-		//   if (err) {
-		// 	  console.log(err)
-		// 	} else {
-		// 	  myConfig.tonight = tonight; //this should store fully loaded player objects into myConfig for sharing w/client
-		// 	  myConfig.currentDealerName = tonight.players[myConfig.currentDealerIndex].playerUser.fullName;
-		// 	}
-		//   ;
-		//   var shuffledDeck = allCards.shuffle();
-		//   console.log("The shuffled deck: " + shuffledDeck._stack);
-		//   cardSecrets.shuffledDeck = shuffledDeck._stack;
-		//   io.emit('shuffle visual');
-		//   io.emit('status update',"Deck has been shuffled. Waiting for players to ante.");
-		//   //send this data as an object to all players
-		//   io.emit('game open', myConfig);
-		// });
+
 		myConfig.currentDealerName = myConfig.tonight.players[myConfig.currentDealerIndex].playerUser.fullName;
 
 		// console.log(`At time of game submit, MyConfig.tonight:
@@ -557,7 +541,7 @@ io.on('connection', (socket) => {
 			whoseTurn: openerIndex
 		};
 		myConfig.bettingRound = bettingRound;
-		SendNextBettorBroadcast(myConfig);
+		SendNextBettorBroadcast();
 	});
 
 	socket.on('I fold', (folderIndex) => {
@@ -602,7 +586,7 @@ io.on('connection', (socket) => {
 			console.log("Next bettor's index will be: " + nextBettorIndex);
 			//put that player's index in the myConfig.bettingRound.whoseTurn
 			myConfig.bettingRound.whoseTurn = nextBettorIndex;
-			SendNextBettorBroadcast(myConfig);
+			SendNextBettorBroadcast();
 		}
 	});
 	

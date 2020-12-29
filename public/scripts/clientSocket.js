@@ -209,6 +209,7 @@ function check() {
   resetBettingButtons();
   let myIndex = getMyIndex();
   socket.emit("I check", myIndex);
+  console.log("I just sent the I-check emit");
 }
 
 function call() {
@@ -224,6 +225,7 @@ function fold() {
   resetBettingButtons();
   let myIndex = getMyIndex();
   socket.emit("I fold", myIndex);
+  console.log("I just sent the I-fold emit");
 }
 
 function deal() {
@@ -452,7 +454,6 @@ socket.on('dealer instruction', function (myConfig) {
 });
 
 socket.on('game open', function (myConfig) {
-  console.log(JSON.stringify(myConfig));
   //show game details
   document.getElementById("gameNameDisplay").innerText = myConfig.tonight.games[myConfig.tonight.games.length - 1].name;
   document.getElementById("currentDealerNameDisplay").innerText = "Dealer:" + myConfig.currentDealerName;
