@@ -252,12 +252,12 @@ function getOverlayFromString (string){
 	return overlayHTML;
 }
 
-function SendNextBettorBroadcast(){
-	//emit status update saying it's somebody's bet
-	io.emit('status update',`The bet is to ${myConfig.tonight.players[myConfig.bettingRound.whoseTurn].playerUser.fullName}`);
-	//emit broadcast for 'Next bettor turn'
-	io.emit('next bettor broadcast',myConfig);
-}
+// function SendNextBettorBroadcast(){
+// 	//emit status update saying it's somebody's bet
+// 	io.emit('status update',`The bet is to ${myConfig.tonight.players[myConfig.bettingRound.whoseTurn].playerUser.fullName}`);
+// 	//emit broadcast for 'Next bettor turn'
+// 	io.emit('next bettor broadcast',myConfig);
+// }
 
 function getNextBettorIndex (index){
 	//figure out whose turn it will be next, by getting the player index of the NEXT person in the players-in-game array after the checker;
@@ -273,6 +273,17 @@ function getNextBettorIndex (index){
 			return getPlayerIndex (kId, myConfig.tonight.players);
 		}
 	}
+}
+
+function isPotGood(){
+	let potIsGood = true;
+	for (let i=0;i<myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length;i++){
+		if (myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[i].amtBetInRound!==myConfig.bettingRound.amtBetInRound){
+			potIsGood = false;
+			break;
+		}
+	}
+	return potIsGood;
 }
 
 function endBettingRound () {
@@ -541,7 +552,10 @@ io.on('connection', (socket) => {
 			whoseTurn: openerIndex
 		};
 		myConfig.bettingRound = bettingRound;
-		SendNextBettorBroadcast();
+		//emit status update saying it's somebody's bet
+		io.emit('status update',`The bet is to ${myConfig.tonight.players[myConfig.bettingRound.whoseTurn].playerUser.fullName}`);
+		//emit broadcast for next bettor turn
+		io.emit('next bettor broadcast',myConfig);
 	});
 
 	socket.on('I fold', (folderIndex) => {
@@ -586,7 +600,45 @@ io.on('connection', (socket) => {
 			console.log("Next bettor's index will be: " + nextBettorIndex);
 			//put that player's index in the myConfig.bettingRound.whoseTurn
 			myConfig.bettingRound.whoseTurn = nextBettorIndex;
-			SendNextBettorBroadcast();
+			//emit status update saying it's somebody's bet
+			io.emit('status update',`The bet is to ${myConfig.tonight.players[myConfig.bettingRound.whoseTurn].playerUser.fullName}`);
+			//emit broadcast for next bettor turn
+			io.emit('next bettor broadcast',myConfig);
+		}
+	});
+
+	socket.on('I bet', (iBetObject) => {
+		io.emit('status update',`${myConfig.tonight.players[iBetObject.bettorIndex].playerUser.fullName} bets ${iBetObject.betAmt} ...`);
+		//add bet amt to player object
+		myConfig.tonight.players[iBetObject.bettorIndex].amtBetInRound += iBetObject.betAmt;
+		//increase betting round amtBetInRound if needed
+		if (myConfig.tonight.players[iBetObject.bettorIndex].amtBetInRound>myConfig.bettingRound.amtBetInRound){
+			myConfig.bettingRound.amtBetInRound += iBetObject.betAmt;
+		}
+		//add bet amount to pot
+		myConfig.tonight.games[myConfig.tonight.games.length-1].amtPot += iBetObject.betAmt;
+		//subtract bet amount from player's balance
+		myConfig.tonight.players[iBetObject.bettorIndex].balanceForNight -= iBetObject.betAmt;
+		//create new bettor action broadcast object and emit it
+		let bettorActionBroadcastObject = {
+			myConfig:myConfig,
+			playerIndex:iBetObject.bettorIndex,
+			action:"bet",
+			amt:iBetObject.betAmt
+		}
+		io.emit("bettor action",bettorActionBroadcastObject);
+		//check to see if pot is good; if so, end the betting round; if not, move on to next bettor
+		if (isPotGood()===true){
+			endBettingRound();
+		} else {
+			let nextBettorIndex = getNextBettorIndex(iBetObject.bettorIndex);
+			console.log("Next bettor's index will be: " + nextBettorIndex);
+			//put that player's index in the myConfig.bettingRound.whoseTurn
+			myConfig.bettingRound.whoseTurn = nextBettorIndex;
+			//emit status update saying it's somebody's bet
+			io.emit('status update',`The bet is to ${myConfig.tonight.players[myConfig.bettingRound.whoseTurn].playerUser.fullName}`);
+			//emit broadcast for next bettor turn
+			io.emit('next bettor broadcast',myConfig);
 		}
 	});
 	

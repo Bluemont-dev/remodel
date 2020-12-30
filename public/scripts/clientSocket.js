@@ -201,7 +201,18 @@ function resetBettingButtons (){
 }
 
 function open() {
+  //get the value of the "openAmt" input
+  let betAmtText = document.getElementById('openAmt').value;
+  let betAmt = Number.parseFloat(betAmtText);
   //remove all betting buttons and their event listeners
+  let myIndex = getMyIndex();
+  let iBetObject = {
+    bettorIndex:myIndex,
+    betAmt:betAmt
+  }
+  socket.emit("I bet", iBetObject);
+  console.log("I just sent the I-bet emit");
+  resetBettingButtons();
 }
 
 function check() {
@@ -236,33 +247,43 @@ function deal() {
   document.getElementById('dealButton').style.display = "none";
 }
 
-function updatePlayerBalance(tonightPlayerIndex, newAmt) {
-  let targetElement = [];
-  let tonightPlayerNumber = tonightPlayerIndex + 1;
-  switch (tonightPlayerNumber) {
-    case 1:
-      targetElement = document.querySelector("#player1Area .winningsDisplayAmt");
-      break;
-    case 2:
-      targetElement = document.querySelector("#player2Area .winningsDisplayAmt");
-      break;
-    case 3:
-      targetElement = document.querySelector("#player3Area .winningsDisplayAmt");
-      break;
-    case 4:
-      targetElement = document.querySelector("#player4Area .winningsDisplayAmt");
-      break;
-    case 5:
-      targetElement = document.querySelector("#player5Area .winningsDisplayAmt");
-      break;
-    case 6:
-      targetElement = document.querySelector("#player6Area .winningsDisplayAmt");
-      break;
-    case 7:
-      targetElement = document.querySelector("#player7Area .winningsDisplayAmt");
-      break;
-  }
-  targetElement.textContent = newAmt.toString();
+function updatePlayerBalance(index, amt) {
+  index += 1; //to go from array index to displayed player number
+  let myBalanceElement = document.querySelector(`#player${index}Area .winningsDisplayAmt`);
+  let myBalanceAmt = amt.toFixed(2);
+  myBalanceElement.textContent = myBalanceAmt;
+  // let targetElement = [];
+  // let tonightPlayerNumber = tonightPlayerIndex + 1;
+  // switch (tonightPlayerNumber) {
+  //   case 1:
+  //     targetElement = document.querySelector("#player1Area .winningsDisplayAmt");
+  //     break;
+  //   case 2:
+  //     targetElement = document.querySelector("#player2Area .winningsDisplayAmt");
+  //     break;
+  //   case 3:
+  //     targetElement = document.querySelector("#player3Area .winningsDisplayAmt");
+  //     break;
+  //   case 4:
+  //     targetElement = document.querySelector("#player4Area .winningsDisplayAmt");
+  //     break;
+  //   case 5:
+  //     targetElement = document.querySelector("#player5Area .winningsDisplayAmt");
+  //     break;
+  //   case 6:
+  //     targetElement = document.querySelector("#player6Area .winningsDisplayAmt");
+  //     break;
+  //   case 7:
+  //     targetElement = document.querySelector("#player7Area .winningsDisplayAmt");
+  //     break;
+  // }
+  // targetElement.textContent = newAmt.toString();
+}
+
+function updatePlayerAmtBetDisplay(index, amt){
+  index += 1; //to go from array index to displayed player number
+  let myAmtBet = document.getElementById(`player${index}amtBet`);
+  myAmtBet.textContent = `$${amt.toFixed(2)}`;
 }
 
 function hidePlayerArea(index) {
@@ -479,7 +500,7 @@ socket.on('ante broadcast', function (anteBroadcastObject) {
   //first, get the balance for night of that player
   let x = anteBroadcastObject.myConfig.tonight.players;
   let y = x[anteBroadcastObject.playerIndex];
-  let z = y.balanceForNight.toFixed(2);
+  let z = y.balanceForNight;
   updatePlayerBalance(anteBroadcastObject.playerIndex, z);
   // empty out the betting list
   document.getElementById("bettingDisplayList").innerHTML = "";
@@ -497,13 +518,13 @@ socket.on('ante broadcast', function (anteBroadcastObject) {
       <div>
         <span id="player${antePlayerIndex + 1}LastBet"><em></em></span>
       </div>
-    <span class="text-muted playerLineBetAmt">$0.00</span>
+    <span class="text-muted playerLineBetAmt" id="player${antePlayerIndex + 1}amtBet">$0.00</span>
     </li>`;
     let newPlayerLineBetLi = htmlToElement(insertableHTML); // use function to convert HTML string into DOM element
     document.getElementById("bettingDisplayList").appendChild(newPlayerLineBetLi); // add this as a new line in the betting list
   }
   // now recreate the "Pot amount"line at the bottom of that list
-  let newPotAmt = anteBroadcastObject.myConfig.tonight.games[anteBroadcastObject.myConfig.tonight.games.length - 1].amtPot.toFixed(2);
+  let newPotAmt = anteBroadcastObject.myConfig.tonight.games[anteBroadcastObject.myConfig.tonight.games.length-1].amtPot.toFixed(2);
   let insertableHTML =
     `<li class="list-group-item d-flex justify-content-between" id="potLineBetAmt">
       <span><strong>Pot</strong></span>
@@ -603,7 +624,7 @@ socket.on('next bettor broadcast', function (myConfig) {
       let callAmt = myConfig.bettingRound.amtBetInRound - myConfig.tonight.players[myConfig.bettingRound.whoseTurn].amtBetInRound;
       insertableHTML = `
       <div class="form-group col-md-3" id="callButtonDiv">
-      <button type="button" class="btn btn-primary" id="callButton">Call $${callAmt}</button>                  
+      <button type="button" class="btn btn-primary" id="callButton">Call $${callAmt.toFixed(2)}</button>
       </div>
       `;
       newCallButtonDiv = htmlToElement(insertableHTML); // use function to convert HTML string into DOM element
@@ -669,6 +690,22 @@ socket.on('bettor action', function (bettorActionBroadcastObject) {
       //remove the highlight from playerarea and playerlinebetli
       highlightPlayerArea(bettorActionBroadcastObject.playerIndex, false);
       highlightPlayerLineBetLi(bettorActionBroadcastObject.playerIndex, false);
+      break;
+    case "bet":
+      //update pot amount display
+      let potDisplay = document.getElementById('potLineBetAmt').lastElementChild;
+      potDisplayText = bettorActionBroadcastObject.myConfig.tonight.games[bettorActionBroadcastObject.myConfig.tonight.games.length-1].amtPot.toFixed(2);
+      potDisplay.textContent = `$${potDisplayText}`;
+      //update player's winnings aka balance for night display
+      updatePlayerBalance(bettorActionBroadcastObject.playerIndex, bettorActionBroadcastObject.myConfig.tonight.players[bettorActionBroadcastObject.playerIndex].balanceForNight);
+      //update that number at far right of playerlinebetli display
+      updatePlayerAmtBetDisplay(bettorActionBroadcastObject.playerIndex, bettorActionBroadcastObject.amt);
+      //add the verb to playerlinebetli span
+      playerLastBetSpan.innerHTML = `<em>bet $${bettorActionBroadcastObject.amt.toFixed(2)}</em>`;
+      //remove the highlight from playerarea and playerlinebetli
+      highlightPlayerArea(bettorActionBroadcastObject.playerIndex, false);
+      highlightPlayerLineBetLi(bettorActionBroadcastObject.playerIndex, false);
+      break;
     default:
       console.log(`
       I got an unfamiliar action sent from the bettor action broadcast.
