@@ -211,7 +211,7 @@ function open() {
     betAmt:betAmt
   }
   socket.emit("I bet", iBetObject);
-  console.log("I just sent the I-bet emit");
+  console.log("I opened, so I just sent the I-bet emit");
   resetBettingButtons();
 }
 
@@ -224,7 +224,19 @@ function check() {
 }
 
 function call() {
-  //remove all betting buttons and their event listeners
+    //get the value of the Call amount
+    let callButtonFullLabel = document.getElementById('callButton').textContent;
+    let callButtonAmtText = callButtonFullLabel.substring(6);
+    let callButtonAmt = Number.parseFloat(callButtonAmtText);
+    let myIndex = getMyIndex();
+    let iBetObject = {
+      bettorIndex:myIndex,
+      betAmt:callButtonAmt
+    }
+    socket.emit("I bet", iBetObject);
+    console.log("I called, so I just sent the I-bet emit");
+    //remove all betting buttons and their event listeners
+    resetBettingButtons();
 }
 
 function raise() {
