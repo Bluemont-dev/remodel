@@ -137,6 +137,20 @@ function chooseOpener() {
   }
 };
 
+function chooseWinner() {
+  let clickedPlayerName = this.innerText;
+  let clickedPlayerIndex = parseInt(clickedPlayerName.substr(7, 1), 10) - 1;
+  //use this value to send an emit to the server for "I chose winner"
+  socket.emit("I chose winner", clickedPlayerIndex);
+  dealerAlert.style.display = "none";
+  dealerAlert.textContent = "";
+  //remove event listener for all player names in playerAreas
+  let elements = document.querySelectorAll('.playerNameRow h6');
+  for (let i = 0; i < elements.length; i++) {
+    elements[i].removeEventListener('click', chooseWinner);
+  }
+};
+
 
 //==============
 //GAME PLAYING FUNCTIONS
@@ -490,7 +504,11 @@ socket.on('dealer instruction', function (myConfig) {
     case ("bet"):
       //unhide or display a prompt for dealer to click the opener's name (#dealerAlert)
       dealerAlert.style.display = "block";
-      dealerAlert.textContent = "Click a player's name to open the betting.";
+      let dealerPromptText = "Click a player's name to open the betting. ";
+      if (myConfig.previousOpenerIndex>-1){ // if there WAS a previous opener in this game
+        dealerPromptText += `Previous opener was Player ${myConfig.previousOpenerIndex+1}`;
+      }
+      dealerAlert.textContent = dealerPromptText;
       //add event listener for all player names in playerAreas
       let elements = document.querySelectorAll('.playerNameRow h6');
       for (let i = 0; i < elements.length; i++) {
@@ -759,4 +777,35 @@ socket.on('bettor action', function (bettorActionBroadcastObject) {
       ${JSON.stringify(bettorActionBroadcastObject)}
       `);
   }
+});
+
+socket.on('betting round ended', function (myConfig) {
+  // reset text for the "raises remaining" and hide it
+  let raisesRemainingElement = document.getElementById('raisesRemainingText');
+  raisesRemainingElement.textContent = "Raises remaining: 3";
+  raisesRemainingElement.style.display="none";
+  let jIndex = -1;
+  let playerLastBetSpan = "";
+  //update each player's linebetli by removing verb, and displaying amtBetinRound from myConfig
+  for (let j=0;j<myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length;j++){
+    //get the player's id
+    //from that, get their tonight index number
+    jIndex = getPlayerIndex(myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[j].playerUser._id, myConfig.tonight.players);
+    //update that number at far right of playerlinebetli display
+    updatePlayerAmtBetDisplay(jIndex, myConfig.tonight.players[jIndex].amtBetInRound);
+    //add the verb to playerlinebetli span
+    playerLastBetSpan = document.getElementById(`player${jIndex+1}LastBet`);
+    playerLastBetSpan.innerHTML = "";
+  }
+});
+
+socket.on('choose winner instruction', function (myConfig) {
+    //unhide or display a prompt for dealer to click the winner's name (#dealerAlert)
+    dealerAlert.style.display = "block";
+    dealerAlert.textContent = "Click the winner's name.";
+    //add event listener for all player names in playerAreas
+    let elements = document.querySelectorAll('.playerNameRow h6');
+    for (let i = 0; i < elements.length; i++) {
+      elements[i].addEventListener('click', chooseWinner, false);
+    }
 });

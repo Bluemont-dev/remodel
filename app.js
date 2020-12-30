@@ -136,7 +136,8 @@ function isEverybodyIn (currentGame, numTonightPlayers){
 	}
   }
 
-function instructDealer (players, currentGame){
+function instructDealer (){
+	let players = myConfig.tonight.players;
 	//loop thru players and find out which index is the dealer
 	for (let i=0; i<players.length; i++){
 		if (players[i].isDealer===true){
@@ -287,7 +288,37 @@ function isPotGood(){
 }
 
 function endBettingRound () {
-	//code will go here
+	//loop thru all tonight's players and change their amtBetInRound back to zero
+	for (let i=0;i<myConfig.tonight.players.length;i++){
+		myConfig.tonight.players[i].amtBetInRound = 0;
+	}
+	//change myConfig.bettingRound to {}
+	myConfig.bettingRound = {};
+	//emit broadcast of "betting round ended", send myConfig(?)
+	io.emit('betting round ended',myConfig);
+	isGameOver();
+}
+
+function isGameOver () {
+	let myPlaySequence = myConfig.tonight.games[myConfig.tonight.games.length-1].playSequence;
+	let myPlaySequenceLocation = myConfig.tonight.games[myConfig.tonight.games.length-1].playSequenceLocation;
+	if (myPlaySequenceLocation<myPlaySequence.length-1){ //we are not yet at the end of the playSequence
+		//increment the game's playSequenceLocation by 1
+		myPlaySequenceLocation += 1;
+		myConfig.tonight.games[myConfig.tonight.games.length-1].playSequenceLocation = myPlaySequenceLocation
+		//issue the new dealer instruction
+		instructDealer();
+	} else {
+		//loop thru players and find out which index is the dealer
+		for (let y=0; y<myConfig.tonight.players.length; y++){
+			if (myConfig.tonight.players[y].isDealer===true){
+			io.emit('status update',"Ready for dealer to choose a winner.");
+			//tell the dealer to choose a winner
+			io.to(myConfig.tonight.players[y].socketID).emit('choose winner instruction',myConfig);
+			break;
+			}
+		}
+	}
 }
 
 //=========================
@@ -417,7 +448,7 @@ io.on('connection', (socket) => {
 			//if true, change playSequenceLocation for this game to 0, first element in the playSequence array
 			myConfig.tonight.games[myConfig.tonight.games.length-1].playSequenceLocation = 0;
 			//instruct dealer to do that game action
-			instructDealer (myConfig.tonight.players, myConfig.tonight.games[myConfig.tonight.games.length-1]);
+			instructDealer ();
 		}
 	});
 
@@ -439,7 +470,7 @@ io.on('connection', (socket) => {
 			//if true, change playSequenceLocation for this game to 0, first element in the playSequence array
 			myConfig.tonight.games[myConfig.tonight.games.length-1].playSequenceLocation = 0;
 			//instruct dealer to do that game action
-			instructDealer (myConfig.tonight.players, myConfig.tonight.games[myConfig.tonight.games.length-1]);
+			instructDealer ();
 		}
 	});
 
@@ -534,13 +565,8 @@ io.on('connection', (socket) => {
 			// console.log(`Hand for ${myConfig.tonight.players[element.tonightPlayerIndex].playerUser.firstName} is:
 			// ${JSON.stringify(myConfig.tonight.players[element.tonightPlayerIndex].hand)}`);
 		})
-		//then we gotta move the game on to the next gameSequenceLocation, and call the instructDealer function
-		if (myConfig.tonight.games[myConfig.tonight.games.length-1].playSequenceLocation<myConfig.tonight.games[myConfig.tonight.games.length-1].playSequence.length-1){
-			myConfig.tonight.games[myConfig.tonight.games.length-1].playSequenceLocation += 1;
-			instructDealer (myConfig.tonight.players, myConfig.tonight.games[myConfig.tonight.games.length-1]);
-		} else { // or if we're at the end, prompt the dealer to choose a winner via "choose winner" socket emit
-			io.to(myConfig.tonight.players[myConfig.currentDealerIndex].socketID).emit("choose winner prompt",myConfig);
-		}
+		//then we gotta move the game on to the next gameSequenceLocation, and call the instructDealer function, unless game is over
+		isGameOver();
 	});
 	
 	socket.on('I chose opener', (openerIndex) => {
@@ -552,6 +578,7 @@ io.on('connection', (socket) => {
 			whoseTurn: openerIndex
 		};
 		myConfig.bettingRound = bettingRound;
+		myConfig.previousOpenerIndex = openerIndex;
 		//emit status update saying it's somebody's bet
 		io.emit('status update',`The bet is to ${myConfig.tonight.players[myConfig.bettingRound.whoseTurn].playerUser.fullName}`);
 		//emit broadcast for next bettor turn
@@ -691,6 +718,11 @@ io.on('connection', (socket) => {
 		io.emit('next bettor broadcast',myConfig);
 	});
 	
+	socket.on('I chose winner', (winnerIndex) => {
+		//code goes here
+	});
+
+
 });
 
 
