@@ -81,6 +81,37 @@ function displayDealerPrompt(instruction) {
   }
 }
 
+function getOverlayFromString (string){
+	let suitHTMLEntity = "";
+	let colorClass = "";
+	let char1 = string.substr(0, 1);
+    char1 = char1.toUpperCase();
+	if (char1==="T"){
+		char1 = "10";
+	}
+    let char2 = string.substr(1, 1);
+	switch(char2){
+	case "s":
+		suitHTMLEntity = "&spades;";
+		colorClass = "black";
+		break;
+	case "c":
+		suitHTMLEntity = "&clubs;";
+		colorClass = "black";
+		break;
+	case "d":
+		suitHTMLEntity = "&diams;";
+		colorClass = "red";
+		break;
+	case "h":
+		suitHTMLEntity = "&hearts;";
+		colorClass = "red";
+		break;
+	}
+    overlayHTML = `<span class="cardOverlay ${colorClass}">${char1}&nbsp;<br>${suitHTMLEntity}</span>`;
+	return overlayHTML;
+}
+
 function updateDealPile(numShuffledDeckRemaining) {
   let dealPileCounter = document.getElementById('dealPile').childElementCount;
   let dealPileElement = document.getElementById('dealPile');
@@ -796,6 +827,24 @@ socket.on('betting round ended', function (myConfig) {
     //add the verb to playerlinebetli span
     playerLastBetSpan = document.getElementById(`player${jIndex+1}LastBet`);
     playerLastBetSpan.innerHTML = "";
+  }
+});
+
+socket.on('autoreveal all cards', function (dealtCards) {
+  //get all card objects into a node list
+  let allCardsNodeList = document.querySelectorAll('.playerRow .cardSingle');
+  let DCItext = "";
+  let DCInum = -1;
+  let overlayHTML = "";
+  for (let i = 0; i < allCardsNodeList.length; i++) {
+    let item = allCardsNodeList[i];
+    if (item.classList.contains('faceDown') && (item.innerHTML.includes('cardOverlay')===false)){ // if it's my opponent's down card or my no-peek card
+      //get the element's dealtCard array index
+      DCItext = item.id.substring(3);
+      DCInum = parseInt(DCItext, 10);
+      overlayHTML = getOverlayFromString (dealtCards[DCInum].string);
+      item.innerHTML = overlayHTML;
+    }
   }
 });
 

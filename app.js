@@ -309,6 +309,8 @@ function isGameOver () {
 		//issue the new dealer instruction
 		instructDealer();
 	} else {
+		//emit a command that lets all players see all dealt cards
+		io.emit('autoreveal all cards',cardSecrets.dealtCards);
 		//loop thru players and find out which index is the dealer
 		for (let y=0; y<myConfig.tonight.players.length; y++){
 			if (myConfig.tonight.players[y].isDealer===true){
@@ -652,7 +654,7 @@ io.on('connection', (socket) => {
 	});
 
 	socket.on('I bet', (iBetObject) => {
-		io.emit('status update',`${myConfig.tonight.players[iBetObject.bettorIndex].playerUser.fullName} bets ${iBetObject.betAmt} ...`);
+		io.emit('status update',`${myConfig.tonight.players[iBetObject.bettorIndex].playerUser.fullName} bets ${iBetObject.betAmt.toFixed(2)} ...`);
 		//add bet amt to player object
 		myConfig.tonight.players[iBetObject.bettorIndex].amtBetInRound += iBetObject.betAmt;
 		//increase betting round amtBetInRound if needed
@@ -687,7 +689,7 @@ io.on('connection', (socket) => {
 	});
 
 	socket.on('I raise', (iRaiseObject) => {
-		io.emit('status update',`${myConfig.tonight.players[iRaiseObject.bettorIndex].playerUser.fullName} raises ${iRaiseObject.raiseAmt} ...`);
+		io.emit('status update',`${myConfig.tonight.players[iRaiseObject.bettorIndex].playerUser.fullName} raises ${iRaiseObject.raiseAmt.toFixed(2)} ...`);
 		//increment number of raises in this betting round
 		myConfig.bettingRound.numRaises += 1;
 		//add total bet amt to player object
