@@ -240,7 +240,23 @@ function call() {
 }
 
 function raise() {
+  //get the value of the Call amount
+  let callButtonFullLabel = document.getElementById('callButton').textContent;
+  let callButtonAmtText = callButtonFullLabel.substring(6);
+  let callButtonAmt = Number.parseFloat(callButtonAmtText);
+  //get the value of the "raiseAmt" input
+  let raiseAmtText = document.getElementById('raiseAmt').value;
+  let raiseAmt = Number.parseFloat(raiseAmtText);
+  let myIndex = getMyIndex();
+  let iRaiseObject = {
+    bettorIndex:myIndex,
+    callAmt:callButtonAmt,
+    raiseAmt:raiseAmt
+  }
+  socket.emit("I raise", iRaiseObject);
+  console.log("I just sent the I-raise emit");
   //remove all betting buttons and their event listeners
+  resetBettingButtons();
 }
 
 function fold() {
@@ -689,6 +705,7 @@ socket.on('next bettor broadcast', function (myConfig) {
 socket.on('bettor action', function (bettorActionBroadcastObject) {
   let bettorAction = bettorActionBroadcastObject.action;
   let playerLastBetSpan = document.getElementById(`player${bettorActionBroadcastObject.playerIndex+1}LastBet`);
+  let potDisplay = document.getElementById('potLineBetAmt').lastElementChild;
   switch (bettorAction) {
     case "fold":
       //remove player's line from betting display
@@ -703,17 +720,34 @@ socket.on('bettor action', function (bettorActionBroadcastObject) {
       highlightPlayerArea(bettorActionBroadcastObject.playerIndex, false);
       highlightPlayerLineBetLi(bettorActionBroadcastObject.playerIndex, false);
       break;
-    case "bet":
+    case "bet": // this could be refactored with the "raise" case below it; mostly identical except for the verb we display
       //update pot amount display
-      let potDisplay = document.getElementById('potLineBetAmt').lastElementChild;
       potDisplayText = bettorActionBroadcastObject.myConfig.tonight.games[bettorActionBroadcastObject.myConfig.tonight.games.length-1].amtPot.toFixed(2);
       potDisplay.textContent = `$${potDisplayText}`;
       //update player's winnings aka balance for night display
       updatePlayerBalance(bettorActionBroadcastObject.playerIndex, bettorActionBroadcastObject.myConfig.tonight.players[bettorActionBroadcastObject.playerIndex].balanceForNight);
       //update that number at far right of playerlinebetli display
-      updatePlayerAmtBetDisplay(bettorActionBroadcastObject.playerIndex, bettorActionBroadcastObject.amt);
+      updatePlayerAmtBetDisplay(bettorActionBroadcastObject.playerIndex, bettorActionBroadcastObject.myConfig.tonight.players[bettorActionBroadcastObject.playerIndex].amtBetInRound);
       //add the verb to playerlinebetli span
       playerLastBetSpan.innerHTML = `<em>bet $${bettorActionBroadcastObject.amt.toFixed(2)}</em>`;
+      //remove the highlight from playerarea and playerlinebetli
+      highlightPlayerArea(bettorActionBroadcastObject.playerIndex, false);
+      highlightPlayerLineBetLi(bettorActionBroadcastObject.playerIndex, false);
+      break;
+    case "raise":
+      //update pot amount display
+      potDisplayText = bettorActionBroadcastObject.myConfig.tonight.games[bettorActionBroadcastObject.myConfig.tonight.games.length-1].amtPot.toFixed(2);
+      potDisplay.textContent = `$${potDisplayText}`;
+      //update player's winnings aka balance for night display
+      updatePlayerBalance(bettorActionBroadcastObject.playerIndex, bettorActionBroadcastObject.myConfig.tonight.players[bettorActionBroadcastObject.playerIndex].balanceForNight);
+      //update that number at far right of playerlinebetli display
+      updatePlayerAmtBetDisplay(bettorActionBroadcastObject.playerIndex, bettorActionBroadcastObject.myConfig.tonight.players[bettorActionBroadcastObject.playerIndex].amtBetInRound);
+      //add the verb to playerlinebetli span
+      playerLastBetSpan.innerHTML = `<em>raised $${bettorActionBroadcastObject.raiseAmt.toFixed(2)}</em>`;
+      //display "raises remaining" and update the number displayed
+      let raisesRemainingElement = document.getElementById('raisesRemainingText');
+      raisesRemainingElement.style.display="block";
+      raisesRemainingElement.textContent = `Raises remaining: ${3-bettorActionBroadcastObject.myConfig.bettingRound.numRaises}`;
       //remove the highlight from playerarea and playerlinebetli
       highlightPlayerArea(bettorActionBroadcastObject.playerIndex, false);
       highlightPlayerLineBetLi(bettorActionBroadcastObject.playerIndex, false);

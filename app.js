@@ -559,6 +559,7 @@ io.on('connection', (socket) => {
 	});
 
 	socket.on('I fold', (folderIndex) => {
+		let nextBettorIndex = getNextBettorIndex(folderIndex); // gotta do this now before we remove the person from players in game!
 		//remove player from playersInGame array
 		for (let i=0;i<myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length;i++){
 			if (myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[i].playerUser._id===myConfig.tonight.players[folderIndex].playerUser._id){
@@ -578,6 +579,22 @@ io.on('connection', (socket) => {
 		}
 		io.emit("bettor action",bettorActionBroadcastObject);
 		//still have to check if we're down to one player in game, if not, if pot is good, and if not, advance WhoseTurn and emit Next bettor broadcast again
+		if (myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length===1){ //if only one player left in game
+			//crown and send winner notice
+			console.log("This is where we would declare a winner.");
+		} else {
+			if (isPotGood()){
+				endBettingRound();
+			} else { //move on to next bettor
+				console.log("Next bettor's index will be: " + nextBettorIndex);
+				//put that player's index in the myConfig.bettingRound.whoseTurn
+				myConfig.bettingRound.whoseTurn = nextBettorIndex;
+				//emit status update saying it's somebody's bet
+				io.emit('status update',`The bet is to ${myConfig.tonight.players[myConfig.bettingRound.whoseTurn].playerUser.fullName}`);
+				//emit broadcast for next bettor turn
+				io.emit('next bettor broadcast',myConfig);
+			}
+		}
 	});
 
 	socket.on('I check', (checkerIndex) => {
@@ -640,6 +657,38 @@ io.on('connection', (socket) => {
 			//emit broadcast for next bettor turn
 			io.emit('next bettor broadcast',myConfig);
 		}
+	});
+
+	socket.on('I raise', (iRaiseObject) => {
+		io.emit('status update',`${myConfig.tonight.players[iRaiseObject.bettorIndex].playerUser.fullName} raises ${iRaiseObject.raiseAmt} ...`);
+		//increment number of raises in this betting round
+		myConfig.bettingRound.numRaises += 1;
+		//add total bet amt to player object
+		myConfig.tonight.players[iRaiseObject.bettorIndex].amtBetInRound += iRaiseObject.callAmt + iRaiseObject.raiseAmt;
+		//increase betting round amtBetInRound by the raise amt
+		myConfig.bettingRound.amtBetInRound += iRaiseObject.raiseAmt;
+		//add call + raise amount to pot
+		myConfig.tonight.games[myConfig.tonight.games.length-1].amtPot += iRaiseObject.callAmt + iRaiseObject.raiseAmt;
+		//subtract call + raise amount from player's balance
+		myConfig.tonight.players[iRaiseObject.bettorIndex].balanceForNight -= (iRaiseObject.callAmt + iRaiseObject.raiseAmt);
+		//create new bettor action broadcast object and emit it
+		let bettorActionBroadcastObject = {
+			myConfig:myConfig,
+			playerIndex:iRaiseObject.bettorIndex,
+			action:"raise",
+			callAmt:iRaiseObject.callAmt,
+			raiseAmt:iRaiseObject.raiseAmt
+		}
+		io.emit("bettor action",bettorActionBroadcastObject);
+		//no need to see if pot is good; we know we'll need to move on to next bettor
+		let nextBettorIndex = getNextBettorIndex(iRaiseObject.bettorIndex);
+		console.log("Next bettor's index will be: " + nextBettorIndex);
+		//put that player's index in the myConfig.bettingRound.whoseTurn
+		myConfig.bettingRound.whoseTurn = nextBettorIndex;
+		//emit status update saying it's somebody's bet
+		io.emit('status update',`The bet is to ${myConfig.tonight.players[myConfig.bettingRound.whoseTurn].playerUser.fullName}`);
+		//emit broadcast for next bettor turn
+		io.emit('next bettor broadcast',myConfig);
 	});
 	
 });
