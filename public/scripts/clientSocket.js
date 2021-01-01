@@ -72,7 +72,7 @@ function displayDealerPrompt(instruction) {
       document.getElementById('passCardsPromptButton').style.display = "inline";
       break;
     case "declare":
-      document.getElementById('declarePromptButton').style.display = "inline";
+      document.getElementById('promptToDeclareButton').style.display = "inline";
       break;
     case "": // if we send an empty string as an argument to this function, we're hiding the entire thing and not re-displaying anything!
       break;
@@ -121,37 +121,28 @@ function updateDealPile(numShuffledDeckRemaining) {
 }
 
 
-function updateNameTag(index, newStatus) {
-  let allPlayerNameTags = document.getElementsByClassName('inGameStatus');
-  let tagToUpdate = allPlayerNameTags.item(index);
-  let str = "";
-  switch (newStatus) {
-    case "in":
-      str = `<span class="bg-success text-white inGameStatus">In</span>`;
-      break;
-    case "out":
-      str = `<span class="bg-danger text-white inGameStatus">Out</span>`;
-      break;
-    case "reset":
-      str = `<span class="bg-success text-white inGameStatus">In</span>`;
-      break;
-  }
+function updatePlayerStatusSpan(index, newStatus) {
+  // let allPlayerNameTags = document.getElementsByClassName('inGameStatus');
+  // let tagToUpdate = allPlayerNameTags.item(index);
+  index += 1; //convert index number to displayed player number
+  let thisSpan = document.querySelector(`#player${index}Area .inGameStatus`);
+  thisSpan.textContent = newStatus;
+  thisSpan.classList.add('bg-success');
+  // if (tagToUpdate.outerHTML) { //if outerHTML is supported
+  //   tagToUpdate.outerHTML = str; ///it's simple replacement of whole element with contents of str var
+  // } else { //if outerHTML is not supported, there is a weird but crossbrowsered trick
+  //   var tmpObj = document.createElement("div");
+  //   tmpObj.innerHTML = '<!--THIS DATA SHOULD BE REPLACED-->';
+  //   ObjParent = tagToUpdate.parentNode; //Okey, element should be parented
+  //   ObjParent.replaceChild(tmpObj, tagToUpdate); //here we placing our temporary data instead of our target, so we can find it then and replace it into whatever we want to replace to
+  //   ObjParent.innerHTML = ObjParent.innerHTML.replace('<div><!--THIS DATA SHOULD BE REPLACED--></div>', str);
+  // }
 
-  if (tagToUpdate.outerHTML) { //if outerHTML is supported
-    tagToUpdate.outerHTML = str; ///it's simple replacement of whole element with contents of str var
-  } else { //if outerHTML is not supported, there is a weird but crossbrowsered trick
-    var tmpObj = document.createElement("div");
-    tmpObj.innerHTML = '<!--THIS DATA SHOULD BE REPLACED-->';
-    ObjParent = tagToUpdate.parentNode; //Okey, element should be parented
-    ObjParent.replaceChild(tmpObj, tagToUpdate); //here we placing our temporary data instead of our target, so we can find it then and replace it into whatever we want to replace to
-    ObjParent.innerHTML = ObjParent.innerHTML.replace('<div><!--THIS DATA SHOULD BE REPLACED--></div>', str);
-  }
-
-  if (newStatus === "reset") {
-    allPlayerNameTags.item(index).style.display = "none";
-  } else {
-    allPlayerNameTags.item(index).style.display = "inline";
-  }
+  // if (newStatus === "reset") {
+  //   allPlayerNameTags.item(index).style.display = "none";
+  // } else {
+  //   allPlayerNameTags.item(index).style.display = "inline";
+  // }
 }
 
 function chooseOpener() {
@@ -320,6 +311,51 @@ function deal() {
   document.getElementById('dealButton').style.display = "none";
 }
 
+function promptToDeclare() {
+  let myIndex = getMyIndex();
+  socket.emit("I prompt to declare"); // passing no arguments!
+  console.log("I just sent the I-prompt-to-declare emit");
+  document.getElementById('promptToDeclareButton').removeEventListener("click", promptToDeclare);
+  document.getElementById('promptToDeclareButton').style.display = "none";
+}
+
+function handleDeclareCheckboxChange(checkbox){
+  if(checkbox.checked == true){
+    document.getElementById('declareButton').removeAttribute("disabled");
+  } else {
+    if (document.getElementById('declareLowCheckbox').checked === false && document.getElementById('declareHighCheckbox').checked === false){ // if both are unchecked
+      document.getElementById("declareButton").setAttribute("disabled", "disabled");
+    }
+  }
+}
+
+function declare() {
+  let myIndex = getMyIndex();
+  //get declaration value based on checkboxes
+  let declareLowCheckbox = document.getElementById('declareLowCheckbox');
+  let declareHighCheckbox = document.getElementById('declareHighCheckbox');
+  let declaration = "";
+  if (declareLowCheckbox.checked && declareHighCheckbox.checked){ //if going both low and high
+    declaration = "both";
+  } else if (declareLowCheckbox.checked) {
+    declaration = "low";
+  } else {
+    declaration = "high"
+  }
+  //disable the declare button and update the instructions shown to player
+  document.getElementById('declareButton').disabled = true;
+  let declareInstruxList = document.querySelector('#declareButtonRow ul');
+  declareInstruxList.innerHTML = `                <li>Your choice won't be revealed to others until all have declared.</li>
+  <li><em>You have declared; now waiting for the other players.</em></li>`;
+  // send the emit
+  let iDeclareObject = {
+    index:myIndex,
+    declaration:declaration
+  };
+  socket.emit("I declare", iDeclareObject);
+  console.log("I just sent the I-declare emit");
+}
+
 function updatePlayerBalance(index, amt) {
   index += 1; //to go from array index to displayed player number
   let myBalanceElement = document.querySelector(`#player${index}Area .winningsDisplayAmt`);
@@ -461,7 +497,7 @@ socket.on('render new player for all', function (newPlayerUser) {
           <div>
             <h6 class="my-0">Player ${playerDivsCount + 1}: ${newPlayerFullName}</h6>
           </div>
-          <span class="bg-success text-white inGameStatus">In</span>
+          <span class="text-white inGameStatus"></span>
         </li>
       </ul>
       <div class="card-body rowOfCards d-flex align-items-start">
@@ -520,6 +556,7 @@ socket.on('private message', function (msg) {
 socket.on('dealer instruction', function (myConfig) {
   let dealString = myConfig.tonight.games[myConfig.tonight.games.length - 1].playSequence[myConfig.tonight.games[myConfig.tonight.games.length - 1].playSequenceLocation];
   let dealButton = document.getElementById('dealButton');
+  let promptToDeclareButton = document.getElementById('promptToDeclareButton');
   let dealerAlert = document.getElementById('dealerAlert');
   switch (dealString) {
     case ("dealFaceDown"):
@@ -545,6 +582,11 @@ socket.on('dealer instruction', function (myConfig) {
       for (let i = 0; i < elements.length; i++) {
         elements[i].addEventListener('click', chooseOpener, false);
       }
+      break;
+    case ("declare"):
+      //unhide or display the "promptToDeclare" button and add event listener to it
+      promptToDeclareButton.style.display = "inline-block";
+      promptToDeclareButton.addEventListener("click", promptToDeclare);
       break;
     default:
       alert("You got an unknown dealer instruction from the server. Lucky you!");
@@ -572,7 +614,7 @@ socket.on('game open', function (myConfig) {
 
 socket.on('ante broadcast', function (anteBroadcastObject) {
   //show "in" label
-  updateNameTag(anteBroadcastObject.playerIndex, "in");
+  updatePlayerStatusSpan(anteBroadcastObject.playerIndex, "in");
   //update the winnings balance display of the player who ante'd
   //first, get the balance for night of that player
   let x = anteBroadcastObject.myConfig.tonight.players;
@@ -612,8 +654,6 @@ socket.on('ante broadcast', function (anteBroadcastObject) {
 });
 
 socket.on('sit out broadcast', function (sitOutBroadcastObject) {
-  //show "out" label
-  updateNameTag(sitOutBroadcastObject.playerIndex, "out");
   //hide the player's area
   hidePlayerArea(sitOutBroadcastObject.playerIndex);
 });
@@ -830,6 +870,29 @@ socket.on('betting round ended', function (myConfig) {
   }
 });
 
+socket.on('declare instruction', function () {
+  //dislay the row of checkboxes and button for declare
+  let innerHTML = `              <div class="form-check mx-4">
+  <input class="form-check-input" type="checkbox" onchange='handleDeclareCheckboxChange(this);' value="" id="declareLowCheckbox" name="declareLowCheckbox">
+  <label class="form-check-label" for="declareLowCheckbox">
+    Low
+  </label>
+</div>
+<div class="form-check mx-4">
+  <input class="form-check-input" type="checkbox" onchange='handleDeclareCheckboxChange(this);' value="" id="declareHighCheckbox" name="declareHighCheckbox">
+  <label class="form-check-label" for="declareHighCheckbox">
+    High
+  </label>
+</div>
+<button type="button" class="btn btn-secondary mx-4 my-2" id="declareButton" name="declareButton" disabled="true">Declare</button>
+<ul>
+  <li>Your choice won't be revealed to others until all have declared.</li>
+  <li>If you declare both high and low, you must win (not share) both high and low.</li>
+</ul>`;
+  document.getElementById('declareButtonRow').innerHTML = innerHTML;
+  document.getElementById('declareButton').addEventListener("click", declare);
+});
+
 socket.on('autoreveal all cards', function (dealtCards) {
   //get all card objects into a node list
   let allCardsNodeList = document.querySelectorAll('.playerRow .cardSingle');
@@ -846,6 +909,34 @@ socket.on('autoreveal all cards', function (dealtCards) {
       item.innerHTML = overlayHTML;
     }
   }
+});
+
+socket.on('declarations broadcast', function (declarationsBroadcastObject) {
+  console.log("I received this array for declarations broadcast: " + declarationsBroadcastObject.declaredPlayers);
+  //remove event listener and hide the row
+  document.getElementById('declareButton').removeEventListener("click", declare);
+  document.getElementById('declareButtonRow').innerHTML = "";
+  //loop through the declarations array and display each player's declaration in playerStatusSpan
+  let targetIndex = -1;
+  let targetString = "";
+  declarationsBroadcastObject.declaredPlayers.forEach(element => {
+    targetIndex = parseInt(element.substr(0,1),10);
+    targetString = element.substr(1);
+    switch (targetString){
+      case "high":
+        targetString = "High";
+        break;
+      case "low":
+        targetString = "Low";
+        break;
+      case "both":
+        targetString = "High + Low";
+        break;
+      default:
+        console.log("I got an unfamiliar string passed in the players declarations batch object.");
+    }
+    updatePlayerStatusSpan(targetIndex, targetString);
+  });
 });
 
 socket.on('choose winner instruction', function (myConfig) {

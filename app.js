@@ -120,11 +120,20 @@ const allCards = new cardDeck(cardSecrets.allCards);
 // HANDY FUNCTIONS FOR SOCKET EVENT HANDLING
 //===========================
 
-function getPlayerIndex (userID, playersArray){
-	for (let i=0; i<playersArray.length;i++){
-	  if (playersArray[i].playerUser._id===userID){
+function getPlayerIndex (userID, array){
+	for (let i=0; i<array.length;i++){
+	  if (array[i].playerUser._id===userID){
 		return i;
 	  }
+	}
+  }
+
+  function getPlayerSocketID (index, array){
+	let id = array[index].playerUser._id;
+	for (let i=0; i<myConfig.tonight.players.length;i++){
+		if (myConfig.tonight.players[i].playerUser._id===id){
+			return myConfig.tonight.players[i].socketID;
+	 	}
 	}
   }
 
@@ -612,7 +621,7 @@ io.on('connection', (socket) => {
 			//crown and send winner notice
 			console.log("This is where we would declare a winner.");
 		} else {
-			if (isPotGood()){
+			if (isPotGood() && myConfig.bettingRound.amtBetInRound!==0){ //not only must pot be good, but the bet can't still be zero!
 				endBettingRound();
 			} else { //move on to next bettor
 				console.log("Next bettor's index will be: " + nextBettorIndex);
@@ -719,7 +728,45 @@ io.on('connection', (socket) => {
 		//emit broadcast for next bettor turn
 		io.emit('next bettor broadcast',myConfig);
 	});
+
+	socket.on('I prompt to declare', () => {
+		io.emit('status update',"Players in the game are now invited to declare: high, low, or both");
+		//loop thru players in game, sending each one the declare instruction
+		let jSocketID = "";
+		for (let j=0;j<myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length;j++){
+			jSocketID = getPlayerSocketID (j, myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame);
+			io.to(jSocketID).emit('declare instruction');
+		}
+	});
 	
+	socket.on('I declare', (iDeclareObject) => {
+		//update player object with declaration
+		myConfig.tonight.players[iDeclareObject.index].declaration = iDeclareObject.declaration;
+		//loop thru players in game to see if all have declared
+		let declaredPlayers = [];
+		let jPlayerIndex = -1;
+		let jPlayerCombinedString = ""
+		for (let j=0; j<myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length;j++){
+			jPlayerIndex = getPlayerIndex (myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[j].playerUser._id, myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame);
+			if (myConfig.tonight.players[jPlayerIndex].declaration!==""){ // this player has declared
+				jPlayerCombinedString = `${jPlayerIndex}${myConfig.tonight.players[jPlayerIndex].declaration}`; // e.g. "0high" if tonight player 0 went high
+				declaredPlayers.push(jPlayerCombinedString);
+			}
+		}
+		//after the loop, see if all have declared
+		if (declaredPlayers.length===myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length){
+			//send the emit with the array
+			let declarationsBroadcastObject = {
+				myConfig:myConfig,
+				declaredPlayers:declaredPlayers
+			};
+			io.emit('status update',"Displaying what everyone has declared. Next step is dealer's.");
+			io.emit('declarations broadcast',declarationsBroadcastObject);
+			//then we gotta move the game on to the next gameSequenceLocation, and call the instructDealer function, unless game is over
+			isGameOver();
+		}
+	});
+
 	socket.on('I chose winner', (winnerIndex) => {
 		//code goes here
 	});

@@ -270,7 +270,7 @@
                   <button type="button" class="btn btn-primary" id="dealIndicatorCardsButton">Deal Indicator Card(s)</button>
                   <button type="button" class="btn btn-primary" id="offerCardsButton">Offer Cards</button>
                   <button type="button" class="btn btn-primary" id="passCardsPromptButton">Prompt to Pass Cards</button>
-                  <button type="button" class="btn btn-primary" id="declarePromptButton">Prompt to Declare</button>
+                  <button type="button" class="btn btn-primary" id="promptToDeclare">Prompt to Declare</button>
                 </div>
                 <div class="alert alert-primary" role="alert" id="dealerAlert">
                   Alerts and prompts for the dealer will go here.
@@ -280,7 +280,7 @@
           </div>
 
           <div class="col col-12 col-lg-5" id="bettingColumn" style="display: inline;">
-            <h4 class="mb-3">
+            <h4 class="mb-3" id="bettingTitle">
               <span class="text-muted">Betting</span>
             </h4>
             <ul class="list-group" id="bettingDisplayList">
@@ -340,6 +340,43 @@
                 <strong>$0.00</strong>
               </li>
             </ul>
+            <h4 class="mb-3" id="winnersTitle">
+              <span class="text-muted">Winners</span>
+            </h4>
+            <ul class="list-group" id="winnersDisplayList">
+              <li class="list-group-item d-flex text-white bg-secondary lh-condensed" id="highWinnersHeading">
+                <div>
+                  <h6 class="my-0">High</h6>
+                </div>
+              </li>
+              <li class="list-group-item d-flex justify-content-between lh-condensed">
+                <div>
+                  <h6 class="my-0">Player 1</h6>
+                </div>
+                <span class="text-muted">$0.00</span>
+              </li>
+              <li class="list-group-item d-flex text-white bg-secondary lh-condensed" id="lowWinnersHeading">
+                <div>
+                  <h6 class="my-0">Low</h6>
+                </div>
+              </li>
+              <li class="list-group-item d-flex justify-content-between lh-condensed">
+                <div>
+                  <h6 class="my-0">Player 2</h6>
+                </div>
+                <span class="text-muted">$0.00</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between lh-condensed">
+                <div>
+                  <h6 class="my-0">Player 3</h6>
+                </div>
+                <span class="text-muted">$0.00</span>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span><strong>Pot</strong></span>
+                <strong>$0.00</strong>
+              </li>
+            </ul>
             <p id="raisesRemainingText" style="margin-left: 20px; margin-top: 5px;">Raises remaining: </p>
             <!-- START BETTING BUTTONS-->
             <form id="anteAndBettingButtonsForm">
@@ -382,7 +419,30 @@
                 <button type="button" class="btn btn-secondary" id="foldButton">Fold</button>                  
               </div>
             </div>
-            </form>
+            <div class="row d-flex justify-content-around mx-2 my-3" id="saveWinnersButtonRow">
+              <button type="button" class="btn btn-secondary" id="saveWinnersButton" disabled="true">Save Winners</button>
+            </div>
+            <div class="row d-flex justify-content-center align-items-center mx-2 my-3" id="declareButtonRow">
+              <div class="form-check mx-4">
+                <input class="form-check-input" type="checkbox" onchange='handleDeclareCheckboxChange(this);' value="" id="declareLowCheckbox" name="declareLowCheckbox">
+                <label class="form-check-label" for="declareLowCheckbox">
+                  Low
+                </label>
+              </div>
+              <div class="form-check mx-4">
+                <input class="form-check-input" type="checkbox" onchange='handleDeclareCheckboxChange(this);' value="" id="declareHighCheckbox" name="declareHighCheckbox">
+                <label class="form-check-label" for="declareHighCheckbox">
+                  High
+                </label>
+              </div>
+              <button type="button" class="btn btn-secondary mx-4 my-2" id="declareButton" name="declareButton" disabled="true">Declare</button>
+              <ul>
+                <li>Your choice won't be revealed to others until all have declared.</li>
+                <li>If you declare both high and low, you must win (not share) both high and low.</li>
+                <li><em>You have declared; now waiting for the other players.</em></li>
+              </ul>
+            </div>
+          </form>
             <!-- END BETTING BUTTONS-->
           </div>
 
@@ -429,7 +489,7 @@
                     <div>
                       <h6 class="my-0">Player 2: Wes U.</h6>
                     </div>
-                    <span class="bg-danger text-white inGameStatus">Out</span>
+                    <span class="bg-danger text-white inGameStatus" style="display:inline;">Out</span>
                   </li>
             </ul>            
 
@@ -451,7 +511,7 @@
                     <div>
                       <h6 class="my-0">Player 3: Fran T.</h6>
                     </div>
-                    <span class="bg-success text-white inGameStatus">In</span>
+                    <span class="bg-success text-white inGameStatus" style="display:inline;">HIGH+LOW</span>
                   </li>
             </ul>            
 
