@@ -122,27 +122,10 @@ function updateDealPile(numShuffledDeckRemaining) {
 
 
 function updatePlayerStatusSpan(index, newStatus) {
-  // let allPlayerNameTags = document.getElementsByClassName('inGameStatus');
-  // let tagToUpdate = allPlayerNameTags.item(index);
   index += 1; //convert index number to displayed player number
   let thisSpan = document.querySelector(`#player${index}Area .inGameStatus`);
   thisSpan.textContent = newStatus;
   thisSpan.classList.add('bg-success');
-  // if (tagToUpdate.outerHTML) { //if outerHTML is supported
-  //   tagToUpdate.outerHTML = str; ///it's simple replacement of whole element with contents of str var
-  // } else { //if outerHTML is not supported, there is a weird but crossbrowsered trick
-  //   var tmpObj = document.createElement("div");
-  //   tmpObj.innerHTML = '<!--THIS DATA SHOULD BE REPLACED-->';
-  //   ObjParent = tagToUpdate.parentNode; //Okey, element should be parented
-  //   ObjParent.replaceChild(tmpObj, tagToUpdate); //here we placing our temporary data instead of our target, so we can find it then and replace it into whatever we want to replace to
-  //   ObjParent.innerHTML = ObjParent.innerHTML.replace('<div><!--THIS DATA SHOULD BE REPLACED--></div>', str);
-  // }
-
-  // if (newStatus === "reset") {
-  //   allPlayerNameTags.item(index).style.display = "none";
-  // } else {
-  //   allPlayerNameTags.item(index).style.display = "inline";
-  // }
 }
 
 function chooseOpener() {
@@ -162,8 +145,8 @@ function chooseOpener() {
 function chooseWinner() {
   let clickedPlayerName = this.innerText;
   let clickedPlayerIndex = parseInt(clickedPlayerName.substr(7, 1), 10) - 1;
-  //use this value to send an emit to the server for "I chose winner"
-  socket.emit("I chose winner", clickedPlayerIndex);
+  //use this value to send an emit to the server for "I updated winner"
+  socket.emit("I updated winner", clickedPlayerIndex);
   dealerAlert.style.display = "none";
   dealerAlert.textContent = "";
   //remove event listener for all player names in playerAreas
@@ -239,7 +222,7 @@ function resetBettingButtons (){
 function open() {
   //get the value of the "openAmt" input
   let betAmtText = document.getElementById('openAmt').value;
-  let betAmt = Number.parseFloat(betAmtText);
+  let betAmt = parseFloat(betAmtText)*100;
   //remove all betting buttons and their event listeners
   let myIndex = getMyIndex();
   let iBetObject = {
@@ -263,7 +246,7 @@ function call() {
     //get the value of the Call amount
     let callButtonFullLabel = document.getElementById('callButton').textContent;
     let callButtonAmtText = callButtonFullLabel.substring(6);
-    let callButtonAmt = Number.parseFloat(callButtonAmtText);
+    let callButtonAmt = parseFloat(callButtonAmtText)*100;
     let myIndex = getMyIndex();
     let iBetObject = {
       bettorIndex:myIndex,
@@ -279,10 +262,10 @@ function raise() {
   //get the value of the Call amount
   let callButtonFullLabel = document.getElementById('callButton').textContent;
   let callButtonAmtText = callButtonFullLabel.substring(6);
-  let callButtonAmt = Number.parseFloat(callButtonAmtText);
+  let callButtonAmt = parseFloat(callButtonAmtText)*100;
   //get the value of the "raiseAmt" input
   let raiseAmtText = document.getElementById('raiseAmt').value;
-  let raiseAmt = Number.parseFloat(raiseAmtText);
+  let raiseAmt = parseFloat(raiseAmtText)*100;
   let myIndex = getMyIndex();
   let iRaiseObject = {
     bettorIndex:myIndex,
@@ -359,40 +342,14 @@ function declare() {
 function updatePlayerBalance(index, amt) {
   index += 1; //to go from array index to displayed player number
   let myBalanceElement = document.querySelector(`#player${index}Area .winningsDisplayAmt`);
-  let myBalanceAmt = amt.toFixed(2);
+  let myBalanceAmt = (amt/100).toFixed(2);
   myBalanceElement.textContent = myBalanceAmt;
-  // let targetElement = [];
-  // let tonightPlayerNumber = tonightPlayerIndex + 1;
-  // switch (tonightPlayerNumber) {
-  //   case 1:
-  //     targetElement = document.querySelector("#player1Area .winningsDisplayAmt");
-  //     break;
-  //   case 2:
-  //     targetElement = document.querySelector("#player2Area .winningsDisplayAmt");
-  //     break;
-  //   case 3:
-  //     targetElement = document.querySelector("#player3Area .winningsDisplayAmt");
-  //     break;
-  //   case 4:
-  //     targetElement = document.querySelector("#player4Area .winningsDisplayAmt");
-  //     break;
-  //   case 5:
-  //     targetElement = document.querySelector("#player5Area .winningsDisplayAmt");
-  //     break;
-  //   case 6:
-  //     targetElement = document.querySelector("#player6Area .winningsDisplayAmt");
-  //     break;
-  //   case 7:
-  //     targetElement = document.querySelector("#player7Area .winningsDisplayAmt");
-  //     break;
-  // }
-  // targetElement.textContent = newAmt.toString();
 }
 
 function updatePlayerAmtBetDisplay(index, amt){
   index += 1; //to go from array index to displayed player number
   let myAmtBet = document.getElementById(`player${index}amtBet`);
-  myAmtBet.textContent = `$${amt.toFixed(2)}`;
+  myAmtBet.textContent = `$${(amt/100).toFixed(2)}`;
 }
 
 function hidePlayerArea(index) {
@@ -426,6 +383,100 @@ function highlightPlayerLineBetLi(index, highlightBoolean) {
   }
 }
 
+function buildWinnerDivNode (winnerObject){
+  let newHTML="";
+  if (winnerObject.choosing===true){ //if we're choosing, add checkbox to the HTML we will add
+    newHTML=`<li class="list-group-item d-flex justify-content-between lh-condensed">
+    <div class="form-check mx-1">
+      <input class="form-check-input" type="checkbox" onchange='handleWinnerCheckboxChange(this);' value="" id="${winnerObject.index}indexWinnerCheckbox" name="${winnerObject.index}indexWinnerCheckbox">
+      <label class="form-check-label" for="${winnerObject.index}indexWinnerCheckbox">
+      ${winnerObject.fullName}
+      </label>
+    </div>`; //note this is not the complete ,;\li>, just the early part
+  } else {
+    newHTML = `<li class="list-group-item d-flex justify-content-between lh-condensed">
+                <div>
+                  <h6 class="my-0">${winnerObject.fullName}</h6>
+                </div>`;
+  }
+  //now add the rest of the <li> that is the same whether I am dealer or not
+  newHTML += `<div>
+  <span class="winnerDeclaration"><em>${winnerObject.declaration}</em></span>
+</div>
+<span class="text-muted winnerAmt">$0.00</span>
+</li>`;
+  if ("amt" in winnerObject){ //if we've passed an amount as part of the object, insert it here
+    newHTML = newHTML.replace ('0.00',(winnerObject.amt/100).toFixed(2));
+  }
+  newNode = htmlToElement(newHTML);
+  return newNode;
+}
+
+function handleWinnerCheckboxChange(checkbox) {
+  let winnerCheckboxes = document.querySelectorAll('#bettingDisplayList input[type="checkbox"]');
+  //if at least one checkbox is checked enable the SaveWinners button
+  for (let i=0; i<winnerCheckboxes.length; i++){
+    if (winnerCheckboxes[i].checked){
+      document.getElementById('saveWinnersButton').removeAttribute('disabled');
+      document.getElementById('saveWinnersButton').addEventListener("click", saveWinners);
+      break;
+    } else {
+        if (i===winnerCheckboxes.length-1){ //we've reach the last checkbox and it's not checked
+        document.getElementById('saveWinnersButton').setAttribute('disabled','');
+        document.getElementById('saveWinnersButton').removeEventListener("click", saveWinners);
+        }
+    }
+  }
+//now handle the results of individual boxes being checked or not
+  if (checkbox.checked && checkbox.parentNode.parentNode.outerHTML.includes('both')){ //you clicked a winner whose declaration is "both"
+    //loop thru checkboxes again and this time uncheck all except the one that was just checked
+    for (let i=0; i<winnerCheckboxes.length; i++){
+      if (winnerCheckboxes[i].checked && winnerCheckboxes[i]!==checkbox){
+        winnerCheckboxes[i].checked = false;
+      } 
+    }
+  }
+  if (checkbox.checked && !checkbox.parentNode.parentNode.outerHTML.includes('both')){ //you clicked a winner whose declaration is NOT "both"
+    //loop thru checkboxes again and this time uncheck any whose declaration was "both"
+    for (let i=0; i<winnerCheckboxes.length; i++){
+      if (winnerCheckboxes[i].checked && winnerCheckboxes[i].parentNode.parentNode.outerHTML.includes('both')){
+        winnerCheckboxes[i].checked = false;
+      } 
+    }
+  }
+}
+
+function saveWinners () {
+  //remove dealer alert
+  document.getElementById('dealerAlert').textContent = '';
+  document.getElementById('dealerAlert').style.display = "none";
+  //remove event listener and remove "saveWinners" button
+  document.getElementById('saveWinnersButton').removeEventListener("click", saveWinners);
+  document.getElementById('saveWinnersButtonRow').innerHTML = "";
+  //loop thru checkboxes and create an object based on the selected ones
+  let savedWinnersList = [];
+  let savedWinnersItem = "";
+  let winnerCheckboxes = document.querySelectorAll('#bettingDisplayList input[type="checkbox"]');
+  for (let i=0; i<winnerCheckboxes.length; i++){
+    if (winnerCheckboxes[i].checked){
+      //get the first character, which is the winner's player index
+      savedWinnersItem = winnerCheckboxes[i].id.substr(0,1);
+      //now add the declaration text
+      if (winnerCheckboxes[i].parentNode.parentNode.outerHTML.includes('high')){
+        savedWinnersItem += "high";
+      }
+      if (winnerCheckboxes[i].parentNode.parentNode.outerHTML.includes('low')){
+        savedWinnersItem += "low";
+      }
+      if (winnerCheckboxes[i].parentNode.parentNode.outerHTML.includes('both')){
+        savedWinnersItem += "both";
+      }
+      savedWinnersList.push(savedWinnersItem);
+    } 
+  }
+  console.log("Saved winners include: " + savedWinnersList);
+  socket.emit("I saved winners", savedWinnersList);
+}
 
 //==============
 //CHAT FORM SUBMIT LOGIC
@@ -435,7 +486,7 @@ function highlightPlayerLineBetLi(index, highlightBoolean) {
 // chatForm.onsubmit = submit;
 
 // function submit(event) {
-//   event.preventDefault();  // prevent window from refreshing on submit
+//   event.preventDefault();  // prevent window from refreshing on 
 //   socket.emit('chat message', chatForm.chatInput.value);
 //   chatForm.chatInput.value="";  //clear the form for next input
 // }
@@ -643,7 +694,7 @@ socket.on('ante broadcast', function (anteBroadcastObject) {
     document.getElementById("bettingDisplayList").appendChild(newPlayerLineBetLi); // add this as a new line in the betting list
   }
   // now recreate the "Pot amount"line at the bottom of that list
-  let newPotAmt = anteBroadcastObject.myConfig.tonight.games[anteBroadcastObject.myConfig.tonight.games.length-1].amtPot.toFixed(2);
+  let newPotAmt = (anteBroadcastObject.myConfig.tonight.games[anteBroadcastObject.myConfig.tonight.games.length-1].amtPot/100).toFixed(2);
   let insertableHTML =
     `<li class="list-group-item d-flex justify-content-between" id="potLineBetAmt">
       <span><strong>Pot</strong></span>
@@ -712,7 +763,7 @@ socket.on('next bettor broadcast', function (myConfig) {
       let newCheckButtonDiv = "";
       for (let i = myConfig.tonight.amtBetIncrements; i <= myConfig.tonight.amtMaxOpen; i += myConfig.tonight.amtBetIncrements) { //a loop to populate the increments available in the openAmt pick list
         //loop code goes here
-        iString = i.toFixed(2);
+        iString = (i/100).toFixed(2);
         openInnerHTML += `<option>${iString}</option>`;
       }
       insertableHTML = `
@@ -741,7 +792,7 @@ socket.on('next bettor broadcast', function (myConfig) {
       let callAmt = myConfig.bettingRound.amtBetInRound - myConfig.tonight.players[myConfig.bettingRound.whoseTurn].amtBetInRound;
       insertableHTML = `
       <div class="form-group col-md-3" id="callButtonDiv">
-      <button type="button" class="btn btn-primary" id="callButton">Call $${callAmt.toFixed(2)}</button>
+      <button type="button" class="btn btn-primary" id="callButton">Call $${(callAmt/100).toFixed(2)}</button>
       </div>
       `;
       newCallButtonDiv = htmlToElement(insertableHTML); // use function to convert HTML string into DOM element
@@ -762,7 +813,7 @@ socket.on('next bettor broadcast', function (myConfig) {
         let newRaiseDiv = "";
         for (let j = myConfig.tonight.amtBetIncrements; j <= myConfig.tonight.amtMaxRaise; j += myConfig.tonight.amtBetIncrements) { //a loop to populate the increments available in the raiseAmt pick list
           //loop code goes here
-          jString = j.toFixed(2);
+          jString = (j/100).toFixed(2);
           raiseInnerHTML += `<option>${jString}</option>`;
         }
         insertableHTML = `
@@ -811,28 +862,28 @@ socket.on('bettor action', function (bettorActionBroadcastObject) {
       break;
     case "bet": // this could be refactored with the "raise" case below it; mostly identical except for the verb we display
       //update pot amount display
-      potDisplayText = bettorActionBroadcastObject.myConfig.tonight.games[bettorActionBroadcastObject.myConfig.tonight.games.length-1].amtPot.toFixed(2);
+      potDisplayText = (bettorActionBroadcastObject.myConfig.tonight.games[bettorActionBroadcastObject.myConfig.tonight.games.length-1].amtPot/100).toFixed(2);
       potDisplay.textContent = `$${potDisplayText}`;
       //update player's winnings aka balance for night display
       updatePlayerBalance(bettorActionBroadcastObject.playerIndex, bettorActionBroadcastObject.myConfig.tonight.players[bettorActionBroadcastObject.playerIndex].balanceForNight);
       //update that number at far right of playerlinebetli display
       updatePlayerAmtBetDisplay(bettorActionBroadcastObject.playerIndex, bettorActionBroadcastObject.myConfig.tonight.players[bettorActionBroadcastObject.playerIndex].amtBetInRound);
       //add the verb to playerlinebetli span
-      playerLastBetSpan.innerHTML = `<em>bet $${bettorActionBroadcastObject.amt.toFixed(2)}</em>`;
+      playerLastBetSpan.innerHTML = `<em>bet $${(bettorActionBroadcastObject.amt/100).toFixed(2)}</em>`;
       //remove the highlight from playerarea and playerlinebetli
       highlightPlayerArea(bettorActionBroadcastObject.playerIndex, false);
       highlightPlayerLineBetLi(bettorActionBroadcastObject.playerIndex, false);
       break;
     case "raise":
       //update pot amount display
-      potDisplayText = bettorActionBroadcastObject.myConfig.tonight.games[bettorActionBroadcastObject.myConfig.tonight.games.length-1].amtPot.toFixed(2);
+      potDisplayText = (bettorActionBroadcastObject.myConfig.tonight.games[bettorActionBroadcastObject.myConfig.tonight.games.length-1].amtPot/100).toFixed(2);
       potDisplay.textContent = `$${potDisplayText}`;
       //update player's winnings aka balance for night display
       updatePlayerBalance(bettorActionBroadcastObject.playerIndex, bettorActionBroadcastObject.myConfig.tonight.players[bettorActionBroadcastObject.playerIndex].balanceForNight);
       //update that number at far right of playerlinebetli display
       updatePlayerAmtBetDisplay(bettorActionBroadcastObject.playerIndex, bettorActionBroadcastObject.myConfig.tonight.players[bettorActionBroadcastObject.playerIndex].amtBetInRound);
       //add the verb to playerlinebetli span
-      playerLastBetSpan.innerHTML = `<em>raised $${bettorActionBroadcastObject.raiseAmt.toFixed(2)}</em>`;
+      playerLastBetSpan.innerHTML = `<em>raised $${(bettorActionBroadcastObject.raiseAmt/100).toFixed(2)}</em>`;
       //display "raises remaining" and update the number displayed
       let raisesRemainingElement = document.getElementById('raisesRemainingText');
       raisesRemainingElement.style.display="block";
@@ -939,13 +990,99 @@ socket.on('declarations broadcast', function (declarationsBroadcastObject) {
   });
 });
 
-socket.on('choose winner instruction', function (myConfig) {
-    //unhide or display a prompt for dealer to click the winner's name (#dealerAlert)
-    dealerAlert.style.display = "block";
-    dealerAlert.textContent = "Click the winner's name.";
-    //add event listener for all player names in playerAreas
-    let elements = document.querySelectorAll('.playerNameRow h6');
-    for (let i = 0; i < elements.length; i++) {
-      elements[i].addEventListener('click', chooseWinner, false);
-    }
+socket.on('choose winners', function (myConfig) {
+  //zero out content of betting list (innerHTML="")
+  document.getElementById('bettingDisplayList').innerHTML = "";
+  //change title of betting list to "Winners"
+  document.querySelector('#bettingTitle span').textContent = "Winner(s)";
+  //loop through players in game
+  let winnerObject = {};
+  for (let i=0;i<myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length;i++){
+    winnerObject = {
+      index: getPlayerIndex(myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[i].playerUser._id, myConfig.tonight.players),
+      declaration: myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[i].declaration,
+      fullName: myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[i].playerUser.firstName + " " + myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[i].playerUser.lastInitial,
+      choosing: true
+    };
+  newNode = buildWinnerDivNode (winnerObject);
+  document.getElementById('bettingDisplayList').appendChild(newNode);
+  } //end of loop
+  //display "saveWinners" button, disabled
+  document.getElementById('saveWinnersButtonRow').innerHTML = `<button type="button" class="btn btn-secondary" id="saveWinnersButton" disabled="true">Save Winners</button>`;
+  //unhide or display a prompt for dealer to choose winners (#dealerAlert)
+  let dealerAlert = document.getElementById('dealerAlert');
+  dealerAlert.style.display = "block";
+  dealerAlert.textContent = "Use checkboxes to choose winners, then click 'Save' button.";
+});
+
+socket.on('show winners broadcast', function (myConfig) {
+  //zero out content of betting list (innerHTML="")
+  document.getElementById('bettingDisplayList').innerHTML = "";
+  //change title of betting list to "Winners"
+  document.querySelector('#bettingTitle span').textContent = "Winner(s)";
+  let winnerObject = {};
+  //loop through winners arrays based on hilo value of the game
+  if (myConfig.tonight.games[myConfig.tonight.games.length-1].hilo==="High Only" || myConfig.tonight.games[myConfig.tonight.games.length-1].hilo==="Low Only"){
+    //loop through winners array
+    for (let i=0;i<myConfig.tonight.games[myConfig.tonight.games.length-1].winners.length;i++){
+      winnerObject = {
+        index: myConfig.tonight.games[myConfig.tonight.games.length-1].winners[i].index,
+        declaration: "",
+        fullName: myConfig.tonight.games[myConfig.tonight.games.length-1].winners[i].fullName,
+        amt: myConfig.tonight.games[myConfig.tonight.games.length-1].winners[i].amt,
+        choosing: false
+      };
+      newNode = buildWinnerDivNode (winnerObject);
+      document.getElementById('bettingDisplayList').appendChild(newNode);
+    } //end of loop
+  } else { //game was high-low
+    //loop through lowWinners array
+    for (let i=0;i<myConfig.tonight.games[myConfig.tonight.games.length-1].lowWinners.length;i++){
+      winnerObject = {
+        index: myConfig.tonight.games[myConfig.tonight.games.length-1].lowWinners[i].index,
+        declaration: "low",
+        fullName: myConfig.tonight.games[myConfig.tonight.games.length-1].lowWinners[i].fullName,
+        amt: myConfig.tonight.games[myConfig.tonight.games.length-1].lowWinners[i].amt,
+        choosing: false
+      };
+      newNode = buildWinnerDivNode (winnerObject);
+      document.getElementById('bettingDisplayList').appendChild(newNode);
+    } //end of loop
+    //loop through highWinners array
+    for (let i=0;i<myConfig.tonight.games[myConfig.tonight.games.length-1].highWinners.length;i++){
+      winnerObject = {
+        index: myConfig.tonight.games[myConfig.tonight.games.length-1].highWinners[i].index,
+        declaration: "high",
+        fullName: myConfig.tonight.games[myConfig.tonight.games.length-1].highWinners[i].fullName,
+        amt: myConfig.tonight.games[myConfig.tonight.games.length-1].highWinners[i].amt,
+        choosing: false
+      };
+      newNode = buildWinnerDivNode (winnerObject);
+      document.getElementById('bettingDisplayList').appendChild(newNode);
+    } //end of loop
+  }
+  //the following code will execute no matter whether the game was high-low
+  //show the pot amount
+  let amtPotString = (myConfig.tonight.games[myConfig.tonight.games.length-1].amtPot/100).toFixed(2);
+  let newHTML = `<li class="list-group-item d-flex justify-content-between">
+  <span><strong>Pot</strong></span>
+  <strong>$${amtPotString}</strong>
+  </li>`;
+  newNode = htmlToElement(newHTML);
+  document.getElementById('bettingDisplayList').appendChild(newNode);
+  //add a note about pot carryover if applicable
+  if (myConfig.amtPotCarryOver!==0){
+    let amtCarryoverString = (myConfig.amtPotCarryOver/100).toFixed(2);
+    let newHTML = `<li class="list-group-item d-flex justify-content-left">
+    <span><em>$${amtCarryoverString} will be carried over to next pot.</em></span>
+    </li>`;
+    newNode = htmlToElement(newHTML);
+    document.getElementById('bettingDisplayList').appendChild(newNode);
+  }
+  //we also should display updated balances for the night here
+  let playerIndex = -1;
+  for (let i=0; i<myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length;i++){
+    playerIndex = getPlayerIndex(myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[i].playerUser._id, myConfig.tonight.players);
+    updatePlayerBalance(playerIndex, myConfig.tonight.players[playerIndex].balanceForNight);
+  }
 });

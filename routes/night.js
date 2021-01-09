@@ -22,10 +22,10 @@ router.post("/night", middleware.isLoggedIn, function(req,res){
 	let hostID = req.user._id;
 	let players = [];
 	let games = [];
-    let amtAnte = req.body.amtAnte;
-    let amtMaxOpen = req.body.amtMaxOpen;
-    let amtMaxRaise = req.body.amtMaxRaise;
-	let amtBetIncrements = req.body.amtBetIncrements;
+    let amtAnte = parseFloat(req.body.amtAnte)*100;
+    let amtMaxOpen = parseFloat(req.body.amtMaxOpen)*100;
+    let amtMaxRaise = parseFloat(req.body.amtMaxRaise)*100;
+	let amtBetIncrements = parseFloat(req.body.amtBetIncrements)*100;
 	let newNight = {
 		hostID:hostID,
 		players:players,

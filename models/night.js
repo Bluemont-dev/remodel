@@ -58,7 +58,10 @@ const Night = new Schema({
         amtPot: Number,
         playersInGame: [],
         playersOutOfGame: [],
-        dealablePlayers: []
+        dealablePlayers: [],
+        winners: [],
+        highWinners: [],
+        lowWinners: []
         // possible future functions
         // passCards()
         // chooseWinners()

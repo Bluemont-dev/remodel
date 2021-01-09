@@ -7,6 +7,11 @@
     display: none;
 }
 
+.fas {
+    margin-right: 5px;
+    color: red;
+}
+
 #raisesRemainingText {
     display: none;
     margin-left: 20px;
