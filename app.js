@@ -395,7 +395,6 @@ function allocateWinnings (myConfig) {
 		amtPotCarryOver = myConfig.tonight.games[myConfig.tonight.games.length-1].amtPot - ((lowWinnersShare * myConfig.tonight.games[myConfig.tonight.games.length-1].lowWinners.length) + (highWinnersShare * myConfig.tonight.games[myConfig.tonight.games.length-1].highWinners.length));
 		// amtPotCarryOver = Number.parseFloat(amtPotCarryOver.toFixed(2));  //should not be needed
 	}
-	myConfig.tonight.save();
 
 	myConfig.amtPotCarryOver = amtPotCarryOver;
 	console.log(`Here at the end of the allocation function:
@@ -707,12 +706,24 @@ io.on('connection', (socket) => {
 			action:"fold",
 			amt:0
 		}
-		myConfig.tonight.save();
 		io.emit("bettor action",bettorActionBroadcastObject);
 		//still have to check if we're down to one player in game, if not, if pot is good, and if not, advance WhoseTurn and emit Next bettor broadcast again
-		if (myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length===1){ //if only one player left in game
-			//crown and send winner notice
-			console.log("This is where we would declare a winner.");
+		if (myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length===1){ //if only one player left in game, we have a winner
+			//get the ID and index of the remaining player
+			let winnerId = myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[0].playerUser._id;
+			let winnerIndex = getPlayerIndex (winnerId, myConfig.tonight.players);
+			let winnerFullName = myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[0].playerUser.fullName;
+			let winnerObject = {
+					index:winnerIndex,
+					id:winnerId,
+					fullName:winnerFullName,
+					amt:0
+				};
+			myConfig.tonight.games[myConfig.tonight.games.length-1].winners.push(winnerObject);
+			allocateWinnings(myConfig);
+			io.emit('status update',"Displaying winner.");
+			io.emit('show winners broadcast',myConfig);
+			//call the close game function, no need to save to db here
 		} else {
 			if (isPotGood() && myConfig.bettingRound.amtBetInRound!==0){ //not only must pot be good, but the bet can't still be zero!
 				endBettingRound();
@@ -726,6 +737,7 @@ io.on('connection', (socket) => {
 				io.emit('next bettor broadcast',myConfig);
 			}
 		}
+		myConfig.tonight.save();
 	});
 
 	socket.on('I check', (checkerIndex) => {
@@ -825,6 +837,66 @@ io.on('connection', (socket) => {
 		io.emit('next bettor broadcast',myConfig);
 	});
 
+	socket.on('I split pot', () => {
+		console.log("myConfig.bettingRound: " + JSON.stringify(myConfig.bettingRound));
+		console.log("Number of players remaining in game: " + myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length);
+		if (Object.getOwnPropertyNames(myConfig.bettingRound).length > 0 || myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length!==2){ //make sure we're between bertting rounds and only 2 players remain
+			//send dealer a status update saying that you can't split the pot right now
+			//loop thru players and find out which index is the dealer
+			let players = myConfig.tonight.players;
+			for (let i=0; i<players.length; i++){
+				if (players[i].isDealer===true){
+				io.to(players[i].socketID).emit('status update','You cannot split the pot unless there are 2 players left and no betting round is under way.');
+				break;
+				}
+			}
+			return; //this should exit the socket.on event
+		}
+		io.emit('status update',"Splitting the pot among remaining players.");
+		let winnerId = '';
+		let winnerIndex = -1;
+		let winnerFullName = "";
+		if (myConfig.tonight.games[myConfig.tonight.games.length-1].hilo==="High Only" || myConfig.tonight.games[myConfig.tonight.games.length-1].hilo==="Low Only"){
+			//loop thru remaining players in game
+			for (let j=0; j<myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length;j++){
+				winnerId = myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[j].playerUser._id;
+				winnerIndex = getPlayerIndex (winnerId, myConfig.tonight.players);
+				winnerFullName = myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[j].playerUser.fullName;
+				winnerObject = {
+						index:winnerIndex,
+						id:winnerId,
+						fullName:winnerFullName,
+						amt:0
+					};
+				myConfig.tonight.games[myConfig.tonight.games.length-1].winners.push(winnerObject);
+			}
+			//then allocate winnings and send the emit
+			allocateWinnings(myConfig);
+			io.emit('show winners broadcast',myConfig);
+			//call the close game function, no need to save to db here
+		} else { //we are high-low
+			let splitter1Index = getPlayerIndex (myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[0].playerUser._id, myConfig.tonight.players);
+			let splitter2Index = getPlayerIndex (myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[1].playerUser._id, myConfig.tonight.players);
+			//if neither has declared, pre-assign declarations to help finish the game
+			if (myConfig.tonight.players[splitter1Index].declaration==="" && myConfig.tonight.players[splitter2Index].declaration===""){
+				myConfig.tonight.players[splitter1Index].declaration = "high";
+				myConfig.tonight.players[splitter2Index].declaration = "low";
+			}
+			//emit a command that lets all players see all dealt cards
+			io.emit('autoreveal all cards',cardSecrets.dealtCards);
+			io.emit('status update','We assigned a high and low just to split the pot; dealer can now select or confirm winners');
+			//loop thru players and find out which index is the dealer
+			let players = myConfig.tonight.players;
+			for (let i=0; i<players.length; i++){
+				if (players[i].isDealer===true){
+				io.to(players[i].socketID).emit('choose winners',myConfig); // instruct dealer to choose winners
+				break;
+				}
+			}
+		}
+		myConfig.tonight.save();	
+	});
+
 	socket.on('I prompt to declare', () => {
 		io.emit('status update',"Players in the game are now invited to declare: high, low, or both");
 		//loop thru players in game, sending each one the declare instruction
@@ -893,7 +965,7 @@ io.on('connection', (socket) => {
 		allocateWinnings(myConfig);
 		io.emit('status update',"Displaying winners.");
 		io.emit('show winners broadcast',myConfig);
-		//call the close game function
+		//call the close game function, no need to save to db here
 	});
 
 });

@@ -294,6 +294,10 @@ function deal() {
   document.getElementById('dealButton').style.display = "none";
 }
 
+function splitPot() {
+  socket.emit("I split pot");
+}
+
 function promptToDeclare() {
   let myIndex = getMyIndex();
   socket.emit("I prompt to declare"); // passing no arguments!
