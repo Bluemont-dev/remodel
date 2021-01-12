@@ -22,6 +22,7 @@ const  	indexRoutes					= require("./routes/index"),
 		gameRoutes                  = require("./routes/game"),
 		nightRoutes					= require("./routes/night"),
 		playRoutes					= require("./routes/play");
+const { gameEndAcknowledgements } = require('./config');
 
 const	app 						= express();
 const	server 						= require('http').createServer(app);   //passed to http server
@@ -128,14 +129,18 @@ function getPlayerIndex (userID, array){
 	}
   }
 
-  function getPlayerSocketID (index, array){
+function getPlayerSocketID (index, array){
 	let id = array[index].playerUser._id;
 	for (let i=0; i<myConfig.tonight.players.length;i++){
 		if (myConfig.tonight.players[i].playerUser._id===id){
 			return myConfig.tonight.players[i].socketID;
 	 	}
 	}
-  }
+}
+
+function getDealerSocketID (){
+	return myConfig.tonight.players[myConfig.currentDealerIndex].socketID;
+}
 
 function isEverybodyIn (currentGame, numTonightPlayers){
 	if (currentGame.playersInGame.length + currentGame.playersOutOfGame.length === numTonightPlayers){ //all of tonight's players have either ante'd in, or are sitting out, for the current game
@@ -414,6 +419,46 @@ function allocateWinnings (myConfig) {
 	`);
 }
 
+function closeGame(){
+	let mathCheckBalance = 0;
+	//increment currentDealerIndex
+	if (myConfig.currentDealerIndex===myConfig.tonight.players.length-1){
+		myConfig.currentDealerIndex = 0;
+	} else {
+		myConfig.currentDealerIndex += 1;
+	}
+	//loop thru tonight's players and zero out some key values
+	for (let i=0;i<myConfig.tonight.players.length;i++){
+		mathCheckBalance += myConfig.tonight.players[i].balanceForNight;
+		myConfig.tonight.players[i].amtBetInRound = 0;
+		myConfig.tonight.players[i].declaration = "";
+		myConfig.tonight.players[i].hand = [];
+		if (myConfig.currentDealerIndex===i){
+			myConfig.tonight.players[i].isDealer = true;
+		} else {
+			myConfig.tonight.players[i].isDealer = false;
+		}
+	}
+	mathCheckBalance += myConfig.amtPotCarryOver;
+	//save tonight to database
+	myConfig.tonight.save();
+	//reset some values in myConfig
+	myConfig.gameInProgress = false;
+	myConfig.bettingRound = {};
+	myConfig.gameEndAcknowledgements = 0;
+	myConfig.previousOpenerIndex = -1; //by adding all player balances and any pot carryover, we should equal zero for the night
+	//math check
+	if (mathCheckBalance===0){
+		console.log ("Math check passed.");
+	} else {
+		console.log ("Math check failed.");
+	}
+	io.emit('status update',`Next dealer is Player ${myConfig.currentDealerIndex+1}`);
+	io.emit('game close broadcast',myConfig);
+	let dealerSocketID = getDealerSocketID ();
+	io.to(dealerSocketID).emit('private message',"You are dealer");
+}
+
 
 //=========================
 //======SOCKET SERVER LOGIC
@@ -497,6 +542,7 @@ io.on('connection', (socket) => {
 		myConfig.tonight.games.push(submittedGame); //add the new game to the array of tonight's games
 		myConfig.tonight.save();
 		myConfig.gameInProgress = true;
+
 		//loop thru players to find dealer
 		for (let i=0; i<tonight.players.length; i++){
 			if (myConfig.tonight.players[i].isDealer===true){
@@ -707,7 +753,7 @@ io.on('connection', (socket) => {
 			amt:0
 		}
 		io.emit("bettor action",bettorActionBroadcastObject);
-		//still have to check if we're down to one player in game, if not, if pot is good, and if not, advance WhoseTurn and emit Next bettor broadcast again
+		//still have to check if we're down to one player in game, if not, see if pot is good, and if not, advance WhoseTurn and emit Next bettor broadcast again
 		if (myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length===1){ //if only one player left in game, we have a winner
 			//get the ID and index of the remaining player
 			let winnerId = myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[0].playerUser._id;
@@ -721,9 +767,8 @@ io.on('connection', (socket) => {
 				};
 			myConfig.tonight.games[myConfig.tonight.games.length-1].winners.push(winnerObject);
 			allocateWinnings(myConfig);
-			io.emit('status update',"Displaying winner.");
+			io.emit('status update',`Showing winner. Waiting for ${myConfig.tonight.players.length - myConfig.gameEndAcknowledgements} players to acknowledge.`);
 			io.emit('show winners broadcast',myConfig);
-			//call the close game function, no need to save to db here
 		} else {
 			if (isPotGood() && myConfig.bettingRound.amtBetInRound!==0){ //not only must pot be good, but the bet can't still be zero!
 				endBettingRound();
@@ -872,8 +917,8 @@ io.on('connection', (socket) => {
 			}
 			//then allocate winnings and send the emit
 			allocateWinnings(myConfig);
+			io.emit('status update',`Showing winners. Waiting for ${myConfig.tonight.players.length} players to acknowledge.`);
 			io.emit('show winners broadcast',myConfig);
-			//call the close game function, no need to save to db here
 		} else { //we are high-low
 			let splitter1Index = getPlayerIndex (myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[0].playerUser._id, myConfig.tonight.players);
 			let splitter2Index = getPlayerIndex (myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[1].playerUser._id, myConfig.tonight.players);
@@ -963,9 +1008,17 @@ io.on('connection', (socket) => {
 			}
 		}
 		allocateWinnings(myConfig);
-		io.emit('status update',"Displaying winners.");
+		io.emit('status update',`Showing winners. Waiting for ${myConfig.tonight.players.length} players to acknowledge.`);
 		io.emit('show winners broadcast',myConfig);
-		//call the close game function, no need to save to db here
+	});
+
+	socket.on("I acknowledge game end", () => {
+		myConfig.gameEndAcknowledgements += 1;
+		if (myConfig.gameEndAcknowledgements===myConfig.tonight.players.length){
+			closeGame();
+		} else {
+			io.emit('status update',`Showing winners. Waiting for ${myConfig.tonight.players.length - myConfig.gameEndAcknowledgements} players to acknowledge.`);
+		}
 	});
 
 });

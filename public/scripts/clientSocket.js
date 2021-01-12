@@ -482,6 +482,12 @@ function saveWinners () {
   socket.emit("I saved winners", savedWinnersList);
 }
 
+function acknowledgeGameEnd () {
+  document.getElementById('gameEndAcknowledgeButton').removeEventListener("click", acknowledgeGameEnd);
+  document.getElementById('gameEndAcknowledgeButtonRow').innerHTML = "" ;
+  socket.emit("I acknowledge game end");
+}
+
 //==============
 //CHAT FORM SUBMIT LOGIC
 //==============
@@ -649,12 +655,23 @@ socket.on('dealer instruction', function (myConfig) {
 });
 
 socket.on('game open', function (myConfig) {
+  let newHTML = "";
   //show game details
-  document.getElementById("gameNameDisplay").innerText = myConfig.tonight.games[myConfig.tonight.games.length - 1].name;
-  document.getElementById("currentDealerNameDisplay").innerText = "Dealer:" + myConfig.currentDealerName;
-  document.getElementById("numCardsDisplay").innerText = myConfig.tonight.games[myConfig.tonight.games.length - 1].numCards + " cards";
-  document.getElementById("whatsWildDisplay").innerText = "Wild cards: " + myConfig.tonight.games[myConfig.tonight.games.length - 1].whatsWild;
-  document.getElementById("hiloDisplay").innerText = myConfig.tonight.games[myConfig.tonight.games.length - 1].hilo;
+  newHTML = `
+  <h3 class="display-5" id="gameNameDisplay">${myConfig.tonight.games[myConfig.tonight.games.length - 1].name}</h3>
+  <ul class="lead">
+    <li id="currentDealerNameDisplay">Dealer: ${myConfig.currentDealerName}</li>
+    <li id="numCardsDisplay">${myConfig.tonight.games[myConfig.tonight.games.length - 1].numCards} cards</li>
+    <li id="whatsWildDisplay">Wild cards: ${myConfig.tonight.games[myConfig.tonight.games.length - 1].whatsWild}</li>
+    <li id="hiloDisplay">${myConfig.tonight.games[myConfig.tonight.games.length - 1].hilo}</li>
+  </ul>
+  `;
+  document.getElementById('gameDetails').innerHTML = newHTML;
+  // document.getElementById("gameNameDisplay").innerText = myConfig.tonight.games[myConfig.tonight.games.length - 1].name;
+  // document.getElementById("currentDealerNameDisplay").innerText = "Dealer:" + myConfig.currentDealerName;
+  // document.getElementById("numCardsDisplay").innerText = myConfig.tonight.games[myConfig.tonight.games.length - 1].numCards + " cards";
+  // document.getElementById("whatsWildDisplay").innerText = "Wild cards: " + myConfig.tonight.games[myConfig.tonight.games.length - 1].whatsWild;
+  // document.getElementById("hiloDisplay").innerText = myConfig.tonight.games[myConfig.tonight.games.length - 1].hilo;
   //unhide the betting column, but re-hide the betting buttons row
   document.getElementById("bettingColumn").style.display = "block";
   //listen for click on ante button
@@ -1083,10 +1100,46 @@ socket.on('show winners broadcast', function (myConfig) {
     newNode = htmlToElement(newHTML);
     document.getElementById('bettingDisplayList').appendChild(newNode);
   }
+  //display the button to acknowledge results and move on
+  newHTML = `<button type="button" class="btn btn-secondary" id="gameEndAcknowledgeButton">Got It / Move On</button>`;
+  newNode = htmlToElement(newHTML);
+  document.getElementById('gameEndAcknowledgeButtonRow').appendChild(newNode);
+  document.getElementById('gameEndAcknowledgeButton').addEventListener("click", acknowledgeGameEnd);
   //we also should display updated balances for the night here
   let playerIndex = -1;
   for (let i=0; i<myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length;i++){
     playerIndex = getPlayerIndex(myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[i].playerUser._id, myConfig.tonight.players);
     updatePlayerBalance(playerIndex, myConfig.tonight.players[playerIndex].balanceForNight);
   }
+});
+
+socket.on('game close broadcast', function (myConfig) {
+  //loop thru all player areas
+  let playerNumber = -1;
+  let playerWinningsNumber = 0;
+  let playerWinningsText = ""
+  for (let i=0;i<myConfig.tonight.players.length;i++){
+    playerNumber = i+1;
+    document.getElementById(`player${playerNumber}Area`).style.display = "block"; //show player area
+    updatePlayerStatusSpan(i, "");
+    document.querySelector(`#player${playerNumber}Area .inGameStatus`).classList.remove('bg-success');
+    document.querySelector(`#player${playerNumber}Area .rowOfCards`).innerHTML = ""; //get rid of all displayed cards for that player
+    highlightPlayerArea(i, false); //remove any highlight from player's area
+    playerWinningsNumber = myConfig.tonight.players[i].balanceForNight/100;
+    playerWinningsText = playerWinningsNumber.toFixed(2);
+    document.querySelector(`#player${playerNumber}Area .winningsDisplayAmt`).textContent = playerWinningsText; //show current balance for that player
+  }
+  //hide game details, betting display, deal pile, indicator cards, etc.
+  document.querySelector('#bettingTitle span').textContent = "Betting";
+  document.getElementById('bettingDisplayList').innerHTML = "";
+  document.getElementById("gameDetails").innerHTML = "";
+  document.getElementById("bettingColumn").style.display = "none";
+  document.getElementById('dealPile').innerHTML = "";
+  document.getElementById('indicatorCardsRow').innerHTML = "";
+  //hide game menu if I am not dealer
+  let myIndex = getMyIndex();
+  if (myConfig.tonight.players[myIndex].isDealer!==true){
+    document.getElementById("navGameDropdown").style.display = "none";
+  }
+  
 });
