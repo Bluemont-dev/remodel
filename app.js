@@ -758,12 +758,21 @@ io.on('connection', (socket) => {
 		dealIndicatorsBatchObject.dealBatchCommon.forEach (element => {
 			myConfig.tonight.games[myConfig.tonight.games.length-1].indicatorCards.push(element);
 		})
-		console.log(`Indicator cards include:
-		${JSON.stringify(myConfig.tonight.games[myConfig.tonight.games.length-1].indicatorCards)}`);
 		myConfig.tonight.save();
 		//then we gotta move the game on to the next gameSequenceLocation, and call the instructDealer function, unless game is over
 		isGameOver();
 
+	});
+
+	socket.on('I turned indicator card', (clickedIndicatorIndex) => {
+		cardSecrets.dealtCards[clickedIndicatorIndex].faceUp = true;
+		let turnedIndicatorBroadcastObject = {
+			turnedIndicatorImgPath: cardSecrets.dealtCards[clickedIndicatorIndex].imgPath,
+			turnedIndicatorIndex: clickedIndicatorIndex
+		}
+		io.emit("turned indicator broadcast",turnedIndicatorBroadcastObject);
+		//then we gotta move the game on to the next gameSequenceLocation, and call the instructDealer function, unless game is over
+		isGameOver();
 	});
 	
 	socket.on('I chose opener', (openerIndex) => {

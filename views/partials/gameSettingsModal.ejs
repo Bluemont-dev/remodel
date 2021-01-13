@@ -16,7 +16,7 @@
                 <div class="form-group">
                   <label class="mr-2" for="gameName">Game name:</label>
                   <select name="gameName" id="gameName">
-                    <option value="">--Choose--</option> 
+                    <option value="--Choose--">--Choose--</option> 
                     <!-- more options to be added via playClient.js -->
                   </select>
                 </div>
@@ -106,7 +106,7 @@
                 </div>
                 <input id="playSequenceArray" name="playSequenceArray" type="hidden" value="unselected">
                 <button type="button" class="btn btn-primary" id="checkSequenceButton" disabled>Customize</button>    
-                <button type="submit" class="btn btn-success">Start game</button>
+                <button type="submit" class="btn btn-success" id="startGameButton" disabled>Start game</button>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
   
               </div>

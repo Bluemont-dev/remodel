@@ -27,6 +27,11 @@ function gamesNamesLoad () { //take the game names from preset constant and load
 
 $("#gameName").change(function() {
     let selectedGameName = document.getElementById("gameName").value;
+    if (selectedGameName.includes("Choose")===false){ //enable the start game button only if the dealer has selected an actual game
+        document.getElementById('startGameButton').removeAttribute("disabled");
+    } else {
+        document.getElementById('startGameButton').setAttribute("disabled","");
+    }
     document.getElementById("playSequenceList").innerHTML = "";
     switch (selectedGameName) {
         case "anaconda":
@@ -58,9 +63,11 @@ $("#gameName").change(function() {
           break;
         case "dealersSpecial":
           fillGameSettings(dealersSpecial);
+          break;        
+        case "--Choose--":
           break;
         default:
-          alert("Hey, I dunno.");
+          alert("I don't recognize that game name.");
       }
 });
 

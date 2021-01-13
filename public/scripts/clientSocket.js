@@ -133,6 +133,7 @@ function chooseOpener() {
   let clickedPlayerIndex = parseInt(clickedPlayerName.substr(7, 1), 10) - 1;
   //use this value to send an emit to the server for "I chose opener"
   socket.emit("I chose opener", clickedPlayerIndex);
+  let dealerAlert = document.getElementById('dealerAlert');
   dealerAlert.style.display = "none";
   dealerAlert.textContent = "";
   //remove event listener for all player names in playerAreas
@@ -141,6 +142,25 @@ function chooseOpener() {
     elements[i].removeEventListener('click', chooseOpener);
   }
 };
+
+function turnIndicatorCard () {
+  let dealerAlert = document.getElementById('dealerAlert');
+  //get info to determine if the indicator card is already face down; if so, prompt dealer and return, else proceed
+  if (this.classList.contains('faceDown')){
+    dealerAlert.style.display = "none";
+    dealerAlert.textContent = "";
+    //remove event listener for all indicator cards
+    let elements = document.querySelectorAll("#indicatorCardsRow .cardSingle");
+    for (let i = 0; i < elements.length; i++) {
+      elements[i].removeEventListener('click', turnIndicatorCard);
+    }
+  } else {
+    dealerAlert.textContent = "Please click a face-down indicator card.";
+  }
+  let clickedIndicatorIndex = parseInt(this.id.substr(3),10);
+  console.log("You clicked the card with id: " + clickedIndicatorIndex);
+  socket.emit("I turned indicator card", clickedIndicatorIndex);
+}
 
 function chooseWinner() {
   let clickedPlayerName = this.innerText;
@@ -628,6 +648,8 @@ socket.on('dealer instruction', function (myConfig) {
   let dealIndicatorCardsButton = document.getElementById('dealIndicatorCardsButton');
   let promptToDeclareButton = document.getElementById('promptToDeclareButton');
   let dealerAlert = document.getElementById('dealerAlert');
+  let dealerPromptText = "";
+  let elements = "";
   switch (dealString) {
     case ("dealFaceDown"):
       //unhide or display the "deal" button and add event listener to it
@@ -644,18 +666,29 @@ socket.on('dealer instruction', function (myConfig) {
       dealIndicatorCardsButton.style.display = "inline-block";
       dealIndicatorCardsButton.addEventListener("click", dealIndicatorCards);
       break;
+    case ("turnIndicator"):
+      //unhide or display a prompt for dealer to click the card to turn
+      dealerAlert.style.display = "block";
+      dealerPromptText = "Click an indicator card to reveal it.";
+      dealerAlert.textContent = dealerPromptText;
+        //add event listener for all indicator cards
+      elements = document.querySelectorAll("#indicatorCardsRow .cardSingle");
+      for (let i = 0; i < elements.length; i++) {
+        elements[i].addEventListener('click', turnIndicatorCard);
+      }
+      break;
     case ("bet"):
       //unhide or display a prompt for dealer to click the opener's name (#dealerAlert)
       dealerAlert.style.display = "block";
-      let dealerPromptText = "Click a player's name to open the betting. ";
+      dealerPromptText = "Click a player's name to open the betting. ";
       if (myConfig.previousOpenerIndex>-1){ // if there WAS a previous opener in this game
         dealerPromptText += `Previous opener was Player ${myConfig.previousOpenerIndex+1}`;
       }
       dealerAlert.textContent = dealerPromptText;
       //add event listener for all player names in playerAreas
-      let elements = document.querySelectorAll('.playerNameRow h6');
-      for (let i = 0; i < elements.length; i++) {
-        elements[i].addEventListener('click', chooseOpener, false);
+      elements = document.querySelectorAll('.playerNameRow h6');
+      for (let j = 0; j < elements.length; j++) {
+        elements[j].addEventListener('click', chooseOpener, false);
       }
       break;
     case ("declare"):
@@ -807,6 +840,13 @@ socket.on('deal indicators batch broadcast', function (dealIndicatorsBatchObject
     numShuffledDeckRemaining -= 1;
     updateDealPile(numShuffledDeckRemaining);
   }); //end of forEach loop
+});
+
+socket.on('turned indicator broadcast', function (turnedIndicatorBroadcastObject) {
+  let turnedIndicatorCard = document.getElementById(`DCI${turnedIndicatorBroadcastObject.turnedIndicatorIndex}`);
+  turnedIndicatorCard.classList.add('faceUp');
+  turnedIndicatorCard.classList.remove('faceDown');
+  turnedIndicatorCard.style.backgroundImage = `url(${turnedIndicatorBroadcastObject.turnedIndicatorImgPath})`;
 });
 
 socket.on('next bettor broadcast', function (myConfig) {
