@@ -166,6 +166,8 @@ function submitGame() {
         numCardsToPass: parseInt(numCardsToPass.value,10),
         fwdCardsToPass: fwdCardsToPassTrue.checked,
         numIndicatorCards: parseInt(numIndicatorCards.value,10),
+        indicatorCards: [],
+        discards: [],
         otherInstructions: otherInstructions.value,
         amtPot: 0,
         playersInGame: [],

@@ -294,6 +294,14 @@ function deal() {
   document.getElementById('dealButton').style.display = "none";
 }
 
+function dealIndicatorCards() {
+  let myIndex = getMyIndex();
+  socket.emit("I deal indicator cards", myIndex);
+  console.log("I just sent the I-deal-indicator-cards emit");
+  document.getElementById('dealIndicatorCardsButton').removeEventListener("click", dealIndicatorCards);
+  document.getElementById('dealIndicatorCardsButton').style.display = "none";
+}
+
 function splitPot() {
   socket.emit("I split pot");
 }
@@ -617,6 +625,7 @@ socket.on('private message', function (msg) {
 socket.on('dealer instruction', function (myConfig) {
   let dealString = myConfig.tonight.games[myConfig.tonight.games.length - 1].playSequence[myConfig.tonight.games[myConfig.tonight.games.length - 1].playSequenceLocation];
   let dealButton = document.getElementById('dealButton');
+  let dealIndicatorCardsButton = document.getElementById('dealIndicatorCardsButton');
   let promptToDeclareButton = document.getElementById('promptToDeclareButton');
   let dealerAlert = document.getElementById('dealerAlert');
   switch (dealString) {
@@ -629,6 +638,11 @@ socket.on('dealer instruction', function (myConfig) {
       //unhide or display the "deal" button and add event listener to it
       dealButton.style.display = "inline-block";
       dealButton.addEventListener("click", deal);
+      break;
+    case ("dealIndicatorsDown"):
+      //unhide or display the "deal indicator cards" button and add event listener to it
+      dealIndicatorCardsButton.style.display = "inline-block";
+      dealIndicatorCardsButton.addEventListener("click", dealIndicatorCards);
       break;
     case ("bet"):
       //unhide or display a prompt for dealer to click the opener's name (#dealerAlert)
@@ -762,6 +776,33 @@ socket.on('deal batch broadcast', function (dealBatchObject) {
     }
     let newCardDiv = htmlToElement(insertableHTML); // use function to convert HTML string into DOM element
     document.querySelector(`#player${element.tonightPlayerIndex + 1}Area .rowOfCards`).append(newCardDiv);  //this is where the new card appears onscreen
+    //check dealPile count and remove a card as needed
+    numShuffledDeckRemaining -= 1;
+    updateDealPile(numShuffledDeckRemaining);
+  }); //end of forEach loop
+});
+
+
+
+socket.on('deal indicators batch broadcast', function (dealIndicatorsBatchObject) {
+  console.log("Deal indicators batch object is: ");
+  console.log(JSON.stringify(dealIndicatorsBatchObject));
+  let numShuffledDeckRemaining = dealIndicatorsBatchObject.numShuffledDeckRemaining;
+  ///loop thru the object, building insertable HTML and adding it to the indicator cards row, playing a sound, maybe animating
+  dealIndicatorsBatchObject.dealBatchCommon.forEach(element => {
+    let insertableHTML = "";
+    let insertableClass = "";
+    let insertableBackground = "";
+    if (element.imgPath.includes("back")) {
+      insertableClass = " faceDown";
+    } else {
+      insertableClass = " faceUp";
+      insertableBackground = ` style="background-image: url(${element.imgPath});"`;
+    }
+    insertableHTML = `<div class="cardSingle rounded${insertableClass}" id="DCI${element.dci}"${insertableBackground}></div>`;
+    let newCardDiv = htmlToElement(insertableHTML); // use function to convert HTML string into DOM element
+    document.getElementById(`indicatorCardsRow`).style.display = 'block';
+    document.getElementById(`indicatorCardsRow`).append(newCardDiv);  //this is where the new card appears onscreen
     //check dealPile count and remove a card as needed
     numShuffledDeckRemaining -= 1;
     updateDealPile(numShuffledDeckRemaining);
@@ -1012,6 +1053,10 @@ socket.on('declarations broadcast', function (declarationsBroadcastObject) {
 });
 
 socket.on('choose winners', function (myConfig) {
+  // reset text for the "raises remaining" and hide it
+  let raisesRemainingElement = document.getElementById('raisesRemainingText');
+  raisesRemainingElement.textContent = "Raises remaining: 3";
+  raisesRemainingElement.style.display="none";
   //zero out content of betting list (innerHTML="")
   document.getElementById('bettingDisplayList').innerHTML = "";
   //change title of betting list to "Winners"
@@ -1037,6 +1082,10 @@ socket.on('choose winners', function (myConfig) {
 });
 
 socket.on('show winners broadcast', function (myConfig) {
+  // reset text for the "raises remaining" and hide it
+  let raisesRemainingElement = document.getElementById('raisesRemainingText');
+  raisesRemainingElement.textContent = "Raises remaining: 3";
+  raisesRemainingElement.style.display="none";
   //zero out content of betting list (innerHTML="")
   document.getElementById('bettingDisplayList').innerHTML = "";
   //change title of betting list to "Winners"
@@ -1129,6 +1178,10 @@ socket.on('game close broadcast', function (myConfig) {
     playerWinningsText = playerWinningsNumber.toFixed(2);
     document.querySelector(`#player${playerNumber}Area .winningsDisplayAmt`).textContent = playerWinningsText; //show current balance for that player
   }
+  // reset text for the "raises remaining" and hide it
+  let raisesRemainingElement = document.getElementById('raisesRemainingText');
+  raisesRemainingElement.textContent = "Raises remaining: 3";
+  raisesRemainingElement.style.display="none";
   //hide game details, betting display, deal pile, indicator cards, etc.
   document.querySelector('#bettingTitle span').textContent = "Betting";
   document.getElementById('bettingDisplayList').innerHTML = "";

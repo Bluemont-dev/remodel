@@ -54,6 +54,8 @@ const Night = new Schema({
         numCardsToPass: Number,
         fwdCardsToPass: Boolean,
         numIndicatorCards: Number,
+        indicatorCards: [],
+        discards: [],
         otherInstructions: String,
         amtPot: Number,
         playersInGame: [],

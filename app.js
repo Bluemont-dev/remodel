@@ -224,7 +224,11 @@ function buildNextDealtCard (dealString){
 		cardSeed.rankvalue = 0; // placeholder for future functionality
 		cardSeed.imgPath = `../images/cards/${cardSeed.string}.png`;
 		cardSeed.faceUp = dealString.includes('FaceUp');
-		cardSeed.peekable = myConfig.tonight.games[myConfig.tonight.games.length-1].peekAllowed;
+		if (dealString==="dealIndicatorsDown"){
+			cardSeed.peekable = false;
+		} else {
+			cardSeed.peekable = myConfig.tonight.games[myConfig.tonight.games.length-1].peekAllowed;
+		}
 		cardSeed.dealtCardsIndex = cardSecrets.dealtCards.length;
 		//push this object onto dealtCards array
 		cardSecrets.dealtCards.push(cardSeed);
@@ -715,6 +719,51 @@ io.on('connection', (socket) => {
 		myConfig.tonight.save();
 		//then we gotta move the game on to the next gameSequenceLocation, and call the instructDealer function, unless game is over
 		isGameOver();
+	});
+
+	socket.on('I deal indicator cards', (dealerIndex) => {
+		io.emit("status update","Dealing indicator cards...");
+		let dealString = "dealIndicatorsDown"; //for now, down is the only kind of indicator we're supporting, but we may change this in the future
+		//get the number of indicator cards from the game settings
+		let numIndicatorCards = myConfig.tonight.games[myConfig.tonight.games.length-1].numIndicatorCards;
+		//create a deal batch consisting of that many cards
+		let dealBatchCommon = [];
+		for (let i=1; i<=numIndicatorCards; i++) {
+			let nextDealtCard = buildNextDealtCard(dealString); //get the top card from shuffledDeck and build a new card object
+			let singleCardForBatch = {};
+			singleCardForBatch.tonightPlayerIndex = -1;
+			singleCardForBatch.dci = nextDealtCard.dealtCardsIndex;
+			singleCardForBatch.peekable = nextDealtCard.peekable;
+			switch (dealString){
+				case "dealIndicatorsUp":
+					singleCardForBatch.imgPath = nextDealtCard.imgPath;
+					break;
+				case "dealIndicatorsDown":
+					singleCardForBatch.imgPath = "../public/images/cards/back.png";
+					break;
+				default:
+					console.log("I got an unfamiliar value for dealString variable");
+			}
+			//add to dealBatchCommon
+			dealBatchCommon.push(singleCardForBatch);
+		}
+		let dealIndicatorsBatchObject = {};
+		dealIndicatorsBatchObject = {
+			dealBatchCommon: dealBatchCommon,
+			numShuffledDeckRemaining: cardSecrets.shuffledDeck.length
+		};
+		//emit a broadcast called 'indicator cards batch broadcast'
+		io.emit("deal indicators batch broadcast",dealIndicatorsBatchObject);
+		//loop thru dealBatchCommon to save each card to the indicator cards array
+		dealIndicatorsBatchObject.dealBatchCommon.forEach (element => {
+			myConfig.tonight.games[myConfig.tonight.games.length-1].indicatorCards.push(element);
+		})
+		console.log(`Indicator cards include:
+		${JSON.stringify(myConfig.tonight.games[myConfig.tonight.games.length-1].indicatorCards)}`);
+		myConfig.tonight.save();
+		//then we gotta move the game on to the next gameSequenceLocation, and call the instructDealer function, unless game is over
+		isGameOver();
+
 	});
 	
 	socket.on('I chose opener', (openerIndex) => {
