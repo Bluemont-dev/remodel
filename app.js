@@ -113,13 +113,18 @@ server.listen(PORT, () => { // previously was app.listen, in case this change br
 //========================
 // CARD DECK SETUP
 //=========================
-
-const allCards = new cardDeck(cardSecrets.allCards);
+var workingCards = [];
+workingCards = Object.assign(workingCards,cardSecrets.allCards);
+workingCardsDeck = new cardDeck(workingCards);
 
 
 //==========================
 // HANDY FUNCTIONS FOR SOCKET EVENT HANDLING
 //===========================
+
+function dedupe(value, index, self) { //for removing duplicate values from an array
+	return self.indexOf(value) === index;
+}
 
 function getPlayerIndex (userID, array){
 	for (let i=0; i<array.length;i++){
@@ -450,6 +455,9 @@ function closeGame(){
 	myConfig.gameInProgress = false;
 	myConfig.bettingRound = {};
 	myConfig.gameEndAcknowledgements = 0;
+	myConfig.discardSpecificRank = "";
+	myConfig.discardNotificationArray = [];
+	myConfig.discardResponsesArray = [];
 	myConfig.previousOpenerIndex = -1; //by adding all player balances and any pot carryover, we should equal zero for the night
 	//math check
 	if (mathCheckBalance===0){
@@ -565,8 +573,12 @@ io.on('connection', (socket) => {
 
 		// console.log(`At time of game submit, MyConfig.tonight:
 		// ${JSON.stringify(myConfig.tonight)}`);
-
-		var shuffledDeck = allCards.shuffle();
+		workingCards = Object.assign(workingCards,cardSecrets.allCards);
+		workingCardsDeck = new cardDeck(workingCards); //hoping these two lines will cause a replenishment of the deck to full size
+		console.log ("cardSecrets.allCards: " + cardSecrets.allCards);
+		console.log ("workingCards: " + workingCards);
+		console.log("workingCardsDeck: " + workingCardsDeck._stack);
+		var shuffledDeck = workingCardsDeck.shuffle();
 		console.log("The shuffled deck: " + shuffledDeck._stack);
 		cardSecrets.shuffledDeck = shuffledDeck._stack;
 		io.emit('shuffle visual');
@@ -765,7 +777,20 @@ io.on('connection', (socket) => {
 	});
 
 	socket.on('I turned indicator card', (clickedIndicatorIndex) => {
+		//update the indicatorCards array of this game to reflect the img path
+		for (let i=0; i<myConfig.tonight.games[myConfig.tonight.games.length-1].indicatorCards.length; i++){
+			if (myConfig.tonight.games[myConfig.tonight.games.length-1].indicatorCards[i].dci===clickedIndicatorIndex){
+				myConfig.tonight.games[myConfig.tonight.games.length-1].indicatorCards[i].imgPath = cardSecrets.dealtCards[clickedIndicatorIndex].imgPath;
+				if (i===1 && myConfig.tonight.games[myConfig.tonight.games.length-1].name==='The Good, the Bad, and the Ugly'){ //if good-bad-ugly and 2nd indicator card, get the rank and save to myConfig for future discards
+					myConfig.discardSpecificRank = cardSecrets.dealtCards[clickedIndicatorIndex].string.substr(0, 1);
+					console.log("Discard specific rank is: " + myConfig.discardSpecificRank);
+				}
+			}
+		}
+		myConfig.tonight.save(); //saving because we updated the imgPath for one of the indicatorCards in the array
+		//update cardSecrets
 		cardSecrets.dealtCards[clickedIndicatorIndex].faceUp = true;
+		//build the object for broadcast
 		let turnedIndicatorBroadcastObject = {
 			turnedIndicatorImgPath: cardSecrets.dealtCards[clickedIndicatorIndex].imgPath,
 			turnedIndicatorIndex: clickedIndicatorIndex
@@ -773,6 +798,79 @@ io.on('connection', (socket) => {
 		io.emit("turned indicator broadcast",turnedIndicatorBroadcastObject);
 		//then we gotta move the game on to the next gameSequenceLocation, and call the instructDealer function, unless game is over
 		isGameOver();
+	});
+
+	socket.on ('Ready to discard specific rank', () => {
+		//loop thru dealtCards array.
+		let discardNotificationArray = [];
+		for (let i=0;i<myConfig.tonight.players.length;i++){
+			myConfig.tonight.players[i].hand.forEach (element => {
+				if (cardSecrets.dealtCards[element.dci].string.substr(0,1)===myConfig.discardSpecificRank){ //player's hand has a card with the discard rank
+					discardNotificationArray.push(i);
+				}
+			})
+		}
+		if (discardNotificationArray.length>0){
+			discardNotificationArray = discardNotificationArray.filter(dedupe) //dedupe the array using the dedupe function
+			console.log ("Deduped notification array has following player indices: " + discardNotificationArray);
+			myConfig.discardNotificationArray = discardNotificationArray;
+			let discardNotificationRank = "";
+			switch(myConfig.discardSpecificRank){
+				case "t":
+					discardNotificationRank = "10";
+					break;
+				case "j":
+					discardNotificationRank = "Jack";
+					break;
+				case "q":
+					discardNotificationRank = "Queen";
+					break;
+				case "k":
+					discardNotificationRank = "King";
+					break;
+				case "a":
+					discardNotificationRank = "Ace";
+					break;
+				default:
+					discardNotificationRank = myConfig.discardSpecificRank;
+			}
+			io.emit("status update",`Waiting for ${myConfig.discardNotificationArray.length} players to discard their ${discardNotificationRank}s`);
+			//now loop thru the players who need to discard and send them a private emit, 'discard instruction'
+			let targetSocketID = "";
+			for (let m=0;m<myConfig.discardNotificationArray.length;m++){
+				targetSocketID = getPlayerSocketID (myConfig.discardNotificationArray[m], myConfig.tonight.players);
+				io.to(targetSocketID).emit('discard instruction',`Click your ${discardNotificationRank}(s) to discard, then click the Discard button.`);
+			}
+		} else { //no cards in the dealtCardsIndex have the discard rank, then we gotta move the game on to the next gameSequenceLocation, and call the instructDealer function, unless game is over
+			isGameOver();
+		}
+	});
+
+	socket.on ('I discarded', (iDiscardedObject) => {
+		myConfig.discardResponsesArray.push(iDiscardedObject.playerIndex); //add the sending player to the array of those who have discarded
+		//loop thru the array of discarded indexes. for each one, remove it from the sending player's hand, add it to the discards array
+		let movingCardObject = {};
+		let movingCardDCI = -1;
+		for (let i=0;i<iDiscardedObject.selectedDiscardsIndexArray.length;i++){
+			movingCardDCI = iDiscardedObject.selectedDiscardsIndexArray[i];
+			for (let j=0;j<myConfig.tonight.players[iDiscardedObject.playerIndex].hand.length;j++){
+				if (myConfig.tonight.players[iDiscardedObject.playerIndex].hand[j].dci===movingCardDCI){ //we found the card in player's hand to be discarded
+					//now use an array method to extract that item from player's hand, shrinking the hand and returning the card as an object
+					movingCardObject = myConfig.tonight.players[iDiscardedObject.playerIndex].hand.splice(j,1);
+					myConfig.tonight.games[myConfig.tonight.games.length-1].discards.push(movingCardObject);
+				}
+			}
+		}
+		let myStatusUpdate = `Player ${iDiscardedObject.playerIndex+1} discarded.`;
+		if (myConfig.discardNotificationArray.length!==myConfig.discardResponsesArray.length){ //not all discarders have responded yet by discarding
+			myStatusUpdate += ` Waiting for ${myConfig.discardNotificationArray.length - myConfig.discardResponsesArray.length} player(s) to discard.`;
+		}
+		//emit a broadcast with the same object so all players can update their displays. Add a status update about who discarded, and conditional status update on how many remain.
+		io.emit('discard broadcast',iDiscardedObject);
+		//check to see if all notified have discarded. if so, move on.
+		if (myConfig.discardNotificationArray.length===myConfig.discardResponsesArray.length){ // all discarders have responded now, then we gotta move the game on to the next gameSequenceLocation, and call the instructDealer function, unless game is over
+			isGameOver();
+		}
 	});
 	
 	socket.on('I chose opener', (openerIndex) => {

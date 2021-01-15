@@ -11,6 +11,9 @@ myConfig.bettingRound = {};
 myConfig.previousOpenerIndex = -1;
 myConfig.amtPotCarryOver=0;
 myConfig.gameEndAcknowledgements = 0;
+myConfig.discardSpecificRank = "";
+myConfig.discardNotificationArray = [];
+myConfig.discardResponsesArray = [];
 
 module.exports = myConfig;
 

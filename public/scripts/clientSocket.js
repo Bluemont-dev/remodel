@@ -143,6 +143,45 @@ function chooseOpener() {
   }
 };
 
+function selectPlayerCard(){
+  this.classList.toggle('selectedPlayerCard');
+  let myIndex = getMyIndex();
+  let myCardsRow = document.querySelector(`#player${myIndex+1}Area .rowOfCards`);
+  if (myCardsRow.innerHTML.indexOf("selectedPlayerCard") != -1){ // if the classname 'selectedPlayerCard' is found anywhere in the row of cards, at least 1 card is selected
+    document.getElementById(`player${myIndex+1}DiscardButton`).removeAttribute('disabled');
+  } else {
+    document.getElementById(`player${myIndex+1}DiscardButton`).setAttribute('disabled',true);
+  }
+};
+
+function discard() {
+  let myIndex = getMyIndex();
+  //hide playerAlert and unload its instructionText
+  document.getElementById(`player${myIndex+1}Alert`).textContent = "";
+  document.getElementById(`player${myIndex+1}Alert`).style.display="none";
+  //remove discardButton after removing its event listener
+  document.getElementById(`player${myIndex+1}DiscardButton`).removeEventListener("click", discard);
+  document.getElementById(`player${myIndex+1}DiscardButtonRow`).innerHTML = "";
+  //remove event listeners for all of the player's cards
+  let myCardsNodeList = document.querySelectorAll(`#player${myIndex+1}Area .cardSingle`);
+  myCardsNodeList.forEach(element => {
+    element.removeEventListener('click',selectPlayerCard);
+  });
+  //build index of the selected cards and send it as an emit
+  let selectedDiscardsIndexArray = [];
+  myCardsNodeList.forEach(element => {
+    if (element.classList.contains('selectedPlayerCard')){
+      selectedDiscardsIndexArray.push(parseInt(element.id.substr(3),10));
+    }
+  });
+  let iDiscardedObject = {
+    selectedDiscardsIndexArray:selectedDiscardsIndexArray,
+    playerIndex:myIndex
+  }
+  console.log("The index of the selected discards: " + selectedDiscardsIndexArray);
+  socket.emit("I discarded", iDiscardedObject);
+}
+
 function turnIndicatorCard () {
   let dealerAlert = document.getElementById('dealerAlert');
   //get info to determine if the indicator card is already face down; if so, prompt dealer and return, else proceed
@@ -592,6 +631,12 @@ socket.on('render new player for all', function (newPlayerUser) {
       <div class="card-body rowOfCards d-flex align-items-start">
         <!-- cards to be added via javascript later -->
       </div>
+      <div class="alert alert-primary playerAlert" role="alert" id="player${playerDivsCount + 1}Alert">
+        <!-- alerts to be added via javascript -->
+      </div>
+      <div class="row d-flex justify-content-around mx-2 my-3" id="player${playerDivsCount + 1}DiscardButtonRow">
+        <!-- button to be added via javascript -->
+      </div>
       <ul class="list-group">
       <li class="list-group-item d-flex lh-condensed playerWinningsRow">
           <div>
@@ -690,6 +735,13 @@ socket.on('dealer instruction', function (myConfig) {
       for (let j = 0; j < elements.length; j++) {
         elements[j].addEventListener('click', chooseOpener, false);
       }
+      break;
+    case ("discardSpecificRank"):
+      //unhide or display a prompt telling the dealer what's going on
+      dealerAlert.style.display = "block";
+      dealerPromptText = "Players who must discard are being notified.";
+      dealerAlert.textContent = dealerPromptText;
+      socket.emit('Ready to discard specific rank');
       break;
     case ("declare"):
       //unhide or display the "promptToDeclare" button and add event listener to it
@@ -847,6 +899,32 @@ socket.on('turned indicator broadcast', function (turnedIndicatorBroadcastObject
   turnedIndicatorCard.classList.add('faceUp');
   turnedIndicatorCard.classList.remove('faceDown');
   turnedIndicatorCard.style.backgroundImage = `url(${turnedIndicatorBroadcastObject.turnedIndicatorImgPath})`;
+});
+
+socket.on('discard instruction', function (instructionText){
+  let myIndex = getMyIndex();
+  //display playerAlert and load it with instructionText
+  document.getElementById(`player${myIndex+1}Alert`).style.display="block";
+  document.getElementById(`player${myIndex+1}Alert`).textContent = instructionText;
+  //display disabled discardButton
+  document.getElementById(`player${myIndex+1}DiscardButtonRow`).innerHTML = `<button type="button" class="btn btn-secondary" id="player${myIndex+1}DiscardButton" disabled="true">Discard</button>`;
+  //add event listeners for all of the player's cards and the button
+  document.getElementById(`player${myIndex+1}DiscardButton`).addEventListener("click", discard);
+  let myCardsNodeList = document.querySelectorAll(`#player${myIndex+1}Area .cardSingle`);
+  myCardsNodeList.forEach(element => {
+    element.addEventListener('click',selectPlayerCard);
+  });
+});
+
+socket.on('discard broadcast', function (iDiscardedObject){
+  let myDivId = "";
+  //loop thru the array of discard indexes and if they exist in the DOM, remove them
+  for (let i=0;i<iDiscardedObject.selectedDiscardsIndexArray.length;i++){
+    myDivId = "DCI" + iDiscardedObject.selectedDiscardsIndexArray[i];
+    if (document.getElementById(myDivId)!=null){
+      document.getElementById(myDivId).parentNode.removeChild(document.getElementById(myDivId));
+    }
+  }
 });
 
 socket.on('next bettor broadcast', function (myConfig) {

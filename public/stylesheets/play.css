@@ -137,6 +137,10 @@
     margin-left: -83px;
 }
 
+.selectedPlayerCard {
+    margin-top: -20px;
+}
+
 /* .cardSingle{
 
 } */
@@ -185,6 +189,10 @@
     display: none;
 }
 
+.playerAlert {
+    display: none;
+}
+
 #indicatorCardsRow{
     display: none; 
     /* make it block when it's time to display it */
@@ -201,4 +209,9 @@
 #statusUpdates {
     background-color: #ffff87;
     margin-bottom: 0;
+    height: 25px;
+}
+
+#contentBottomSpacer {
+    height: 30px;
 }
