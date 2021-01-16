@@ -220,12 +220,12 @@
   <!-- END vertically centered modal -->
   
 
-    <!-- START jumbotron -->
-    <div class="jumbotron jumbotron-fluid">
-      <div class="container">
+    <!-- START top area -->
+    <div>
+      <div class="container-fluid">
         <div class="row flex-row justify-content-center">
 
-          <div class="col col-12 col-lg-2" id="gameDetails">
+          <div class="col col-12 col-lg-3" id="gameDetails">
             <h3 class="display-5" id="gameNameDisplay">Game Name Goes Here</h3>
             <ul class="lead">
               <li id="currentDealerNameDisplay">Dealer's Name Goes Here</li>
@@ -233,8 +233,12 @@
               <li id="whatsWildDisplay">Wild cards listed here</li>
               <li id="hiloDisplay">High Low Listed Here</li>
             </ul>
+            <span><a href="#" id="otherInstructionsExpander" onclick="expandOtherInstructions();return false">Show more</a></span>
+            <div class="alert alert-primary" role="alert" id="otherInstructionsAlert">
+              Other instructions will go here.
+            </div>
           </div>
-          <div class="col col-12 col-lg-5">
+          <div class="col col-12 col-lg-4">
             <!-- START INDICATOR CARDS ROW -->
             <div class="card-body rowOfCards" id="indicatorCardsRow">
               <div class="cardSingle rounded faceDown"></div>
@@ -469,7 +473,7 @@
 
       </div>
   </div>
-  <!-- END jumbotron -->
+  <!-- END top area -->
 
 
 

@@ -102,6 +102,10 @@
     visibility: hidden;
 }
 
+#otherInstructionsAlert {
+    display: none;
+}
+
 .playerArea{
     border: 1px solid black;
     padding-right: 5px;

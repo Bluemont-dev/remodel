@@ -234,6 +234,16 @@ function getPlayerIndex(userID, playersArray) {
   }
 }
 
+function expandOtherInstructions() {
+  if (document.getElementById('otherInstructionsExpander').textContent==="Show more"){
+    document.getElementById('otherInstructionsAlert').style.display = "block";
+    document.getElementById('otherInstructionsExpander').textContent = "Show less";
+  } else {
+    document.getElementById('otherInstructionsAlert').style.display = "none";
+    document.getElementById('otherInstructionsExpander').textContent = "Show more";
+  }
+}
+
 function ante() {
   let myIndex = getMyIndex();
   console.log("Your currentPlayer index number is: " + myIndex);
@@ -765,6 +775,13 @@ socket.on('game open', function (myConfig) {
     <li id="hiloDisplay">${myConfig.tonight.games[myConfig.tonight.games.length - 1].hilo}</li>
   </ul>
   `;
+  //add other instructions expander if applicable
+  if (myConfig.tonight.games[myConfig.tonight.games.length - 1].otherInstructions!==""){
+    newHTML += `
+    <span><a href="#" id="otherInstructionsExpander" onclick="expandOtherInstructions();return false">Show more</a></span>
+    <div class="alert alert-primary" role="alert" id="otherInstructionsAlert">${myConfig.tonight.games[myConfig.tonight.games.length - 1].otherInstructions}</div>
+    `;
+  }
   document.getElementById('gameDetails').innerHTML = newHTML;
   // document.getElementById("gameNameDisplay").innerText = myConfig.tonight.games[myConfig.tonight.games.length - 1].name;
   // document.getElementById("currentDealerNameDisplay").innerText = "Dealer:" + myConfig.currentDealerName;
