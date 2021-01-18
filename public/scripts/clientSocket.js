@@ -613,6 +613,9 @@ socket.on('connect', function connectUser() {  // Called whenever a user connect
 
 socket.on('status update', function (msg) {
   statusUpdates.innerHTML = msg;
+  let newSpacerHeight = document.getElementById('statusUpdates').offsetHeight + 5; //this code ensures the spacer at bottom of content area grows or shrinks to match the content of the status updates
+  let newSpacerHeightText = "height:" + newSpacerHeight + "px";
+  document.getElementById('contentBottomSpacer').setAttribute("style",newSpacerHeightText);
 });
 
 socket.on('render new player for all', function (newPlayerUser) {
@@ -629,7 +632,7 @@ socket.on('render new player for all', function (newPlayerUser) {
         console.log("Player divs so far: " + playerDivsCount);
         console.log("Target player row: " + targetPlayerRow);
         //create a God-awful string of HTML
-        let insertableHTML = `<div class="col col-12 col-md-3 playerArea" id="player${playerDivsCount + 1}Area">
+        let insertableHTML = `<div class="col col-12 col-lg-3 playerArea" id="player${playerDivsCount + 1}Area">
       <ul class="list-group">
         <li class="list-group-item d-flex justify-content-between lh-condensed playerNameRow">
           <div>
@@ -924,7 +927,7 @@ socket.on('discard instruction', function (instructionText){
   document.getElementById(`player${myIndex+1}Alert`).style.display="block";
   document.getElementById(`player${myIndex+1}Alert`).textContent = instructionText;
   //display disabled discardButton
-  document.getElementById(`player${myIndex+1}DiscardButtonRow`).innerHTML = `<button type="button" class="btn btn-secondary" id="player${myIndex+1}DiscardButton" disabled="true">Discard</button>`;
+  document.getElementById(`player${myIndex+1}DiscardButtonRow`).innerHTML = `<button type="button" class="btn btn-primary" id="player${myIndex+1}DiscardButton" disabled="true">Discard</button>`;
   //add event listeners for all of the player's cards and the button
   document.getElementById(`player${myIndex+1}DiscardButton`).addEventListener("click", discard);
   let myCardsNodeList = document.querySelectorAll(`#player${myIndex+1}Area .cardSingle`);
@@ -1030,7 +1033,7 @@ socket.on('next bettor broadcast', function (myConfig) {
     let newFoldButtonDiv = "";
     insertableHTML = `
     <div class="form-group col-md-3" id="foldButtonDiv">
-    <button type="button" class="btn btn-secondary" id="foldButton">Fold</button>                  
+    <button type="button" class="btn btn-danger" id="foldButton">Fold</button>                  
     </div>
     `;
     newFoldButtonDiv = htmlToElement(insertableHTML); // use function to convert HTML string into DOM element
@@ -1132,7 +1135,7 @@ socket.on('declare instruction', function () {
     High
   </label>
 </div>
-<button type="button" class="btn btn-secondary mx-4 my-2" id="declareButton" name="declareButton" disabled="true">Declare</button>
+<button type="button" class="btn btn-primary mx-4 my-2" id="declareButton" name="declareButton" disabled="true">Declare</button>
 <ul>
   <li>Your choice won't be revealed to others until all have declared.</li>
   <li>If you declare both high and low, you must win (not share) both high and low.</li>
@@ -1209,7 +1212,7 @@ socket.on('choose winners', function (myConfig) {
   document.getElementById('bettingDisplayList').appendChild(newNode);
   } //end of loop
   //display "saveWinners" button, disabled
-  document.getElementById('saveWinnersButtonRow').innerHTML = `<button type="button" class="btn btn-secondary" id="saveWinnersButton" disabled="true">Save Winners</button>`;
+  document.getElementById('saveWinnersButtonRow').innerHTML = `<button type="button" class="btn btn-primary" id="saveWinnersButton" disabled="true">Save Winners</button>`;
   //unhide or display a prompt for dealer to choose winners (#dealerAlert)
   let dealerAlert = document.getElementById('dealerAlert');
   dealerAlert.style.display = "block";
@@ -1285,7 +1288,7 @@ socket.on('show winners broadcast', function (myConfig) {
     document.getElementById('bettingDisplayList').appendChild(newNode);
   }
   //display the button to acknowledge results and move on
-  newHTML = `<button type="button" class="btn btn-secondary" id="gameEndAcknowledgeButton">Got It / Move On</button>`;
+  newHTML = `<button type="button" class="btn btn-primary" id="gameEndAcknowledgeButton">Got It / Move On</button>`;
   newNode = htmlToElement(newHTML);
   document.getElementById('gameEndAcknowledgeButtonRow').appendChild(newNode);
   document.getElementById('gameEndAcknowledgeButton').addEventListener("click", acknowledgeGameEnd);

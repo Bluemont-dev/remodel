@@ -9,7 +9,7 @@ if (window.location.href.includes('/play/')){
 
 checkSequenceButton = document.getElementById("checkSequenceButton");
 checkSequenceButton.addEventListener("click", function (event){
-    $("#playSequenceEditor").toggleClass("collapsed");
+    $("#playSequenceEditor").toggle(display);
     $("#mainGameSettingsColumn").toggleClass("col-md-12 col-md-6");
     if (checkSequenceButton.innerText==="Customize"){
         checkSequenceButton.innerText="Hide";
