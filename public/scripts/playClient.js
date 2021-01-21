@@ -179,7 +179,8 @@ function submitGame() {
         amtPot: 0,
         playersInGame: [],
         playersOutOfGame: [],
-        dealablePlayers: []
+        dealablePlayers: [],
+        endingBalances: []
     }
         socket.emit('game submit', submittedGame);
     $('#myModal').modal('hide');

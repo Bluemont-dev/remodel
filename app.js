@@ -470,7 +470,8 @@ function closeGame(){
 	} else {
 		myConfig.currentDealerIndex += 1;
 	}
-	//loop thru tonight's players and zero out some key values
+	//loop thru tonight's players and zero out some key values, store their balances in endingBalances
+	let playerEndingBalanceObject = {};
 	for (let i=0;i<myConfig.tonight.players.length;i++){
 		mathCheckBalance += myConfig.tonight.players[i].balanceForNight;
 		myConfig.tonight.players[i].amtBetInRound = 0;
@@ -481,6 +482,12 @@ function closeGame(){
 		} else {
 			myConfig.tonight.players[i].isDealer = false;
 		}
+		playerEndingBalanceObject = {
+			ID: myConfig.tonight.players[i].playerUser._id,
+			fullName: myConfig.tonight.players[i].playerUser.fullName,
+			balanceForNight: myConfig.tonight.players[i].balanceForNight
+		};
+		myConfig.tonight.games[myConfig.tonight.games.length-1].endingBalances.push(playerEndingBalanceObject);
 	}
 	mathCheckBalance += myConfig.amtPotCarryOver;
 	//save tonight to database

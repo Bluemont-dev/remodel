@@ -1528,6 +1528,7 @@ socket.on('show winners broadcast', function (myConfig) {
 });
 
 socket.on('game close broadcast', function (myConfig) {
+  let myIndex = getMyIndex();
   //loop thru all player areas
   let playerNumber = -1;
   let playerWinningsNumber = 0;
@@ -1547,8 +1548,8 @@ socket.on('game close broadcast', function (myConfig) {
   let raisesRemainingElement = document.getElementById('raisesRemainingText');
   raisesRemainingElement.textContent = "Raises remaining: 3";
   raisesRemainingElement.style.display="none";
-  //if I am dealer, remove listener for changes to whatsWildDisplay
-  if (myConfig.tonight.players[myIndex].isDealer===true){
+  //if whatsWildDisplay is editable, remove its listener
+  if (document.getElementById("whatsWildDisplay").hasAttribute("contenteditable")){
     document.getElementById('whatsWildDisplay').removeEventListener("input",sendUpdateWhatsWild,false);
   }
   //hide game details, betting display, deal pile, indicator cards, etc.
@@ -1559,7 +1560,6 @@ socket.on('game close broadcast', function (myConfig) {
   document.getElementById('dealPile').innerHTML = "";
   document.getElementById('indicatorCardsRow').innerHTML = "";
   //hide game menu if I am not dealer
-  let myIndex = getMyIndex();
   if (myConfig.tonight.players[myIndex].isDealer!==true){
     document.getElementById("navGameDropdown").style.display = "none";
   }
