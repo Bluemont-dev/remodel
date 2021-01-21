@@ -23,6 +23,7 @@ const  	indexRoutes					= require("./routes/index"),
 		nightRoutes					= require("./routes/night"),
 		playRoutes					= require("./routes/play");
 const { gameEndAcknowledgements } = require('./config');
+const { finished } = require('stream');
 
 const	app 						= express();
 const	server 						= require('http').createServer(app);   //passed to http server
@@ -154,6 +155,12 @@ function isEverybodyIn (currentGame, numTonightPlayers){
 	  return false;
 	}
   }
+
+function updateWhatsWild (string){
+	myConfig.tonight.games[myConfig.tonight.games.length-1].whatsWild = string;
+	io.emit('status update',"Note new wild card(s).");
+	io.emit('whats wild broadcast',string);
+}
 
 function instructDealer (){
 	let players = myConfig.tonight.players;
@@ -329,28 +336,55 @@ function getDeclaredPlayers(myConfig) {
 	return declaredPlayers;
 }
 
+function anyDownCardsLeft () {
+	//loop thru players in game
+	let playerIndex = -1;
+	let myHand = [];
+	for (let m=0;m<myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length;m++){
+		//get the array of that player's hand from tonight.players
+		playerIndex = getPlayerIndex (myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[m].playerUser._id, myConfig.tonight.players);
+		myHand = myConfig.tonight.players[playerIndex].hand;
+		for (let j=0;j<myHand.length-1;j++){
+			if (myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[m].hand[j].imgPath.includes('back')){
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+function moveOnToChooseWinners () {
+	//emit a command that lets all players see all dealt cards
+	io.emit('autoreveal all cards',cardSecrets.dealtCards);
+	io.emit('status update','Time for dealer to select or confirm winners');
+	//loop thru players and find out which index is the dealer
+	let players = myConfig.tonight.players;
+	for (let i=0; i<players.length; i++){
+		if (players[i].isDealer===true){
+		io.to(players[i].socketID).emit('choose winners',myConfig); // instruct dealer to choose winners
+		break;
+		}
+	}
+}
+
 function isGameOver () {
 	let myPlaySequence = myConfig.tonight.games[myConfig.tonight.games.length-1].playSequence;
 	let myPlaySequenceLocation = myConfig.tonight.games[myConfig.tonight.games.length-1].playSequenceLocation;
-	let declaredPlayers = [];
 	if (myPlaySequenceLocation<myPlaySequence.length-1){ //we are not yet at the end of the playSequence
 		//increment the game's playSequenceLocation by 1
 		myPlaySequenceLocation += 1;
-		myConfig.tonight.games[myConfig.tonight.games.length-1].playSequenceLocation = myPlaySequenceLocation
-		//issue the new dealer instruction
-		instructDealer();
-	} else { // we have reached the end of the play sequence
-		//emit a command that lets all players see all dealt cards
-		io.emit('autoreveal all cards',cardSecrets.dealtCards);
-		io.emit('status update','Time for dealer to select or confirm winners');
-		//loop thru players and find out which index is the dealer
-		let players = myConfig.tonight.players;
-		for (let i=0; i<players.length; i++){
-			if (players[i].isDealer===true){
-			io.to(players[i].socketID).emit('choose winners',myConfig); // instruct dealer to choose winners
-			break;
-			}
+		if (myPlaySequence[myPlaySequenceLocation]==="repeat"){ //for use in games that have action/bet/repeat sequences, like Fourteenth Street
+			myPlaySequenceLocation -= 2;
 		}
+		myConfig.tonight.games[myConfig.tonight.games.length-1].playSequenceLocation = myPlaySequenceLocation
+		if (myPlaySequence[myPlaySequenceLocation]==="rollOne" && anyDownCardsLeft()===false){ // time to roll one, but none left to roll
+			moveOnToChooseWinners ();
+		} else {
+			//issue the new dealer instruction
+			instructDealer();
+		}
+	} else { // we have reached the end of the play sequence
+		moveOnToChooseWinners ();
 	}
 }
 
@@ -458,7 +492,13 @@ function closeGame(){
 	myConfig.discardSpecificRank = "";
 	myConfig.discardNotificationArray = [];
 	myConfig.discardResponsesArray = [];
-	myConfig.previousOpenerIndex = -1; //by adding all player balances and any pot carryover, we should equal zero for the night
+	myConfig.previousOpenerIndex = -1;
+	myConfig.previousRollerIndex = -1;
+	myConfig.previousRolledRank = "";
+	myConfig.previousRolledSuit = "";
+	myConfig.currentRolledRank = "";
+	myConfig.currentRolledSuit = "";
+	//by adding all player balances and any pot carryover, we should equal zero for the night
 	//math check
 	if (mathCheckBalance===0){
 		console.log ("Math check passed.");
@@ -585,6 +625,10 @@ io.on('connection', (socket) => {
 		io.emit('status update',"Deck has been shuffled. Waiting for players to ante.");
 		//send this data as an object to all players
 		io.emit('game open', myConfig);
+	});
+
+	socket.on('I updated whats wild', (string) => {
+		updateWhatsWild(string);
 	});
 
 	socket.on('I ante', (playerIndex) => {
@@ -889,6 +933,57 @@ io.on('connection', (socket) => {
 		io.emit('next bettor broadcast',myConfig);
 	});
 
+	socket.on('I chose roller', (rollerIndex) => {
+		myConfig.previousRollerIndex = rollerIndex;
+		//emit status update saying who's rolling
+		io.emit('status update',`${myConfig.tonight.players[rollerIndex].playerUser.fullName} will roll cards.`);
+		//emit private event to the roller
+		let rollerSocketID = getPlayerSocketID (rollerIndex, myConfig.tonight.players);
+		io.to(rollerSocketID).emit('you roll');
+	});
+
+	socket.on('I rolled one card', (rolledCardObject) => {
+		// myConfig.previousRolledRank = "";
+		// myConfig.previousRolledSuit = "";
+		// myConfig.currentRolledRank = "";
+		// myConfig.currentRolledSuit = "";
+		if (myConfig.previousRolledRank==="Queen" && myConfig.tonight.games[myConfig.tonight.games.length-1].name==="Fourteenth Street"){ //if we're playing Fourteenth Street and the current rolled card follows an up Queen 
+			//code goes here to record the new card being wild
+		}
+		let rollerHand = myConfig.tonight.players[rolledCardObject.rollerIndex].hand;
+		//update the hand array of that player to reflect the img path
+		for (let i=0; i<rollerHand.length-1; i++){
+			if (rollerHand[i].dci===rolledCardObject.DCI){
+				rollerHand[i].imgPath = cardSecrets.dealtCards[rolledCardObject.DCI].imgPath;
+			}
+		}
+		myConfig.tonight.save(); //saving because we updated the imgPath for one of the cards in player's hand
+		//update cardSecrets
+		cardSecrets.dealtCards[rolledCardObject.DCI].faceUp = true;
+		//build the object for broadcast
+		let rolledCardBroadcastObject = {
+			DCI: rolledCardObject.DCI,
+			imgPath: cardSecrets.dealtCards[rolledCardObject.DCI].imgPath,
+			rollerIndex: rolledCardObject.rollerIndex,
+			amtStay: myConfig.tonight.amtMaxRaise
+		}
+		io.emit("rolled card broadcast",rolledCardBroadcastObject);
+	});
+
+	socket.on('I finished rolling', (finishedRollingObject) => {
+		if (finishedRollingObject.bossHandBoolean===true){
+			isGameOver (); //should move on to next step where dealer chooses bettor
+		} else {
+			//the only remaining possibility should be the stay selection
+			let amtStay = myConfig.tonight.amtMaxRaise;
+			myConfig.tonight.players[finishedRollingObject.playerIndex].balanceForNight -= amtStay;
+			myConfig.tonight.games[myConfig.tonight.games.length-1].amtPot += amtStay;
+			io.emit('status update',`${myConfig.tonight.players[finishedRollingObject.playerIndex].playerUser.fullName} will stick around ...`);
+			io.emit("broadcast pot and winnings update",myConfig);
+			isGameOver (); //should move on to next step where dealer chooses bettor
+		}
+	});
+
 	socket.on('I fold', (folderIndex) => {
 		let nextBettorIndex = getNextBettorIndex(folderIndex); // gotta do this now before we remove the person from players in game!
 		//remove player from playersInGame array
@@ -923,6 +1018,7 @@ io.on('connection', (socket) => {
 				};
 			myConfig.tonight.games[myConfig.tonight.games.length-1].winners.push(winnerObject);
 			allocateWinnings(myConfig);
+			io.emit('autoreveal all cards',cardSecrets.dealtCards);
 			io.emit('status update',`Showing winner. Waiting for ${myConfig.tonight.players.length - myConfig.gameEndAcknowledgements} players to acknowledge.`);
 			io.emit('show winners broadcast',myConfig);
 		} else {
@@ -937,6 +1033,46 @@ io.on('connection', (socket) => {
 				//emit broadcast for next bettor turn
 				io.emit('next bettor broadcast',myConfig);
 			}
+		}
+		myConfig.tonight.save();
+	});
+
+	socket.on('I fold after roll', (folderIndex) => {
+		//remove player from playersInGame array
+		for (let i=0;i<myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length;i++){
+			if (myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[i].playerUser._id===myConfig.tonight.players[folderIndex].playerUser._id){
+				myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.splice(i,1);
+			}
+		}
+		//add player to playersOutOfGame array
+		myConfig.tonight.games[myConfig.tonight.games.length-1].playersOutOfGame.push(myConfig.tonight.players[folderIndex]);
+		//get name of player who folded, and send this as a status update
+		io.emit('status update',`${myConfig.tonight.players[folderIndex].playerUser.fullName} folds ...`);
+		//create new bettor action broadcast object and emit it
+		let bettorActionBroadcastObject = {
+			myConfig:myConfig,
+			playerIndex:folderIndex,
+			action:"fold",
+			amt:0
+		}
+		io.emit("bettor action",bettorActionBroadcastObject);
+		//still have to check if we're down to one player in game
+		if (myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length===1){ //if only one player left in game, we have a winner
+			//get the ID and index of the remaining player
+			let winnerId = myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[0].playerUser._id;
+			let winnerIndex = getPlayerIndex (winnerId, myConfig.tonight.players);
+			let winnerFullName = myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[0].playerUser.fullName;
+			let winnerObject = {
+					index:winnerIndex,
+					id:winnerId,
+					fullName:winnerFullName,
+					amt:0
+				};
+			myConfig.tonight.games[myConfig.tonight.games.length-1].winners.push(winnerObject);
+			allocateWinnings(myConfig);
+			io.emit('autoreveal all cards',cardSecrets.dealtCards);
+			io.emit('status update',`Showing winner. Waiting for ${myConfig.tonight.players.length - myConfig.gameEndAcknowledgements} players to acknowledge.`);
+			io.emit('show winners broadcast',myConfig);
 		}
 		myConfig.tonight.save();
 	});

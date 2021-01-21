@@ -132,7 +132,7 @@
                       <input type="radio" id="HighLowRadio" name="hilo" value="High-Low">
                       <label for="HighLowRadio">High-Low</label>
                     </div>
-                      <div>
+                    <div>
                       <input type="radio" id="LowOnlyRadio" name="hilo" value="Low Only">
                       <label for="LowOnlyRadio">Low Only</label>
                     </div>
@@ -255,7 +255,7 @@
             <ul class="lead">
               <li id="currentDealerNameDisplay">Dealer's Name Goes Here</li>
               <li id="numCardsDisplay">Number of Cards Goes Here</li>
-              <li id="whatsWildDisplay">Wild cards listed here</li>
+              <li contenteditable="true">&#9998; <span id="whatsWildDisplay">Wild cards: None</span></li>
               <li id="hiloDisplay">High Low Listed Here</li>
             </ul>
             <span><a href="#" id="otherInstructionsExpander" onclick="expandOtherInstructions();return false">Show more</a></span>
@@ -366,7 +366,7 @@
               </li>
               <li class="list-group-item d-flex justify-content-between">
                 <span><strong>Pot</strong></span>
-                <strong>$0.00</strong>
+                <span id="amtPotDisplay"><strong>$0.00</strong></span>
               </li>
             </ul>
             <p id="raisesRemainingText" style="margin-left: 20px; margin-top: 5px;">Raises remaining: </p>
@@ -531,6 +531,22 @@
             </div>
             <div class="row d-flex justify-content-around mx-2 my-3" id="player1DiscardButtonRow">
               <button type="button" class="btn btn-primary" id="player1DiscardButton" disabled="true">Discard</button>
+            </div>
+            <div class="row d-flex justify-content-center mx-2 my-3" id="player1RollButtonRow">
+
+              <div class="form-group">
+                <label class="mr-2" for="rollDoneNextStep">What next?</label>
+                <select name="rollDoneNextStep" id="rollDoneNextStep">
+                  <option value="--Choose--">--Choose--</option>
+                  <option value="highHand">I have the high hand / bet now</option>
+                  <option value="fold">No high hand / fold</option>
+                  <option value="stay">No high hand / stick around for $</option>
+              </select>
+              </div>
+
+
+              <button type="button" class="btn btn-primary mx-1" id="rollButton">Roll a card</button>
+              <button type="button" class="btn btn-secondary mx-1" id="rollDoneButton" disabled="true">Done</button>
             </div>
             <ul class="list-group">
               <li class="list-group-item d-flex lh-condensed playerWinningsRow">

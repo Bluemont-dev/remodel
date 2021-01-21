@@ -30,7 +30,7 @@ $("#gameName").change(function() {
     if (selectedGameName.includes("Choose")===false){ //enable the start game button only if the dealer has selected an actual game
         document.getElementById('startGameButton').removeAttribute("disabled");
     } else {
-        document.getElementById('startGameButton').setAttribute("disabled","");
+        document.getElementById('startGameButton').setAttribute("disabled",true);
     }
     document.getElementById("playSequenceList").innerHTML = "";
     switch (selectedGameName) {

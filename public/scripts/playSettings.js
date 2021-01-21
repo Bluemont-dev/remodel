@@ -128,7 +128,7 @@ const fourteenthStreet = {
         "repeat"
 	],
     hilo: "High Only",
-	whatsWild: "Up card that follows an up Queen; Up Sevens if you buy them for a quarter.",
+	whatsWild: "Up card that follows an up Queen.",
 	remodeling: false,
     numRemodels: 0,
     remodelCostFaceUp: 0.0,

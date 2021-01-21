@@ -143,6 +143,21 @@ function chooseOpener() {
   }
 };
 
+function chooseRoller() {
+  let clickedPlayerName = this.innerText;
+  let clickedPlayerIndex = parseInt(clickedPlayerName.substr(7, 1), 10) - 1;
+  //use this value to send an emit to the server for "I chose roller"
+  socket.emit("I chose roller", clickedPlayerIndex);
+  let dealerAlert = document.getElementById('dealerAlert');
+  dealerAlert.style.display = "none";
+  dealerAlert.textContent = "";
+  //remove event listener for all player names in playerAreas
+  let elements = document.querySelectorAll('.playerNameRow h6');
+  for (let i = 0; i < elements.length; i++) {
+    elements[i].removeEventListener('click', chooseRoller);
+  }
+};
+
 function selectPlayerCard(){
   this.classList.toggle('selectedPlayerCard');
   let myIndex = getMyIndex();
@@ -177,9 +192,84 @@ function discard() {
   let iDiscardedObject = {
     selectedDiscardsIndexArray:selectedDiscardsIndexArray,
     playerIndex:myIndex
-  }
+  };
   console.log("The index of the selected discards: " + selectedDiscardsIndexArray);
   socket.emit("I discarded", iDiscardedObject);
+}
+
+function rollOneCard () {
+  let myIndex = getMyIndex();
+  let downCardsDCIs = [];
+  let rolledCardDCI = -1;
+  let myCardsNodeList = document.querySelectorAll(`#player${myIndex+1}Area .cardSingle`);
+  //loop thru player's card row and get the DCI for the first card that is faceDown
+  myCardsNodeList.forEach(element => {
+    if (element.classList.contains('faceDown')){
+      downCardsDCIs.push(parseInt(element.id.substr(3),10));
+    }
+  });
+  let rolledCardObject = {
+    rollerIndex: myIndex,
+    DCI : downCardsDCIs[0]
+  };
+  //emit the DCI of the first down card
+  socket.emit('I rolled one card',rolledCardObject);
+}
+
+function doneRolling () {
+  let myIndex = getMyIndex ();
+  let bossHand = false;
+  let rollButton = document.getElementById('rollButton');
+  let rollDoneButton = document.getElementById('rollDoneButton');
+  let rollDoneNextStep = document.getElementById('rollDoneNextStep');
+  let nextStepString = "";
+  //if roll button is still present, or if selectedNextStep value is "highHand", set boss to true, and remove that button
+  //else, set boss to false and get value of nextStep (fold or stay)
+  if (rollButton!=null){
+    bossHand = true;
+    rollButton.removeEventListener('click', rollOneCard);
+    rollButton.parentNode.removeChild(rollButton);
+  }
+  if (rollDoneNextStep!=null){
+    nextStepString = rollDoneNextStep.value;
+    if (nextStepString==="highHand"){
+      bossHand = true;
+    }
+    rollDoneNextStep.parentNode.removeChild(rollDoneNextStep.parentNode.firstElementChild); //remove the "what's next" label for that picklist
+    rollDoneNextStep.removeEventListener('change',rollDoneNextStepChange);
+    rollDoneNextStep.parentNode.removeChild(rollDoneNextStep);
+  }
+  if (rollDoneButton!=null){
+    rollDoneButton.removeEventListener('click', doneRolling);
+    rollDoneButton.parentNode.removeChild(rollDoneButton);
+  }
+  //hide playerAlert and unload its instructionText
+  document.getElementById(`player${myIndex+1}Alert`).textContent = "";
+  document.getElementById(`player${myIndex+1}Alert`).style.display="none";
+  //build object that includes boss boolean, nextstep string, and myIndex / emit that object as "I finished rolling"
+  let finishedRollingObject = {
+    playerIndex: myIndex,
+    bossHandBoolean: bossHand,
+    nextStepString: nextStepString
+  };
+  //do a peers emit to remove highlight on playerArea; needs an object with myIndex and "add" boolean false
+  // emitHighlightPlayerArea (myIndex, false); //this should unhighlight the roller's playerArea for all OTHER players
+  if (nextStepString==="fold"){
+    socket.emit("I fold after roll", myIndex);
+    console.log("I just sent the I-fold-after-roll emit");
+  } else {
+      //emit to server the results of done rolling
+      socket.emit('I finished rolling',finishedRollingObject);
+  }
+}
+
+function rollDoneNextStepChange () {
+  let selectedNextStep = document.getElementById("rollDoneNextStep").value;
+  if (selectedNextStep.includes("Choose")===false){ //enable the done button only if the dealer has selected a next step
+      document.getElementById('rollDoneButton').removeAttribute("disabled");
+  } else {
+      document.getElementById('rollDoneButton').setAttribute("disabled",true);
+  }
 }
 
 function turnIndicatorCard () {
@@ -232,6 +322,11 @@ function getPlayerIndex(userID, playersArray) {
       return m;
     }
   }
+}
+
+function sendUpdateWhatsWild () {
+  let string = document.getElementById('whatsWildDisplay').textContent;
+  socket.emit("I updated whats wild", string);
 }
 
 function expandOtherInstructions() {
@@ -446,6 +541,14 @@ function removePlayerBettingLine (index) {
   myBettingLine.remove();
 }
 
+function emitHighlightPlayerArea (index, highlightBoolean) {
+  let HighlightPlayerBroadcastObject = {
+    index: index,
+    highlightBoolean: highlightBoolean
+  };
+  socket.broadcast.emit("highlight player area", HighlightPlayerBroadcastObject); //this is a peer-to-peer emit, no server involvement
+}
+
 function highlightPlayerArea(index, highlightBoolean) {
   index += 1; //to go from array index to displayed player number
   if (highlightBoolean) {
@@ -618,6 +721,32 @@ socket.on('status update', function (msg) {
   document.getElementById('contentBottomSpacer').setAttribute("style",newSpacerHeightText);
 });
 
+socket.on('broadcast pot and winnings update', function (myConfig) {
+  let amtPotString = (myConfig.tonight.games[myConfig.tonight.games.length - 1].amtPot/100).toFixed(2);
+  if (document.getElementById('amtPotDisplay')!=null){
+    document.getElementById('amtPotDisplay').textContent = `$${amtPotString}`;
+  }
+  //loop thru playerAreas and update each one's winnings display
+  let allPlayerAreasNodeList = document.querySelectorAll('.playerArea');
+  let playerIndex = -1;
+  let playerBalanceAmt = 0;
+  let playerBalanceString = "";
+  let playerWinningsNode = "";
+  allPlayerAreasNodeList.forEach(element => {
+    //get the digit from the id, subtract 1 to get player index
+    playerIndex = parseInt(element.id.substr(6,1),10);
+    playerIndex -= 1;
+    //retrieve that player's balanceForNight, convert to string for display without dollar sign
+    playerBalanceAmt = myConfig.tonight.players[playerIndex].balanceForNight;
+    playerBalanceString = (playerBalanceAmt/100).toFixed(2);
+    //get the subnode that has class winningsDisplayAmt
+    playerWinningsNode = element.querySelector('.winningsDisplayAmt');
+    //update that text content
+    playerWinningsNode.textContent = playerBalanceString;
+  });
+
+});
+
 socket.on('render new player for all', function (newPlayerUser) {
   //load my user data via the API
   getAPIData('/api/user_data')
@@ -649,6 +778,9 @@ socket.on('render new player for all', function (newPlayerUser) {
       </div>
       <div class="row d-flex justify-content-around mx-2 my-3" id="player${playerDivsCount + 1}DiscardButtonRow">
         <!-- button to be added via javascript -->
+      </div>
+      <div class="row d-flex justify-content-center mx-2 my-3" id="player${playerDivsCount + 1}RollButtonRow">
+        <!-- buttons to be added via javascript -->
       </div>
       <ul class="list-group">
       <li class="list-group-item d-flex lh-condensed playerWinningsRow">
@@ -700,6 +832,10 @@ socket.on('private message', function (msg) {
   }
 });
 
+socket.on('whats wild broadcast', function (string) {
+  document.getElementById('whatsWildDisplay').textContent = string;
+});
+
 socket.on('dealer instruction', function (myConfig) {
   let dealString = myConfig.tonight.games[myConfig.tonight.games.length - 1].playSequence[myConfig.tonight.games[myConfig.tonight.games.length - 1].playSequenceLocation];
   let dealButton = document.getElementById('dealButton');
@@ -735,6 +871,21 @@ socket.on('dealer instruction', function (myConfig) {
         elements[i].addEventListener('click', turnIndicatorCard);
       }
       break;
+    case ("rollOne"):
+      //we need to make all of the following conditional on having remaining cards to roll
+      //unhide or display a prompt for dealer to click the roller's name (#dealerAlert)
+      dealerAlert.style.display = "block";
+      dealerPromptText = "Click a player's name to start rolling cards.";
+      if (myConfig.previousRollerIndex>-1){ // if there WAS a previous roller in this game
+        dealerPromptText += `Previous player who rolled was Player ${myConfig.previousRollerIndex+1}`;
+      }
+      dealerAlert.textContent = dealerPromptText;
+      //add event listener for all player names in playerAreas
+      elements = document.querySelectorAll('.playerNameRow h6');
+      for (let j = 0; j < elements.length; j++) {
+        elements[j].addEventListener('click', chooseRoller, false);
+      }
+      break;
     case ("bet"):
       //unhide or display a prompt for dealer to click the opener's name (#dealerAlert)
       dealerAlert.style.display = "block";
@@ -768,13 +919,25 @@ socket.on('dealer instruction', function (myConfig) {
 
 socket.on('game open', function (myConfig) {
   let newHTML = "";
+  //if I am dealer, populate a variable to add to whatsWildDisplay so contenteditable="true"
+  let myIndex = getMyIndex();
+  let whatsWildHTML = "";
+  if (myConfig.tonight.players[myIndex].isDealer===true){
+    whatsWildEditable = `
+    <li>&#9998; <span  contenteditable="true" id="whatsWildDisplay">Wild cards: ${myConfig.tonight.games[myConfig.tonight.games.length - 1].whatsWild}</span></li>
+    `;
+  } else {
+    whatsWildEditable = `
+    <li><span id="whatsWildDisplay">Wild cards: ${myConfig.tonight.games[myConfig.tonight.games.length - 1].whatsWild}</span></li>
+    `;
+  }
   //show game details
   newHTML = `
   <h3 class="display-5" id="gameNameDisplay">${myConfig.tonight.games[myConfig.tonight.games.length - 1].name}</h3>
   <ul class="lead">
     <li id="currentDealerNameDisplay">Dealer: ${myConfig.currentDealerName}</li>
     <li id="numCardsDisplay">${myConfig.tonight.games[myConfig.tonight.games.length - 1].numCards} cards</li>
-    <li id="whatsWildDisplay">Wild cards: ${myConfig.tonight.games[myConfig.tonight.games.length - 1].whatsWild}</li>
+    ${whatsWildEditable}
     <li id="hiloDisplay">${myConfig.tonight.games[myConfig.tonight.games.length - 1].hilo}</li>
   </ul>
   `;
@@ -786,11 +949,11 @@ socket.on('game open', function (myConfig) {
     `;
   }
   document.getElementById('gameDetails').innerHTML = newHTML;
-  // document.getElementById("gameNameDisplay").innerText = myConfig.tonight.games[myConfig.tonight.games.length - 1].name;
-  // document.getElementById("currentDealerNameDisplay").innerText = "Dealer:" + myConfig.currentDealerName;
-  // document.getElementById("numCardsDisplay").innerText = myConfig.tonight.games[myConfig.tonight.games.length - 1].numCards + " cards";
-  // document.getElementById("whatsWildDisplay").innerText = "Wild cards: " + myConfig.tonight.games[myConfig.tonight.games.length - 1].whatsWild;
-  // document.getElementById("hiloDisplay").innerText = myConfig.tonight.games[myConfig.tonight.games.length - 1].hilo;
+  //if I am dealer, listen for changes to whatsWildDisplay
+  if (myConfig.tonight.players[myIndex].isDealer===true){
+    document.getElementById('whatsWildDisplay').addEventListener("input",sendUpdateWhatsWild,false);
+  }
+  
   //unhide the betting column, but re-hide the betting buttons row
   document.getElementById("bettingColumn").style.display = "block";
   //listen for click on ante button
@@ -838,7 +1001,7 @@ socket.on('ante broadcast', function (anteBroadcastObject) {
   let insertableHTML =
     `<li class="list-group-item d-flex justify-content-between" id="potLineBetAmt">
       <span><strong>Pot</strong></span>
-      <strong>$${newPotAmt}</strong>
+      <span id="amtPotDisplay"><strong>$${newPotAmt}</strong></span>
     </li>`;
   let newPotAmtLi = htmlToElement(insertableHTML); // use function to convert HTML string into DOM element
   document.getElementById("bettingDisplayList").appendChild(newPotAmtLi); // add this as the final line at bottom of the betting list
@@ -943,6 +1106,66 @@ socket.on('discard broadcast', function (iDiscardedObject){
     myDivId = "DCI" + iDiscardedObject.selectedDiscardsIndexArray[i];
     if (document.getElementById(myDivId)!=null){
       document.getElementById(myDivId).parentNode.removeChild(document.getElementById(myDivId));
+    }
+  }
+});
+
+socket.on('you roll', function (){
+  let myIndex = getMyIndex();
+  // emitHighlightPlayerArea (myIndex, true); //this should highlight the roller's playerArea for all OTHER players to see
+  //display playerAlert and load it with instructionText
+  document.getElementById(`player${myIndex+1}Alert`).style.display="block";
+  document.getElementById(`player${myIndex+1}Alert`).textContent = "Roll cards until you beat previous best hand.";
+  let newHTML = `<button type="button" class="btn btn-primary mx-1" id="rollButton">Roll a card</button>
+  <button type="button" class="btn btn-secondary mx-1" id="rollDoneButton" disabled="true">Done</button>`;
+  document.getElementById(`player${myIndex+1}RollButtonRow`).innerHTML = newHTML;
+  document.getElementById(`rollButton`).addEventListener("click", rollOneCard);
+  document.getElementById(`rollDoneButton`).addEventListener("click", doneRolling);
+});
+
+socket.on('rolled card broadcast', function (rolledCardBroadcastObject) {
+  let myIndex = getMyIndex();
+  let rolledCard = document.getElementById(`DCI${rolledCardBroadcastObject.DCI}`);
+  rolledCard.classList.add('faceUp');
+  rolledCard.classList.remove('faceDown');
+  rolledCard.style.backgroundImage = `url(${rolledCardBroadcastObject.imgPath})`;
+  if (rolledCardBroadcastObject.rollerIndex===getMyIndex()){ //if I am the roller
+    let downCardsDCIs = [];
+    let myRollButton = document.getElementById(`rollButton`);
+    let myCardsNodeList = document.querySelectorAll(`#player${myIndex+1}Area .cardSingle`);
+    //loop thru player's card row and get the DCI for all cards that are faceDown
+    myCardsNodeList.forEach(element => {
+      if (element.classList.contains('faceDown')){
+        downCardsDCIs.push(parseInt(element.id.substr(3),10));
+      }
+    });
+    if (downCardsDCIs.length>0){ // if I have more down cards I can turn
+      //enable the "done" button
+      document.getElementById(`rollDoneButton`).removeAttribute('disabled');
+    } else {
+      // update player alert text, remove roll button and its listener, and display picklist
+      document.getElementById(`player${myIndex+1}Alert`).textContent = "You've rolled all your cards. Choose next step, then click 'Done'";
+      myRollButton.removeEventListener("click", rollOneCard);
+      //now to remove it from the DOM
+      myRollButton.parentNode.removeChild(myRollButton);
+      //disable done button
+      document.getElementById(`rollDoneButton`).setAttribute('disabled',true);
+      //display picklist
+      let amtStayText = (rolledCardBroadcastObject.amtStay/100).toFixed(2);
+      let newHTML = `
+        <div class="form-group">
+        <label class="mr-2" for="rollDoneNextStep">What next?</label>
+        <select name="rollDoneNextStep" id="rollDoneNextStep">
+            <option value="--Choose--">--Choose--</option>
+            <option value="highHand">I have the high hand / bet now</option>
+            <option value="fold">No high hand / fold</option>
+            <option value="stay">No high hand / stick around for $${amtStayText}</option>
+        </select>
+        </div>
+        `;
+      let newNode = htmlToElement(newHTML);
+      document.getElementById(`player${myIndex+1}RollButtonRow`).insertBefore(newNode, document.getElementById(`rollDoneButton`));
+      document.getElementById('rollDoneNextStep').addEventListener('change',rollDoneNextStepChange);
     }
   }
 });
@@ -1121,6 +1344,10 @@ socket.on('betting round ended', function (myConfig) {
   }
 });
 
+socket.on('highlight player area', function (highlightPlayerBroadcastObject) { //this might come via a peer-to-peer emit, no server involvement
+  highlightPlayerArea(highlightPlayerBroadcastObject.index, highlightPlayerBroadcastObject.highlightBoolean)
+});
+
 socket.on('declare instruction', function () {
   //dislay the row of checkboxes and button for declare
   let innerHTML = `              <div class="form-check mx-4">
@@ -1274,7 +1501,7 @@ socket.on('show winners broadcast', function (myConfig) {
   let amtPotString = (myConfig.tonight.games[myConfig.tonight.games.length-1].amtPot/100).toFixed(2);
   let newHTML = `<li class="list-group-item d-flex justify-content-between">
   <span><strong>Pot</strong></span>
-  <strong>$${amtPotString}</strong>
+  <span id="amtPotDisplay"><strong>$${amtPotString}</strong></span>
   </li>`;
   newNode = htmlToElement(newHTML);
   document.getElementById('bettingDisplayList').appendChild(newNode);
@@ -1320,6 +1547,10 @@ socket.on('game close broadcast', function (myConfig) {
   let raisesRemainingElement = document.getElementById('raisesRemainingText');
   raisesRemainingElement.textContent = "Raises remaining: 3";
   raisesRemainingElement.style.display="none";
+  //if I am dealer, remove listener for changes to whatsWildDisplay
+  if (myConfig.tonight.players[myIndex].isDealer===true){
+    document.getElementById('whatsWildDisplay').removeEventListener("input",sendUpdateWhatsWild,false);
+  }
   //hide game details, betting display, deal pile, indicator cards, etc.
   document.querySelector('#bettingTitle span').textContent = "Betting";
   document.getElementById('bettingDisplayList').innerHTML = "";
