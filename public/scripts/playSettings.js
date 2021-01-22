@@ -186,9 +186,10 @@ None of these cards are part of anyone's hand.`
 const highLow = {
 	name: "High-Low",
 	formOptionValue: "highLow",
-    numCards: 6,
+    numCards: 7,
     peekAllowed: true,
     playSequence: [
+		"dealFaceDown",
 		"dealFaceDown",
 		"dealFaceUp",
 		"bet",
@@ -207,8 +208,8 @@ const highLow = {
 	],
     hilo: "High-Low",
 	whatsWild: "Nothing",
-	remodeling: true,
-    numRemodels: 1,
+	remodeling: false,
+    numRemodels: 0,
     remodelCostFaceUp: 0.10,
 	remodelCostFaceDown: 0.25,
 	passing: false,

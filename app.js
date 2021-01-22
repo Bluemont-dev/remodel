@@ -462,36 +462,66 @@ function allocateWinnings (myConfig) {
 	`);
 }
 
-function closeGame(){
+function closeGame(abandoned){
 	let mathCheckBalance = 0;
-	//increment currentDealerIndex
-	if (myConfig.currentDealerIndex===myConfig.tonight.players.length-1){
-		myConfig.currentDealerIndex = 0;
-	} else {
-		myConfig.currentDealerIndex += 1;
-	}
-	//loop thru tonight's players and zero out some key values, store their balances in endingBalances
-	let playerEndingBalanceObject = {};
-	for (let i=0;i<myConfig.tonight.players.length;i++){
-		mathCheckBalance += myConfig.tonight.players[i].balanceForNight;
-		myConfig.tonight.players[i].amtBetInRound = 0;
-		myConfig.tonight.players[i].declaration = "";
-		myConfig.tonight.players[i].hand = [];
-		if (myConfig.currentDealerIndex===i){
-			myConfig.tonight.players[i].isDealer = true;
+	if (!abandoned){
+		//increment currentDealerIndex
+		if (myConfig.currentDealerIndex===myConfig.tonight.players.length-1){
+			myConfig.currentDealerIndex = 0;
 		} else {
-			myConfig.tonight.players[i].isDealer = false;
+			myConfig.currentDealerIndex += 1;
 		}
-		playerEndingBalanceObject = {
-			ID: myConfig.tonight.players[i].playerUser._id,
-			fullName: myConfig.tonight.players[i].playerUser.fullName,
-			balanceForNight: myConfig.tonight.players[i].balanceForNight
-		};
-		myConfig.tonight.games[myConfig.tonight.games.length-1].endingBalances.push(playerEndingBalanceObject);
+		//loop thru tonight's players and zero out some key values, store their balances in endingBalances
+		let playerEndingBalanceObject = {};
+		for (let i=0;i<myConfig.tonight.players.length;i++){
+			mathCheckBalance += myConfig.tonight.players[i].balanceForNight;
+			myConfig.tonight.players[i].amtBetInRound = 0;
+			myConfig.tonight.players[i].declaration = "";
+			myConfig.tonight.players[i].hand = [];
+			if (myConfig.currentDealerIndex===i){
+				myConfig.tonight.players[i].isDealer = true;
+			} else {
+				myConfig.tonight.players[i].isDealer = false;
+			}
+			playerEndingBalanceObject = {
+				ID: myConfig.tonight.players[i].playerUser._id,
+				fullName: myConfig.tonight.players[i].playerUser.fullName,
+				balanceForNight: myConfig.tonight.players[i].balanceForNight
+			};
+			myConfig.tonight.games[myConfig.tonight.games.length-1].endingBalances.push(playerEndingBalanceObject);
+		}
+		mathCheckBalance += myConfig.amtPotCarryOver;
+		//save tonight to database
+		myConfig.tonight.save();
+		//by adding all player balances and any pot carryover, we should equal zero for the night
+		//math check
+		if (mathCheckBalance===0){
+			console.log ("Math check passed.");
+		} else {
+			console.log ("Math check failed.");
+		}
+	} else { //we are abandoning a game in progress
+		//remove the last game in the array of tonight's games
+		console.log("Before abandoning game, number of tonight's games was " + myConfig.tonight.games.length);
+		myConfig.tonight.games.splice(myConfig.tonight.games.length-1,1); //delete final element in array, the most recent game
+		console.log("After abandoning game, number of tonight's games is " + myConfig.tonight.games.length);
+		if (myConfig.tonight.games.length===0){ //if we abandoned the very first game, so there's nothing to roll back to
+			for (let i=0;i<myConfig.tonight.players.length;i++){
+				myConfig.tonight.players[i].balanceForNight = 0; //give all players a zero balance as if restarting the night
+			}
+		} else { //we can roll back to a previous game
+			//loop through the endingBalance array from the previous game and assign those balanceForNight values to tonight's players
+			for (let i=0;i<myConfig.tonight.games[myConfig.tonight.games.length-1].endingBalances.length;i++){
+				for (let j=0;j<myConfig.tonight.players.length;j++){
+					if (myConfig.tonight.games[myConfig.tonight.games.length-1].endingBalances[i].ID===myConfig.tonight.players[j].playerUser._id){
+						myConfig.tonight.players[j].balanceForNight = myConfig.tonight.games[myConfig.tonight.games.length-1].endingBalances[i].balanceForNight;
+					}
+				}
+			}
+		}
+		//save tonight to database
+		myConfig.tonight.save();
 	}
-	mathCheckBalance += myConfig.amtPotCarryOver;
-	//save tonight to database
-	myConfig.tonight.save();
 	//reset some values in myConfig
 	myConfig.gameInProgress = false;
 	myConfig.bettingRound = {};
@@ -505,14 +535,11 @@ function closeGame(){
 	myConfig.previousRolledSuit = "";
 	myConfig.currentRolledRank = "";
 	myConfig.currentRolledSuit = "";
-	//by adding all player balances and any pot carryover, we should equal zero for the night
-	//math check
-	if (mathCheckBalance===0){
-		console.log ("Math check passed.");
+	if (abandoned){
+		io.emit('status update',`We abandoned that game. All winnings revert to earlier values. Dealer is still Player ${myConfig.currentDealerIndex+1}`);
 	} else {
-		console.log ("Math check failed.");
+		io.emit('status update',`Next dealer is Player ${myConfig.currentDealerIndex+1}`);
 	}
-	io.emit('status update',`Next dealer is Player ${myConfig.currentDealerIndex+1}`);
 	io.emit('game close broadcast',myConfig);
 	let dealerSocketID = getDealerSocketID ();
 	io.to(dealerSocketID).emit('private message',"You are dealer");
@@ -944,6 +971,12 @@ io.on('connection', (socket) => {
 		myConfig.previousRollerIndex = rollerIndex;
 		//emit status update saying who's rolling
 		io.emit('status update',`${myConfig.tonight.players[rollerIndex].playerUser.fullName} will roll cards.`);
+		//emit blue background for all players to see except the roller
+		let actingPlayerHighlightObject = {
+			playerIndex: rollerIndex,
+			addHighlight: true
+		};
+		io.emit('highlight acting player area', actingPlayerHighlightObject);
 		//emit private event to the roller
 		let rollerSocketID = getPlayerSocketID (rollerIndex, myConfig.tonight.players);
 		io.to(rollerSocketID).emit('you roll');
@@ -978,6 +1011,12 @@ io.on('connection', (socket) => {
 	});
 
 	socket.on('I finished rolling', (finishedRollingObject) => {
+		//emit removal of blue background for all players who had it displayed
+		let actingPlayerHighlightObject = {
+			playerIndex: finishedRollingObject.playerIndex,
+			addHighlight: false
+		};
+		io.emit('highlight acting player area', actingPlayerHighlightObject);
 		if (finishedRollingObject.bossHandBoolean===true){
 			isGameOver (); //should move on to next step where dealer chooses bettor
 		} else {
@@ -1181,6 +1220,10 @@ io.on('connection', (socket) => {
 		io.emit('next bettor broadcast',myConfig);
 	});
 
+	socket.on('I abandon game', () => {
+		closeGame (true);
+	});
+
 	socket.on('I split pot', () => {
 		console.log("myConfig.bettingRound: " + JSON.stringify(myConfig.bettingRound));
 		console.log("Number of players remaining in game: " + myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length);
@@ -1314,7 +1357,7 @@ io.on('connection', (socket) => {
 	socket.on("I acknowledge game end", () => {
 		myConfig.gameEndAcknowledgements += 1;
 		if (myConfig.gameEndAcknowledgements===myConfig.tonight.players.length){
-			closeGame();
+			closeGame(false);
 		} else {
 			io.emit('status update',`Showing winners. Waiting for ${myConfig.tonight.players.length - myConfig.gameEndAcknowledgements} players to acknowledge.`);
 		}

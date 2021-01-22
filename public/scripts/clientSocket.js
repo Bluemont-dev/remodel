@@ -252,8 +252,6 @@ function doneRolling () {
     bossHandBoolean: bossHand,
     nextStepString: nextStepString
   };
-  //do a peers emit to remove highlight on playerArea; needs an object with myIndex and "add" boolean false
-  // emitHighlightPlayerArea (myIndex, false); //this should unhighlight the roller's playerArea for all OTHER players
   if (nextStepString==="fold"){
     socket.emit("I fold after roll", myIndex);
     console.log("I just sent the I-fold-after-roll emit");
@@ -470,6 +468,10 @@ function splitPot() {
   socket.emit("I split pot");
 }
 
+function abandonGame() {
+  socket.emit("I abandon game");
+}
+
 function promptToDeclare() {
   let myIndex = getMyIndex();
   socket.emit("I prompt to declare"); // passing no arguments!
@@ -539,14 +541,6 @@ function removePlayerBettingLine (index) {
   // let myBettingList = document.getElementById('bettingDisplayList');
   // myBettingList.splice(myBettingList.indexOf(myBettingLine),1);
   myBettingLine.remove();
-}
-
-function emitHighlightPlayerArea (index, highlightBoolean) {
-  let HighlightPlayerBroadcastObject = {
-    index: index,
-    highlightBoolean: highlightBoolean
-  };
-  socket.broadcast.emit("highlight player area", HighlightPlayerBroadcastObject); //this is a peer-to-peer emit, no server involvement
 }
 
 function highlightPlayerArea(index, highlightBoolean) {
@@ -877,7 +871,7 @@ socket.on('dealer instruction', function (myConfig) {
       dealerAlert.style.display = "block";
       dealerPromptText = "Click a player's name to start rolling cards.";
       if (myConfig.previousRollerIndex>-1){ // if there WAS a previous roller in this game
-        dealerPromptText += `Previous player who rolled was Player ${myConfig.previousRollerIndex+1}`;
+        dealerPromptText += ` Previous player who rolled was Player ${myConfig.previousRollerIndex+1}`;
       }
       dealerAlert.textContent = dealerPromptText;
       //add event listener for all player names in playerAreas
@@ -889,9 +883,9 @@ socket.on('dealer instruction', function (myConfig) {
     case ("bet"):
       //unhide or display a prompt for dealer to click the opener's name (#dealerAlert)
       dealerAlert.style.display = "block";
-      dealerPromptText = "Click a player's name to open the betting. ";
+      dealerPromptText = "Click a player's name to open the betting.";
       if (myConfig.previousOpenerIndex>-1){ // if there WAS a previous opener in this game
-        dealerPromptText += `Previous opener was Player ${myConfig.previousOpenerIndex+1}`;
+        dealerPromptText += ` Previous opener was Player ${myConfig.previousOpenerIndex+1}`;
       }
       dealerAlert.textContent = dealerPromptText;
       //add event listener for all player names in playerAreas
@@ -1112,7 +1106,6 @@ socket.on('discard broadcast', function (iDiscardedObject){
 
 socket.on('you roll', function (){
   let myIndex = getMyIndex();
-  // emitHighlightPlayerArea (myIndex, true); //this should highlight the roller's playerArea for all OTHER players to see
   //display playerAlert and load it with instructionText
   document.getElementById(`player${myIndex+1}Alert`).style.display="block";
   document.getElementById(`player${myIndex+1}Alert`).textContent = "Roll cards until you beat previous best hand.";
@@ -1344,8 +1337,12 @@ socket.on('betting round ended', function (myConfig) {
   }
 });
 
-socket.on('highlight player area', function (highlightPlayerBroadcastObject) { //this might come via a peer-to-peer emit, no server involvement
-  highlightPlayerArea(highlightPlayerBroadcastObject.index, highlightPlayerBroadcastObject.highlightBoolean)
+socket.on('highlight acting player area', function (actingPlayerHighlightObject) {
+  let myIndex = getMyIndex();
+  if (myIndex!==actingPlayerHighlightObject.playerIndex){ // if I'm not the player doing the action
+    highlightPlayerArea(actingPlayerHighlightObject.playerIndex, actingPlayerHighlightObject.addHighlight);
+  }
+  
 });
 
 socket.on('declare instruction', function () {
@@ -1563,5 +1560,5 @@ socket.on('game close broadcast', function (myConfig) {
   if (myConfig.tonight.players[myIndex].isDealer!==true){
     document.getElementById("navGameDropdown").style.display = "none";
   }
-  
+
 });
