@@ -1560,5 +1560,74 @@ socket.on('game close broadcast', function (myConfig) {
   if (myConfig.tonight.players[myIndex].isDealer!==true){
     document.getElementById("navGameDropdown").style.display = "none";
   }
-
+  //further cleanups needed as a result of 'abandon game' option being added. Future fix is to do this via class names such clearableCode, clearableText, clearableDisplay
+  let myNodeList = "";
+  let clearableCodeIDs = [
+    "player1DiscardButtonRow",
+    "player2DiscardButtonRow",
+    "player3DiscardButtonRow",
+    "player4DiscardButtonRow",
+    "player5DiscardButtonRow",
+    "player6DiscardButtonRow",
+    "player7DiscardButtonRow",
+    "bettingButtonsRow",
+    "declareButonRow",
+    "saveWinnersButtonRow",
+    "gameEndAcknowledgeButtonRow",
+    "player1RollButtonRow",
+    "player2RollButtonRow",
+    "player3RollButtonRow",
+    "player4RollButtonRow",
+    "player5RollButtonRow",
+    "player6RollButtonRow",
+    "player7RollButtonRow"
+  ];
+  let clearableTextIDs = [
+    "dealerAlert",
+    "player1Alert",
+    "player2Alert",
+    "player3Alert",
+    "player4Alert",
+    "player5Alert",
+    "player6Alert",
+    "player7Alert",
+    "raisesRemainingText"
+  ];
+  let clearableTextClasses = [
+    "inGameStatus"
+  ];
+  let clearableDisplayIDs = [
+    "dealerAlert",
+    "player1Alert",
+    "player2Alert",
+    "player3Alert",
+    "player4Alert",
+    "player5Alert",
+    "player6Alert",
+    "player7Alert",
+    "raisesRemainingText"
+  ];
+  for (let i=0;i<clearableCodeIDs.length;i++){
+    if (document.getElementById(clearableCodeIDs[i])!=null){
+      document.getElementById(clearableCodeIDs[i]).innerHTML = "";
+    }
+  }
+  for (let i=0;i<clearableTextIDs.length;i++){
+    if (document.getElementById(clearableTextIDs[i])!=null){
+      document.getElementById(clearableTextIDs[i]).textContent = "";
+    }
+  }
+  for (let i=0;i<clearableTextClasses.length;i++){
+    // myNodeList = document.getElementsByClassName(clearableTextClasses[i]);
+    if (document.getElementsByClassName(clearableTextClasses[i]).length>0){
+      for (let j=0; j<document.getElementsByClassName(clearableTextClasses[i]).length;j++) {
+        document.getElementsByClassName(clearableTextClasses[i])[j].textContent = "";
+      }
+    }
+  }
+  for (let i=0;i<clearableDisplayIDs.length;i++){
+    if (document.getElementById(clearableDisplayIDs[i])!=null){
+      document.getElementById(clearableDisplayIDs[i]).style.display = "none";
+    }
+  }
 });

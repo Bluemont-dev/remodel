@@ -350,5 +350,5 @@ const dealersSpecial = {
     otherInstructions: ""
 }
 
-const allGameSettings = [sixSixSix,seven27,anaconda,fourteenthStreet,goodBadUgly,highLow,lowChicago,lowHoleCard,sevenCardStud,dealersSpecial]
+const allGameSettings = [sixSixSix,fourteenthStreet,goodBadUgly,highLow,lowChicago,lowHoleCard,sevenCardStud]
 
