@@ -5,6 +5,7 @@ var myConfig	= {};
 //============
 myConfig.nightInProgress = false;
 myConfig.gameInProgress = false;
+myConfig.nightSocketCount = 0;
 myConfig.currentDealerIndex = 0;
 myConfig.currentDealerName = "";
 myConfig.bettingRound = {};

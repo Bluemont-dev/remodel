@@ -23,10 +23,14 @@
     overflow-x: hidden;
   }
 
-  #mainGameSettingsColumn {
-    /* for the animation */
-    transition: width 0.3s ease;
-  }
+#mainGameSettingsColumn {
+/* for the animation */
+transition: width 0.3s ease;
+}
+
+#mainGameSettingsColumn div:not(#gameNameChooserDiv){
+    display: none;
+}
 
 #passCardsOptions{
     display: none;

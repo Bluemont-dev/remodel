@@ -136,10 +136,11 @@ function chooseOpener() {
   let dealerAlert = document.getElementById('dealerAlert');
   dealerAlert.style.display = "none";
   dealerAlert.textContent = "";
-  //remove event listener for all player names in playerAreas
+  //remove event listener and button styling for all player names in playerAreas
   let elements = document.querySelectorAll('.playerNameRow h6');
   for (let i = 0; i < elements.length; i++) {
     elements[i].removeEventListener('click', chooseOpener);
+    elements[i].classList.remove('btn','btn-success');
   }
 };
 
@@ -151,10 +152,11 @@ function chooseRoller() {
   let dealerAlert = document.getElementById('dealerAlert');
   dealerAlert.style.display = "none";
   dealerAlert.textContent = "";
-  //remove event listener for all player names in playerAreas
+  //remove event listener and button styling for all player names in playerAreas
   let elements = document.querySelectorAll('.playerNameRow h6');
   for (let i = 0; i < elements.length; i++) {
     elements[i].removeEventListener('click', chooseRoller);
+    elements[i].classList.remove('btn','btn-success');
   }
 };
 
@@ -217,7 +219,7 @@ function rollOneCard () {
 }
 
 function doneRolling () {
-  let myIndex = getMyIndex ();
+  let myIndex = getMyIndex();
   let bossHand = false;
   let rollButton = document.getElementById('rollButton');
   let rollDoneButton = document.getElementById('rollDoneButton');
@@ -263,7 +265,7 @@ function doneRolling () {
 
 function rollDoneNextStepChange () {
   let selectedNextStep = document.getElementById("rollDoneNextStep").value;
-  if (selectedNextStep.includes("Choose")===false){ //enable the done button only if the dealer has selected a next step
+  if (selectedNextStep.includes("Choose")===false){ //enable the done button only if the roller has selected a next step
       document.getElementById('rollDoneButton').removeAttribute("disabled");
   } else {
       document.getElementById('rollDoneButton').setAttribute("disabled",true);
@@ -581,11 +583,12 @@ function buildWinnerDivNode (winnerObject){
   newHTML += `<div>
   <span class="winnerDeclaration"><em>${winnerObject.declaration}</em></span>
 </div>
-<span class="text-muted winnerAmt">$0.00</span>
+<span class="text-muted winnerAmt"></span>
 </li>`;
   if ("amt" in winnerObject){ //if we've passed an amount as part of the object, insert it here
-    newHTML = newHTML.replace ('0.00',(winnerObject.amt/100).toFixed(2));
+    newHTML = newHTML.replace (`<span class="text-muted winnerAmt"></span>`,`<span class="text-muted winnerAmt">${(winnerObject.amt/100).toFixed(2)}</span>`);
   }
+
   newNode = htmlToElement(newHTML);
   return newNode;
 }
@@ -715,6 +718,11 @@ socket.on('status update', function (msg) {
   document.getElementById('contentBottomSpacer').setAttribute("style",newSpacerHeightText);
 });
 
+socket.on('purchase amount update', function (purchaseAmtUpdateObject){
+  //update that number at far right of playerlinebetli display
+  updatePlayerAmtBetDisplay(purchaseAmtUpdateObject.playerIndex, purchaseAmtUpdateObject.amt);
+});
+
 socket.on('broadcast pot and winnings update', function (myConfig) {
   let amtPotString = (myConfig.tonight.games[myConfig.tonight.games.length - 1].amtPot/100).toFixed(2);
   if (document.getElementById('amtPotDisplay')!=null){
@@ -738,7 +746,6 @@ socket.on('broadcast pot and winnings update', function (myConfig) {
     //update that text content
     playerWinningsNode.textContent = playerBalanceString;
   });
-
 });
 
 socket.on('render new player for all', function (newPlayerUser) {
@@ -793,6 +800,12 @@ socket.on('render new player for all', function (newPlayerUser) {
         }
       }
     });
+});
+
+socket.on('disconnected player', function (disconnectedPlayers) {
+  if (disconnectedPlayers.length > 0){
+    $('#disconnectedPlayerModal').modal('show');
+  }
 });
 
 socket.on('private message', function (msg) {
@@ -874,10 +887,11 @@ socket.on('dealer instruction', function (myConfig) {
         dealerPromptText += ` Previous player who rolled was Player ${myConfig.previousRollerIndex+1}`;
       }
       dealerAlert.textContent = dealerPromptText;
-      //add event listener for all player names in playerAreas
+      //add event listener and button styling for all player names in playerAreas
       elements = document.querySelectorAll('.playerNameRow h6');
       for (let j = 0; j < elements.length; j++) {
         elements[j].addEventListener('click', chooseRoller, false);
+        elements[j].classList.add('btn','btn-success');
       }
       break;
     case ("bet"):
@@ -888,10 +902,11 @@ socket.on('dealer instruction', function (myConfig) {
         dealerPromptText += ` Previous opener was Player ${myConfig.previousOpenerIndex+1}`;
       }
       dealerAlert.textContent = dealerPromptText;
-      //add event listener for all player names in playerAreas
+      //add event listener & button styling for all player names in playerAreas
       elements = document.querySelectorAll('.playerNameRow h6');
       for (let j = 0; j < elements.length; j++) {
         elements[j].addEventListener('click', chooseOpener, false);
+        elements[j].classList.add('btn','btn-success');
       }
       break;
     case ("discardSpecificRank"):
@@ -985,7 +1000,7 @@ socket.on('ante broadcast', function (anteBroadcastObject) {
       <div>
         <span id="player${antePlayerIndex + 1}LastBet"><em></em></span>
       </div>
-    <span class="text-muted playerLineBetAmt" id="player${antePlayerIndex + 1}amtBet">$0.00</span>
+    <span class="text-muted playerLineBetAmt" id="player${antePlayerIndex + 1}amtBet">$${(anteBroadcastObject.myConfig.tonight.amtAnte/100).toFixed(2)}</span>
     </li>`;
     let newPlayerLineBetLi = htmlToElement(insertableHTML); // use function to convert HTML string into DOM element
     document.getElementById("bettingDisplayList").appendChild(newPlayerLineBetLi); // add this as a new line in the betting list
@@ -1283,7 +1298,7 @@ socket.on('bettor action', function (bettorActionBroadcastObject) {
       //update player's winnings aka balance for night display
       updatePlayerBalance(bettorActionBroadcastObject.playerIndex, bettorActionBroadcastObject.myConfig.tonight.players[bettorActionBroadcastObject.playerIndex].balanceForNight);
       //update that number at far right of playerlinebetli display
-      updatePlayerAmtBetDisplay(bettorActionBroadcastObject.playerIndex, bettorActionBroadcastObject.myConfig.tonight.players[bettorActionBroadcastObject.playerIndex].amtBetInRound);
+      updatePlayerAmtBetDisplay(bettorActionBroadcastObject.playerIndex, bettorActionBroadcastObject.myConfig.tonight.players[bettorActionBroadcastObject.playerIndex].amtBetInGame);
       //add the verb to playerlinebetli span
       playerLastBetSpan.innerHTML = `<em>bet $${(bettorActionBroadcastObject.amt/100).toFixed(2)}</em>`;
       //remove the highlight from playerarea and playerlinebetli
@@ -1297,7 +1312,7 @@ socket.on('bettor action', function (bettorActionBroadcastObject) {
       //update player's winnings aka balance for night display
       updatePlayerBalance(bettorActionBroadcastObject.playerIndex, bettorActionBroadcastObject.myConfig.tonight.players[bettorActionBroadcastObject.playerIndex].balanceForNight);
       //update that number at far right of playerlinebetli display
-      updatePlayerAmtBetDisplay(bettorActionBroadcastObject.playerIndex, bettorActionBroadcastObject.myConfig.tonight.players[bettorActionBroadcastObject.playerIndex].amtBetInRound);
+      updatePlayerAmtBetDisplay(bettorActionBroadcastObject.playerIndex, bettorActionBroadcastObject.myConfig.tonight.players[bettorActionBroadcastObject.playerIndex].amtBetInGame);
       //add the verb to playerlinebetli span
       playerLastBetSpan.innerHTML = `<em>raised $${(bettorActionBroadcastObject.raiseAmt/100).toFixed(2)}</em>`;
       //display "raises remaining" and update the number displayed
@@ -1324,13 +1339,13 @@ socket.on('betting round ended', function (myConfig) {
   raisesRemainingElement.style.display="none";
   let jIndex = -1;
   let playerLastBetSpan = "";
-  //update each player's linebetli by removing verb, and displaying amtBetinRound from myConfig
+  //update each player's linebetli by removing verb, and displaying amtBetinGame from myConfig
   for (let j=0;j<myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length;j++){
     //get the player's id
     //from that, get their tonight index number
     jIndex = getPlayerIndex(myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[j].playerUser._id, myConfig.tonight.players);
     //update that number at far right of playerlinebetli display
-    updatePlayerAmtBetDisplay(jIndex, myConfig.tonight.players[jIndex].amtBetInRound);
+    updatePlayerAmtBetDisplay(jIndex, myConfig.tonight.players[jIndex].amtBetInGame);
     //add the verb to playerlinebetli span
     playerLastBetSpan = document.getElementById(`player${jIndex+1}LastBet`);
     playerLastBetSpan.innerHTML = "";
@@ -1529,7 +1544,7 @@ socket.on('game close broadcast', function (myConfig) {
   //loop thru all player areas
   let playerNumber = -1;
   let playerWinningsNumber = 0;
-  let playerWinningsText = ""
+  let playerWinningsText = "";
   for (let i=0;i<myConfig.tonight.players.length;i++){
     playerNumber = i+1;
     document.getElementById(`player${playerNumber}Area`).style.display = "block"; //show player area
@@ -1571,7 +1586,7 @@ socket.on('game close broadcast', function (myConfig) {
     "player6DiscardButtonRow",
     "player7DiscardButtonRow",
     "bettingButtonsRow",
-    "declareButonRow",
+    "declareButtonRow",
     "saveWinnersButtonRow",
     "gameEndAcknowledgeButtonRow",
     "player1RollButtonRow",
@@ -1598,6 +1613,11 @@ socket.on('game close broadcast', function (myConfig) {
   ];
   let clearableDisplayIDs = [
     "dealerAlert",
+    "dealButton",
+    "dealIndicatorCardsButton",
+    "offerCardsButton",
+    "passCardsPromptButton",
+    "promptToDeclareButton",
     "player1Alert",
     "player2Alert",
     "player3Alert",
@@ -1629,5 +1649,12 @@ socket.on('game close broadcast', function (myConfig) {
     if (document.getElementById(clearableDisplayIDs[i])!=null){
       document.getElementById(clearableDisplayIDs[i]).style.display = "none";
     }
+  }
+  //a few more odds and ends after abandon
+  let elements = document.querySelectorAll('.playerNameRow h6');
+  for (let i = 0; i < elements.length; i++) {
+    elements[i].removeEventListener('click', chooseOpener); 
+    elements[i].removeEventListener('click', chooseRoller); //removing both to be safe
+    elements[i].classList.remove('btn','btn-success');
   }
 });

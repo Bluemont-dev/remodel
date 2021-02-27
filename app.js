@@ -148,6 +148,30 @@ function getDealerSocketID (){
 	return myConfig.tonight.players[myConfig.currentDealerIndex].socketID;
 }
 
+function handleDisconnect(){
+	if (myConfig.tonight.players.length !== myConfig.nightSocketCount){ //if not all of tonight's players have a working socket connection
+		//this is where we'll pause the game, boot disconnected player if needed, etc. For now, just find out who's disconnected and transmit as a status update
+		let disconnectedPlayers = [];
+		let disconnectedPlayerObject = {};
+		for (let i=0;i<myConfig.tonight.players.length;i++){
+			if (myConfig.tonight.players[i].socketID === "disconnected"){
+				disconnectedPlayerObject = {
+					fullName: myConfig.tonight.players[i].playerUser.fullName,
+					userID: myConfig.tonight.players[i].playerUser._id
+				}
+				disconnectedPlayers.push(disconnectedPlayerObject);
+			}
+		}
+		io.emit('disconnected player',disconnectedPlayers);
+	}
+}
+
+function bootPlayer(playerIndex){
+	//code to boot a player from game and night
+	console.log("Server would boot the player at this point.");
+	io.emit('status update',"Server would boot player at this point.");
+}
+
 function isEverybodyIn (currentGame, numTonightPlayers){
 	if (currentGame.playersInGame.length + currentGame.playersOutOfGame.length === numTonightPlayers){ //all of tonight's players have either ante'd in, or are sitting out, for the current game
 	  return true;
@@ -172,7 +196,6 @@ function instructDealer (){
 		// console.log(`At time of sending dealer instruction, MyConfig.tonight:
 		// ${JSON.stringify(myConfig.tonight)}`);
 		io.to(players[i].socketID).emit('dealer instruction',myConfig);
-		break;
 		}
 	}
 }
@@ -286,15 +309,17 @@ function getOverlayFromString (string){
 function getNextBettorIndex (index){
 	//figure out whose turn it will be next, by getting the player index of the NEXT person in the players-in-game array after the tonight index we pass to the function;
 	//make sure it can loop around back to the beginning if needed
+	let nextBettorIndex = -1;
 	for (let j=0;j<myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length;j++){
 		if (myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[j].playerUser._id===myConfig.tonight.players[index].playerUser._id){
-			//we found the person who checked
+			//we found the person who bet or checked or folded
 			let k=0;
 			if (j<myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length-1){ // sent index is not the last in players-in-game array
 				k=j+1; // k is the index of the next bettor in the players-in-game array, defaults to zero if the checker IS at the end of the array
 			}
 			let kId = myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[k].playerUser._id; // get next bettor's ID
-			return getPlayerIndex (kId, myConfig.tonight.players);
+			nextBettorIndex = getPlayerIndex (kId, myConfig.tonight.players);
+			return nextBettorIndex;
 		}
 	}
 }
@@ -325,9 +350,9 @@ function endBettingRound () {
 function getDeclaredPlayers(myConfig) {
 	let declaredPlayers = [];
 	let jPlayerIndex = -1;
-	let jPlayerCombinedString = ""
+	let jPlayerCombinedString = "";
 	for (let j=0; j<myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length;j++){
-		jPlayerIndex = getPlayerIndex (myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[j].playerUser._id, myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame);
+		jPlayerIndex = getPlayerIndex (myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[j].playerUser._id, myConfig.tonight.players);
 		if (myConfig.tonight.players[jPlayerIndex].declaration!==""){ // this player has declared
 			jPlayerCombinedString = `${jPlayerIndex}${myConfig.tonight.players[jPlayerIndex].declaration}`; // e.g. "0high" if tonight player 0 went high
 			declaredPlayers.push(jPlayerCombinedString);
@@ -376,7 +401,7 @@ function isGameOver () {
 		if (myPlaySequence[myPlaySequenceLocation]==="repeat"){ //for use in games that have action/bet/repeat sequences, like Fourteenth Street
 			myPlaySequenceLocation -= 2;
 		}
-		myConfig.tonight.games[myConfig.tonight.games.length-1].playSequenceLocation = myPlaySequenceLocation
+		myConfig.tonight.games[myConfig.tonight.games.length-1].playSequenceLocation = myPlaySequenceLocation;
 		if (myPlaySequence[myPlaySequenceLocation]==="rollOne" && anyDownCardsLeft()===false){ // time to roll one, but none left to roll
 			moveOnToChooseWinners ();
 		} else {
@@ -408,7 +433,7 @@ function allocateWinnings (myConfig) {
 		// amtPotCarryOver = Number.parseFloat(amtPotCarryOver.toFixed(2));  //should not be necessary since previous line involves subtraction of integers
 	} else { // it must be high-low
 		//make sure at least one person went high and at least one went low; otherwise, all of the pot is shared among those who DID bid
-		if (myConfig.tonight.games[myConfig.tonight.games.length-1].lowWinners.length>0){ //at least one low
+		if (myConfig.tonight.games[myConfig.tonight.games.length-1].lowWinners.length>0){ //at least one low; this is where we handle low portion of pot
 			if (myConfig.tonight.games[myConfig.tonight.games.length-1].highWinners.length>0) { //at least one high
 				//low folks get half the pot
 				lowHalfPot = myConfig.tonight.games[myConfig.tonight.games.length-1].amtPot / 2;
@@ -424,7 +449,7 @@ function allocateWinnings (myConfig) {
 			myConfig.tonight.players[element.index].balanceForNight += lowWinnersShare;
 			});
 		}
-		if (myConfig.tonight.games[myConfig.tonight.games.length-1].highWinners.length>0){ //at least one high
+		if (myConfig.tonight.games[myConfig.tonight.games.length-1].highWinners.length>0){ //at least one high; this is where we handle high portion of pot
 			if (myConfig.tonight.games[myConfig.tonight.games.length-1].lowWinners.length>0) { //at least one low
 				//high folks get half the pot
 				highHalfPot = myConfig.tonight.games[myConfig.tonight.games.length-1].amtPot / 2;
@@ -476,6 +501,7 @@ function closeGame(abandoned){
 		for (let i=0;i<myConfig.tonight.players.length;i++){
 			mathCheckBalance += myConfig.tonight.players[i].balanceForNight;
 			myConfig.tonight.players[i].amtBetInRound = 0;
+			myConfig.tonight.players[i].amtBetInGame = 0;
 			myConfig.tonight.players[i].declaration = "";
 			myConfig.tonight.players[i].hand = [];
 			if (myConfig.currentDealerIndex===i){
@@ -519,6 +545,18 @@ function closeGame(abandoned){
 				}
 			}
 		}
+		//loop thru players array and reset some game-related values
+		for (let k=0;k<myConfig.tonight.players.length;k++){
+			myConfig.tonight.players[k].amtBetInRound = 0;
+			myConfig.tonight.players[k].amtBetInGame = 0;
+			myConfig.tonight.players[k].declaration = "";
+			myConfig.tonight.players[k].hand = [];
+			if (myConfig.currentDealerIndex===k){
+				myConfig.tonight.players[k].isDealer = true; //keep dealer as dealer in event of abandoned game; i.e. let them deal again
+			} else {
+				myConfig.tonight.players[k].isDealer = false; //keep non-dealer as non-dealer
+			}
+		}
 		//save tonight to database
 		myConfig.tonight.save();
 	}
@@ -553,6 +591,9 @@ function closeGame(abandoned){
 io.on('connection', (socket) => {
 
 	console.log('a user connected');
+
+	myConfig.nightSocketCount++;
+	console.log("Tonight's socket count is: " + myConfig.nightSocketCount);
 
     socket.on('iAmConnected', (myConnectObject) => {
 		//load the tonight object from database, populating players
@@ -603,6 +644,10 @@ io.on('connection', (socket) => {
 
 	socket.on('disconnect', () => {
 		console.log('a user disconnected');
+
+		myConfig.nightSocketCount--;
+		console.log("Tonight's socket count is: " + myConfig.nightSocketCount);
+		// handleDisconnect();
 		
 		//load the tonight object from database, populating players
 		Night.findById(myConfig.tonight._id, function (err, tonight) {
@@ -676,6 +721,8 @@ io.on('connection', (socket) => {
 		myConfig.tonight.games[myConfig.tonight.games.length-1].amtPot += myConfig.tonight.amtAnte;
 		//subtract ante amount from player's balance
 		myConfig.tonight.players[playerIndex].balanceForNight -= myConfig.tonight.amtAnte;
+		//add ante amount to player's amount bet in game
+		myConfig.tonight.players[playerIndex].amtBetInGame += myConfig.tonight.amtAnte;
 		//emit ante broadcast
 		let anteBroadcastObject = {
 			playerIndex:playerIndex,
@@ -1023,9 +1070,15 @@ io.on('connection', (socket) => {
 			//the only remaining possibility should be the stay selection
 			let amtStay = myConfig.tonight.amtMaxRaise;
 			myConfig.tonight.players[finishedRollingObject.playerIndex].balanceForNight -= amtStay;
+			myConfig.tonight.players[finishedRollingObject.playerIndex].amtBetInGame += amtStay;
 			myConfig.tonight.games[myConfig.tonight.games.length-1].amtPot += amtStay;
 			io.emit('status update',`${myConfig.tonight.players[finishedRollingObject.playerIndex].playerUser.fullName} will stick around ...`);
 			io.emit("broadcast pot and winnings update",myConfig);
+			let purchaseAmtUpdateObject = {
+				playerIndex: finishedRollingObject.playerIndex,
+				amt: myConfig.tonight.players[finishedRollingObject.playerIndex].amtBetInGame
+			}
+			io.emit('purchase amount update',purchaseAmtUpdateObject); // the purchase in this case was the fee for staying around after turning all cards
 			isGameOver (); //should move on to next step where dealer chooses bettor
 		}
 	});
@@ -1062,7 +1115,27 @@ io.on('connection', (socket) => {
 					fullName:winnerFullName,
 					amt:0
 				};
-			myConfig.tonight.games[myConfig.tonight.games.length-1].winners.push(winnerObject);
+			//if it's high-only or low-only, push to winners array. Otherwise, push to array to corresponds to their declaration, or to high if pre-declaration
+			if (myConfig.tonight.games[myConfig.tonight.games.length-1].hilo==="High Only" || myConfig.tonight.games[myConfig.tonight.games.length-1].hilo==="Low Only"){
+				myConfig.tonight.games[myConfig.tonight.games.length-1].winners.push(winnerObject);
+			} else { // it's a high-low game
+				let winnerDeclarationString = myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[0].declaration;
+				switch (winnerDeclarationString) { //refactor this later, as it duplicates code from after winners are manually selected
+					case "low":
+						myConfig.tonight.games[myConfig.tonight.games.length-1].lowWinners.push(winnerObject);
+						break;
+					case "high":
+						myConfig.tonight.games[myConfig.tonight.games.length-1].highWinners.push(winnerObject);
+						break;
+					case "both":
+						myConfig.tonight.games[myConfig.tonight.games.length-1].lowWinners.push(winnerObject);
+						myConfig.tonight.games[myConfig.tonight.games.length-1].highWinners.push(winnerObject);
+						break;
+					case "":
+						myConfig.tonight.games[myConfig.tonight.games.length-1].highWinners.push(winnerObject); //to handle pre-declaration fold-out in high-low game
+						break;
+				}
+			}
 			allocateWinnings(myConfig);
 			io.emit('autoreveal all cards',cardSecrets.dealtCards);
 			io.emit('status update',`Showing winner. Waiting for ${myConfig.tonight.players.length - myConfig.gameEndAcknowledgements} players to acknowledge.`);
@@ -1103,6 +1176,8 @@ io.on('connection', (socket) => {
 		}
 		io.emit("bettor action",bettorActionBroadcastObject);
 		//still have to check if we're down to one player in game
+		//refactor this because it assumes we're NOT playing a high-low game. If we were, we would need to add a condition for low or high winners array, as we did in the regular 'i fold' event.
+		//also, just refactor because it's almost identical to 'i fold'
 		if (myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame.length===1){ //if only one player left in game, we have a winner
 			//get the ID and index of the remaining player
 			let winnerId = myConfig.tonight.games[myConfig.tonight.games.length-1].playersInGame[0].playerUser._id;
@@ -1119,6 +1194,9 @@ io.on('connection', (socket) => {
 			io.emit('autoreveal all cards',cardSecrets.dealtCards);
 			io.emit('status update',`Showing winner. Waiting for ${myConfig.tonight.players.length - myConfig.gameEndAcknowledgements} players to acknowledge.`);
 			io.emit('show winners broadcast',myConfig);
+		} else {
+			//this is where game must move on to betting round if appropriate
+			isGameOver();
 		}
 		myConfig.tonight.save();
 	});
@@ -1151,7 +1229,7 @@ io.on('connection', (socket) => {
 	});
 
 	socket.on('I bet', (iBetObject) => {
-		io.emit('status update',`${myConfig.tonight.players[iBetObject.bettorIndex].playerUser.fullName} bets ${iBetObject.betAmt.toFixed(2)} ...`);
+		io.emit('status update',`${myConfig.tonight.players[iBetObject.bettorIndex].playerUser.fullName} bets ${(iBetObject.betAmt/100).toFixed(2)} ...`);
 		//add bet amt to player object
 		myConfig.tonight.players[iBetObject.bettorIndex].amtBetInRound += iBetObject.betAmt;
 		//increase betting round amtBetInRound if needed
@@ -1162,6 +1240,8 @@ io.on('connection', (socket) => {
 		myConfig.tonight.games[myConfig.tonight.games.length-1].amtPot += iBetObject.betAmt;
 		//subtract bet amount from player's balance
 		myConfig.tonight.players[iBetObject.bettorIndex].balanceForNight -= iBetObject.betAmt;
+		//add bet amount to player's amount bet in game
+		myConfig.tonight.players[iBetObject.bettorIndex].amtBetInGame += iBetObject.betAmt;
 		//create new bettor action broadcast object and emit it
 		console.log("The pot is now: " + myConfig.tonight.games[myConfig.tonight.games.length-1].amtPot);
 		let bettorActionBroadcastObject = {
@@ -1199,6 +1279,8 @@ io.on('connection', (socket) => {
 		myConfig.tonight.games[myConfig.tonight.games.length-1].amtPot += iRaiseObject.callAmt + iRaiseObject.raiseAmt;
 		//subtract call + raise amount from player's balance
 		myConfig.tonight.players[iRaiseObject.bettorIndex].balanceForNight -= (iRaiseObject.callAmt + iRaiseObject.raiseAmt);
+		//add call + raise amount to player's amount bet in game
+		myConfig.tonight.players[iRaiseObject.bettorIndex].amtBetInGame += (iRaiseObject.callAmt + iRaiseObject.raiseAmt);
 		//create new bettor action broadcast object and emit it
 		let bettorActionBroadcastObject = {
 			myConfig:myConfig,

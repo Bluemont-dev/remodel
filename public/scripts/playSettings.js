@@ -282,8 +282,8 @@ const lowHoleCard = {
     numCardsToPass: 0,
     fwdCardsToPass: false,
     numIndicatorCards: 0,
-    otherInstructions: `Aces in the hole are high unless you have nothing but aces.
-Last card can be up or down, your choice.`
+    otherInstructions: `Aces in the hole are high unless all your hole cards are aces.
+Last card is dealt face DOWN.`
 }
 
 const sevenCardStud = {

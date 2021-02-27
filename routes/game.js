@@ -65,6 +65,7 @@ router.get("/game/join", middleware.isLoggedIn, middleware.isNightInProgress, mi
 					isDealer: false,
 					hand: [],
 					amtBetInRound: 0,
+					amtBetInGame: 0,
 					declaration: "",
 					wantsACard: "",
 					timesDeclinedACard: 0,

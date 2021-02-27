@@ -13,14 +13,14 @@
   
             <div class="row flex-row" id="fullGameSettingsRow">
               <div class="col-md-12" id="mainGameSettingsColumn">
-                <div class="form-group">
+                <div class="form-group" id="gameNameChooserDiv"> <!-- note special treatment in play.css to temporarily disable customization via divs that follow -->
                   <label class="mr-2" for="gameName">Game name:</label>
                   <select name="gameName" id="gameName">
                     <option value="--Choose--">--Choose--</option> 
                     <!-- more options to be added via playClient.js -->
                   </select>
                 </div>
-                <div class="form-group d-flex flex-row">
+                <div class="form-group flex-row"> <!-- note d-flex class temporarily removed to disable customizations-->
                   <label class="mr-2" for="numCards">Number of cards dealt</label>
                   <input type="number" class="form-control" id="numCards" name="numCards" value="7" min="5" max="7" step="1">
                 </div>
@@ -41,7 +41,7 @@
                     </div>
                   </div>
                 </div>
-                <div class="form-group d-flex flex-row mt-2">
+                <div class="form-group flex-row mt-2"><!-- note d-flex class temporarily removed to disable customizations-->
                   <label class="mr-2" for="whatsWild">What's wild:</label>
                   <textarea id="whatsWild" name="whatsWild" rows="5" cols="33"></textarea>
                 </div>
@@ -96,11 +96,11 @@
                   <input type="checkbox" class="custom-control-input" id="peekAllowedFalse" name="peekAllowedFalse">
                   <label class="custom-control-label" for="peekAllowedFalse">No peek</label>
                 </div>              
-                <div class="form-group d-flex flex-row mt-2">
+                <div class="form-group flex-row mt-2"><!-- note d-flex class temporarily removed to disable customizations-->
                   <label class="mr-2" for="numIndicatorCards">Number of shared/indicator cards</label>
                   <input type="number" class="form-control" id="numIndicatorCards" name="numIndicatorCards" value="0" min="0" max="6" step="1">
                 </div>
-                <div class="form-group d-flex flex-row mt-2">
+                <div class="form-group flex-row mt-2"><!-- note d-flex class temporarily removed to disable customizations-->
                   <label class="mr-2" for="otherInstructions">Other Instructions:</label>
                   <textarea id="otherInstructions" name="otherInstructions" rows="5" cols="33"></textarea>
                 </div>

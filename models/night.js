@@ -17,6 +17,7 @@ const Night = new Schema({
         isDealer: Boolean,
         hand: [],
         amtBetInRound: Number,
+        amtBetInGame: Number,
         declaration: String,
         wantsACard: String,
         timesDeclinedACard: Number,
